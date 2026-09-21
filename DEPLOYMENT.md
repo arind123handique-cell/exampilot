@@ -21,18 +21,18 @@ Add all variables from `.env` in the **Production** environment:
 
 | Variable | Value |
 |----------|-------|
-| `VITE_FIREBASE_API_KEY` | `AIzaSyCzyyUIqIYcIcApKe2813aCPRW2RdXF6u4` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `exampilot-6836c.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | `exampilot-6836c` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `exampilot-6836c.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `818400419174` |
-| `VITE_FIREBASE_APP_ID` | `1:818400419174:web:7efac6e633785d26cfbca7` |
-| `VITE_FIREBASE_MEASUREMENT_ID` | `G-TF4YQG85N6` |
+| `VITE_FIREBASE_API_KEY` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_AUTH_DOMAIN` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_PROJECT_ID` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_STORAGE_BUCKET` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_APP_ID` | *(from your Firebase Console → Project settings)* |
+| `VITE_FIREBASE_MEASUREMENT_ID` | *(from your Firebase Console → Project settings)* |
 | `VITE_AI_PROVIDER` | `auto` |
 | `VITE_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` |
 | `VITE_OLLAMA_MODEL` | `qwen2.5-coder:7b` |
 | `VITE_GEMINI_API_KEY` | *(leave empty)* |
-| `VITE_ADMIN_PASSCODE` | `ExamPilot@Admin2026!` |
+| `VITE_ADMIN_PASSCODE_SHA256` | *(SHA-256 hash of your chosen passcode — see `.env.example`)* |
 
 > **Security note**: These secrets are in `.env` locally but should NOT be in git. They're stored as Vercel project env vars. Note: Vite inlines `VITE_*` variables at **build time**, so they must be added to Vercel env vars BEFORE the build runs — they cannot be added to `vercel.json`'s `env` field.
 
