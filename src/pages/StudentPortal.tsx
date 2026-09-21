@@ -101,7 +101,6 @@ export const StudentPortal: React.FC = () => {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
-    signInAsGuest,
     logout,
     error: authError,
     clearError
@@ -147,20 +146,6 @@ export const StudentPortal: React.FC = () => {
     } catch (err: any) {
       console.warn('Google sign-in error:', err);
       toastError('Google Sign-In Failed', err.message || 'Please use email credentials or retry.');
-    } finally {
-      setIsAuthSubmitting(false);
-    }
-  };
-
-  const handleGuestSignIn = async () => {
-    setIsAuthSubmitting(true);
-    clearError();
-    try {
-      await signInAsGuest();
-      toastSuccess('Guest Session Active', 'Ready to practice in offline mode.');
-    } catch (err: any) {
-      console.warn('Guest sign-in error:', err);
-      toastError('Guest Session Failed', err.message || 'Please try again.');
     } finally {
       setIsAuthSubmitting(false);
     }
@@ -654,7 +639,7 @@ export const StudentPortal: React.FC = () => {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // 1. UN-AUTHENTICATED: STUDENT CREDENTIAL LOGIN SCREEN
-  // Show login if: no user at all, or user is anonymous (auto-created offline session)
+  // Show login if: no signed-in user
   // ─────────────────────────────────────────────────────────────────────────────
   const isAuthenticated = Boolean(user);
 
@@ -689,14 +674,14 @@ export const StudentPortal: React.FC = () => {
 {/* Self-diagnosing deployment notice — a silent failure here previously
                  looked like "Google login is broken". */}
             {!isFirebaseConfigured && (
-              <div className="flex items-start gap-2 rounded-xl border border-success/50 bg-subtle/50 p-3 text-xs text-muted">
-                <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
+              <div className="flex items-start gap-2 rounded-xl border border-danger-border bg-danger-surface p-3 text-xs text-danger-text">
+                <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-ink">Running in Offline Mode</p>
+                  <p className="font-semibold">Sign-in unavailable</p>
                   <p>
-                    Firebase is not configured for this deployment, but you can
-                    still use all exam features. Sign in with email/password or
-                    continue as a guest — your progress is saved locally.
+                    Firebase is not configured for this deployment, so account
+                    sign-in cannot complete. Set the VITE_FIREBASE_* environment
+                    variables and redeploy.
                   </p>
                 </div>
               </div>
@@ -728,17 +713,6 @@ export const StudentPortal: React.FC = () => {
                 />
               </svg>
               <span>Continue with Google</span>
-            </button>
-
-            {/* Guest Sign-In Button (works offline when Firebase is not configured) */}
-            <button
-              type="button"
-              onClick={handleGuestSignIn}
-              disabled={isAuthSubmitting}
-              className="w-full h-11 px-4 rounded-2xl bg-subtle hover:bg-subtle-strong border border-line transition font-semibold text-xs text-ink flex items-center justify-center gap-3 shadow-xs active:scale-[0.99]"
-            >
-              <ShieldCheck className="w-4 h-4 flex-shrink-0 text-primary" />
-              <span>Continue as Guest (Offline)</span>
             </button>
 
             {/* Divider */}

@@ -9,8 +9,7 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   sendPasswordResetEmail,
-  updateProfile,
-  signInAnonymously
+  updateProfile
 } from 'firebase/auth';
 import { auth, db, isFirebaseConfigured } from '../firebase/config';
 import { UserProfile, UserPreferences } from '../types';
@@ -25,7 +24,6 @@ interface AuthContextType {
   signInWithEmail: (email: string, pass: string) => Promise<void>;
   signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  signInAsGuest: (name?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
@@ -96,7 +94,7 @@ export const formatAuthError = (err: any): string => {
   }
 
   if (code === 'auth/configuration-not-found' || msg.includes('configuration-not-found') || msg.includes('CONFIGURATION_NOT_FOUND')) {
-    return "Firebase Authentication is not activated for project 'exampilot-6836c'. In the Firebase Console, go to Build > Authentication, click 'Get Started', and enable Email/Password (or Anonymous). Alternatively, click 'Continue as Guest' below.";
+    return "Firebase Authentication is not activated for project 'exampilot-6836c'. In the Firebase Console, go to Build > Authentication, click 'Get Started', and enable Email/Password sign-in.";
   }
   if (code === 'auth/operation-not-allowed' || msg.includes('operation-not-allowed')) {
     return "This sign-in method is currently disabled in your Firebase project. Go to Firebase Console > Authentication > Sign-in method and enable it.";
@@ -116,7 +114,7 @@ export const formatAuthError = (err: any): string => {
   if (code === 'auth/network-request-failed') {
     return "Network connection issue. Please check your internet connection.";
   }
-  return msg || 'Authentication request failed. Please try again or continue in Guest mode.';
+  return msg || 'Authentication request failed. Please try again.';
 };
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -173,73 +171,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setError(err.message || 'Failed to fetch user profile');
           }
         } else {
-          // If no active auth user, check for cached session or create guest session
-          const cached = localStorage.getItem(USER_SESSION_CACHE_KEY);
-          if (cached) {
-            try {
-              setUser(JSON.parse(cached));
-            } catch {
-              setUser(null);
-            }
-          } else {
-            // Attempt seamless anonymous session for cloud persistence
-            let anonCred = null;
-            if (auth) {
-              try {
-                anonCred = await signInAnonymously(auth);
-              } catch (anonErr) {
-                console.warn('[ExamPilot] Anonymous sign-in not enabled on Firebase project; creating standard local session:', anonErr);
-              }
-            }
-
-            if (anonCred && anonCred.user) {
-              const guestProfile: UserProfile = {
-                uid: anonCred.user.uid,
-                email: null,
-                displayName: 'Civil Engineering Aspirant',
-                photoURL: null,
-                isAnonymous: true,
-                preferences: {
-                  examId: 'apsc-ae-civil',
-                  examName: 'APSC Assistant Engineer (Civil)',
-                  advtNumber: 'Advt 31/2025',
-                  targetYear: 2026,
-                  dailyHoursGoal: 4,
-                  currentStream: 'Civil Engineering',
-                  level: 'intermediate',
-                  onboarded: true
-                },
-                stats: { ...BASELINE_USER_STATS },
-                createdAt: new Date().toISOString()
-              };
-              await saveUserProfile(guestProfile);
-              setUser(guestProfile);
-              localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(guestProfile));
-            } else {
-              const offlineProfile: UserProfile = {
-                uid: 'user-' + Date.now().toString(36),
-                email: null,
-                displayName: 'Civil Engineering Aspirant',
-                photoURL: null,
-                isAnonymous: true,
-                preferences: {
-                  examId: 'apsc-ae-civil',
-                  examName: 'APSC Assistant Engineer (Civil)',
-                  advtNumber: 'Advt 31/2025',
-                  targetYear: 2026,
-                  dailyHoursGoal: 4,
-                  currentStream: 'Civil Engineering',
-                  level: 'intermediate',
-                  onboarded: true
-                },
-                stats: { ...BASELINE_USER_STATS },
-                createdAt: new Date().toISOString()
-              };
-              await saveUserProfile(offlineProfile);
-              setUser(offlineProfile);
-              localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
-            }
-          }
+          setUser(null);
+          localStorage.removeItem(USER_SESSION_CACHE_KEY);
         }
         setLoading(false);
       });
@@ -260,19 +193,6 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signInWithEmail = async (email: string, pass: string) => {
     setError(null);
 
-    if (!isFirebaseConfigured || !auth) {
-      // Offline fallback — create a local session matching the email
-      const offlineProfile: UserProfile = {
-        uid: 'user-' + Date.now().toString(36),
-        email, displayName: email.split('@')[0], photoURL: null, isAnonymous: true,
-        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'intermediate', onboarded: true },
-        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
-      };
-      await saveUserProfile(offlineProfile);
-      setUser(offlineProfile);
-      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
-      return;
-    }
     try {
       const authInstance = requireAuth();
       await timeoutPromise(signInWithEmailAndPassword(authInstance, email, pass), 8000, 'Sign in timed out. Please check network connection.');
@@ -286,17 +206,6 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     setError(null);
 
-    if (!isFirebaseConfigured || !auth) {
-      const offlineProfile: UserProfile = {
-        uid: 'user-' + Date.now().toString(36), email, displayName: name || email.split('@')[0], photoURL: null, isAnonymous: true,
-        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'beginner', onboarded: false },
-        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
-      };
-      await saveUserProfile(offlineProfile);
-      setUser(offlineProfile);
-      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
-      return;
-    }
     try {
       const authInstance = requireAuth();
       const cred = await timeoutPromise(createUserWithEmailAndPassword(authInstance, email, pass), 10000, 'Sign up timed out. Please check network connection.');
@@ -321,17 +230,6 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signInWithGoogle = async () => {
     setError(null);
 
-    if (!isFirebaseConfigured || !auth) {
-      const offlineProfile: UserProfile = {
-        uid: 'user-' + Date.now().toString(36), email: null, displayName: 'Civil Engineering Aspirant', photoURL: null, isAnonymous: true,
-        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'intermediate', onboarded: true },
-        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
-      };
-      await saveUserProfile(offlineProfile);
-      setUser(offlineProfile);
-      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
-      return;
-    }
     try {
       const authInstance = requireAuth();
       const provider = new GoogleAuthProvider();
@@ -355,72 +253,6 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
       setError(friendlyMsg);
       throw new Error(friendlyMsg);
     }
-  };
-
-  const signInAsGuest = async (name: string = 'Aspirant') => {
-    setError(null);
-    if (auth) {
-      try {
-        const cred = await signInAnonymously(auth);
-        if (cred.user) {
-          if (name) {
-            try {
-              await updateProfile(cred.user, { displayName: name });
-            } catch {
-              // ignore
-            }
-          }
-          const guestProfile: UserProfile = {
-            uid: cred.user.uid,
-            email: null,
-            displayName: name,
-            photoURL: null,
-            isAnonymous: true,
-            preferences: {
-              examId: 'apsc-ae-civil',
-              examName: 'APSC Assistant Engineer (Civil)',
-              advtNumber: 'Advt 31/2025',
-              targetYear: 2026,
-              dailyHoursGoal: 4,
-              currentStream: 'Civil Engineering',
-              level: 'intermediate',
-              onboarded: true
-            },
-            stats: { ...BASELINE_USER_STATS },
-            createdAt: new Date().toISOString()
-          };
-          await saveUserProfile(guestProfile);
-          setUser(guestProfile);
-          localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(guestProfile));
-          return;
-        }
-      } catch (anonErr) {
-        console.warn('Anonymous sign-in not available, using offline guest session:', anonErr);
-      }
-    }
-
-    const offlineUser: UserProfile = {
-      uid: 'user-' + Date.now().toString(36),
-      email: null,
-      displayName: name,
-      photoURL: null,
-      isAnonymous: true,
-      preferences: {
-        examId: 'apsc-ae-civil',
-        examName: 'APSC Assistant Engineer (Civil)',
-        advtNumber: 'Advt 31/2025',
-        targetYear: 2026,
-        dailyHoursGoal: 4,
-        currentStream: 'Civil Engineering',
-        level: 'intermediate',
-        onboarded: true
-      },
-      stats: { ...BASELINE_USER_STATS },
-      createdAt: new Date().toISOString()
-    };
-    await saveUserProfile(offlineUser);
-    setUser(offlineUser);
-    localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineUser));
   };
 
   const logout = async () => {
@@ -516,7 +348,6 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
         signInWithEmail,
         signUpWithEmail,
         signInWithGoogle,
-        signInAsGuest,
         logout,
         resetPassword,
         updatePreferences,

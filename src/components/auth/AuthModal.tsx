@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { isFirebaseConfigured } from '../../firebase/config';
-import { X, Mail, Lock, User, AlertCircle, Sparkles, CheckCircle2, KeyRound, ShieldCheck, ExternalLink } from 'lucide-react';
+import { X, Mail, Lock, User, AlertCircle, Sparkles, CheckCircle2, KeyRound, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useToast } from '../../context/ToastContext';
@@ -23,14 +23,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [name, setName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isGuestLoading, setIsGuestLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
-    signInAsGuest,
     resetPassword,
     error,
     clearError
@@ -86,20 +84,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       // handled
     } finally {
       setIsGoogleLoading(false);
-    }
-  };
-
-  const handleGuestAuth = async () => {
-    clearError();
-    setIsGuestLoading(true);
-    try {
-      await signInAsGuest();
-      toastSuccess('Guest Session Active', 'Ready to practice offline.');
-      onClose();
-    } catch (err) {
-      // handled
-    } finally {
-      setIsGuestLoading(false);
     }
   };
 
@@ -233,14 +217,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     <span>Firebase Console</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
-                  <button
-                    type="button"
-                    onClick={handleGuestAuth}
-                    className="inline-flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-[11px] font-bold text-white hover:bg-primary-dark transition shadow-xs"
-                  >
-                    <ShieldCheck className="w-3 h-3" />
-                    <span>Continue in Offline / Guest Mode</span>
-                  </button>
                 </div>
               )}
             </div>
@@ -259,7 +235,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               variant="secondary"
               fullWidth
               loading={isGoogleLoading}
-              disabled={isSubmitting || isGuestLoading}
+              disabled={isSubmitting}
               onClick={handleGoogleAuth}
               className="justify-center gap-2.5 shadow-sm"
             >
@@ -282,18 +258,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 />
               </svg>
               Continue with Google
-            </Button>
-
-            <Button
-              variant="secondary"
-              fullWidth
-              loading={isGuestLoading}
-              disabled={isSubmitting || isGoogleLoading}
-              onClick={handleGuestAuth}
-              icon={<ShieldCheck className="w-3.5 h-3.5 text-primary" />}
-              className="justify-center gap-2"
-            >
-              Continue as Guest
             </Button>
           </div>
 
@@ -371,7 +335,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               variant="primary"
               fullWidth
               loading={isSubmitting}
-              disabled={isGoogleLoading || isGuestLoading}
+              disabled={isGoogleLoading}
               className="shadow-md shadow-primary/20"
             >
               {mode === 'signin' ? 'Sign In to Dashboard' : mode === 'signup' ? 'Create Free Account' : 'Send Recovery Link'}
