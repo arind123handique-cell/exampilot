@@ -9,7 +9,10 @@
     "preview": "vite preview",
     "test": "node scripts/validate-knowledge-modules.mjs && node scripts/test-numerical-engine.mjs && node scripts/test-ai-validation.mjs",
     "audit:content": "node scripts/audit-content-coverage.mjs",
-    "audit:coverage": "node scripts/coverage-report.mjs --requests"
+    "audit:coverage": "node scripts/coverage-report.mjs --requests",
+    "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox",
+    "pyq:inspect": "python tools/pyq_exporter/extract_pyq.py --inspect",
+    "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild"
   },
   "dependencies": {
     "@types/canvas-confetti": "^1.9.0",

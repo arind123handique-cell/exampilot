@@ -13,6 +13,9 @@ import { CIVIL_IES_APSC_QUESTIONS } from './civilIesApscBank';
 import { STATEMENT_BASED_QUESTIONS } from './statementQuestions';
 import { CPM_PERT_QUESTIONS } from './cpmPertQuestions';
 import { EXAMVEDA_SOIL_QUESTIONS } from './soilMechanicsExamvedaBank';
+// Papers imported by the PYQ exporter (pyq-inbox/import-pyq.bat). Regenerated on
+// every run; the placeholder exports empty arrays, so this import is always safe.
+import { GENERATED_PYQ_PAPERS, GENERATED_PYQ_MOCK_TESTS } from './pyq/generated';
 
 export const GENERAL_STUDIES_QUESTIONS: MCQQuestion[] = [
   ...GS_CORE_QUESTIONS,
@@ -471,6 +474,8 @@ export const MOCK_TEST_IES_CIVIL: MockTest = {
 };
 
 export const MOCK_TESTS: MockTest[] = [
+  // Imported PYQ papers come first so a freshly added paper is prominent.
+  ...GENERATED_PYQ_MOCK_TESTS,
   MOCK_TEST_AE_WRD_2025,
   MOCK_TEST_UTO_2025,
   MOCK_TEST_DWR_2026,
@@ -750,6 +755,8 @@ export const INITIAL_MILESTONES: StudyMilestone[] = [
 ];
 
 export const PYQ_PAPERS: PYQPaper[] = [
+  // Papers extracted from pyq-inbox/ (see tools/pyq_exporter).
+  ...GENERATED_PYQ_PAPERS,
   {
     id: 'pyq-apsc-dwr-2026',
     examName: 'Assam DWR (Water Resources) Paper II (Series A)',
