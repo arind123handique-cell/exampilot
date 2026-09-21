@@ -17,9 +17,9 @@
     "test": "node scripts/validate-knowledge-modules.mjs && node scripts/test-numerical-engine.mjs && node scripts/test-ai-validation.mjs",
     "audit:content": "node scripts/audit-content-coverage.mjs",
     "audit:coverage": "node scripts/coverage-report.mjs --requests",
-    "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox",
+    "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox --supabase",
     "pyq:inspect": "python tools/pyq_exporter/extract_pyq.py --inspect",
-    "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild",
+    "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild --supabase",
     "supabase:dump": "tsx scripts/migrate-to-supabase.ts",
     "supabase:migrate": "tsx --env-file=.env scripts/migrate-to-supabase.ts --upload"
   },
