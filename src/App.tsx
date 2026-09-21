@@ -29,7 +29,7 @@ const AppContent: React.FC = () => {
 
   // ───── 2. Dedicated Student Website / Portal (Mock Tests & Review Only) ─────
   return (
-    <StudentPortal />
+    <StudentPortal presetMock={presetMock} />
   );
 };
 

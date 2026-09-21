@@ -93,50 +93,46 @@ function saveStudentRecords(uid: string, records: StudentTestRecord[]): void {
   } catch {}
 }
 
-export const StudentPortal: React.FC = () => {
-  const {
-    user,
-    firebaseUser,
-    loading: authLoading,
-    signInWithEmail,
-    signUpWithEmail,
-    signInWithGoogle,
-    signInAsGuest,
-    logout,
-    error: authError,
-    clearError
-  } = useAuth();
+interface StudentPortalProps {
+  presetMock?: MockTest | null;
+}
+
+export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
+  const { user, error: authError, logout, signInWithGoogle, signInAsGuest, signInWithEmail, signUpWithEmail, clearError } = useAuth();
   const { success: toastSuccess, error: toastError } = useToast();
 
-  // ── Mascot Character Buddy State ──
-  const [mascotChar, setMascotChar] = useState<MascotCharacter>('owl');
-
-  // ── Auth Form State ──
+  const [studentTab, setStudentTab] = useState<'tests' | 'review' | 'profile' | 'analytics'>('tests');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
-
-  // ── Student Tabs (Mock Tests vs Review vs Profile vs Analytics) ──
-  const [studentTab, setStudentTab] = useState<'tests' | 'review' | 'profile' | 'analytics'>('tests');
-
-  // ── Question palette drawer (the desktop aside is hidden below lg) ──
   const [showPaletteMobile, setShowPaletteMobile] = useState(false);
 
-  // ── Published Mock Tests List with Real-time Cross-tab Sync ──
+  // Mascot Companion Character State
+  const [mascotChar, setMascotChar] = useState<MascotCharacter>(() => {
+    return (localStorage.getItem('exampilot_mascot') as MascotCharacter) || 'bear';
+  });
+
+  // Available Mock Tests (combined local static and admin published)
   const [availableMocks, setAvailableMocks] = useState<MockTest[]>(() => getAllCombinedMockTests(MOCK_TESTS));
 
-  useRealtimeSync(['mocks', 'papers', 'all'], () => {
+  const refreshMocks = () => {
     setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
+  };
+
+  useRealtimeSync(['mocks', 'papers', 'all'], () => {
+    refreshMocks();
   });
 
   useEffect(() => {
-    const handleUpdate = () => {
-      setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'exampilot_admin_published_papers') {
+        refreshMocks();
+      }
     };
-    window.addEventListener('exampilot_papers_updated', handleUpdate);
-    return () => window.removeEventListener('exampilot_papers_updated', handleUpdate);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const handleGoogleSignIn = async () => {
@@ -176,10 +172,12 @@ export const StudentPortal: React.FC = () => {
   const [showConfirmSubmit, setShowConfirmSubmit] = useState(false);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
 
-  // ── Test Review State ──
+  // ── Test Review State & Filtering ──
   const [currentResult, setCurrentResult] = useState<TestSubmission | null>(null);
   const [pastRecords, setPastRecords] = useState<StudentTestRecord[]>([]);
   const [reviewingRecord, setReviewingRecord] = useState<StudentTestRecord | null>(null);
+  // Default review filter is 'appeared' so submitted test displays ONLY the questions the candidate appeared for!
+  const [reviewFilter, setReviewFilter] = useState<'appeared' | 'incorrect' | 'correct' | 'all'>('appeared');
 
   // ── Resumable in-progress attempt (survives refresh / tab close) ──
   const [resumableDraft, setResumableDraft] = useState<TestDraft | null>(null);
@@ -460,6 +458,13 @@ export const StudentPortal: React.FC = () => {
     );
   };
 
+  // ── Auto-launch preset mock test if provided (e.g. from Admin portal Launch) ──
+  useEffect(() => {
+    if (presetMock) {
+      handleStartMock(presetMock);
+    }
+  }, [presetMock]);
+
   // ── Resume a previously autosaved attempt ──
   const handleResumeDraft = () => {
     const draft = resumableDraft;
@@ -600,6 +605,7 @@ export const StudentPortal: React.FC = () => {
     void deleteTestDraft(activeMock.id, user?.uid);
     setResumableDraft(null);
     setShowPaletteMobile(false);
+    setReviewFilter('appeared');
     setCurrentResult(submission);
     setStudentTab('review');
 
@@ -995,54 +1001,174 @@ export const StudentPortal: React.FC = () => {
               <div className="space-y-6">
                 <QuestionStemFormatter stem={currentQ.stem} />
 
+                {/* Options A, B, C, D — interactive instant feedback on choice */}
                 <div className="space-y-2.5 max-w-2xl">
                   {currentQ.options.map((opt) => {
-                    const isSelected = selectedAnswers[currentQ.id] === opt.id;
-                    const isCorrectOption = opt.id === currentQ.correctOption;
-                    const hasRevealedAnswer = Boolean(selectedAnswers[currentQ.id]);
-                    const showCorrectMark = hasRevealedAnswer && isCorrectOption;
-                    const showIncorrectMark = hasRevealedAnswer && isSelected && !isCorrectOption;
+                    const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
+                    const userChoice = selectedAnswers[currentQ.id];
+                    const hasAnswered = Boolean(userChoice);
+                    const isThisSelected = normalize(userChoice) === normalize(opt.id);
+                    const isThisCorrect = normalize(opt.id) === normalize(currentQ.correctOption);
+
+                    let optStyle = 'border-line hover:border-line-strong bg-card text-ink';
+                    if (hasAnswered) {
+                      if (isThisCorrect) {
+                        optStyle = 'border-success bg-success-surface text-success-text font-bold ring-2 ring-success/30';
+                      } else if (isThisSelected && !isThisCorrect) {
+                        optStyle = 'border-danger bg-danger-surface text-danger-text line-through font-semibold ring-2 ring-danger/30';
+                      } else {
+                        optStyle = 'border-line bg-card/60 text-muted opacity-70';
+                      }
+                    }
 
                     return (
                       <button
                         key={opt.id}
+                        type="button"
                         onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: opt.id }))}
-                        aria-pressed={isSelected}
-                        className={`w-full p-4 rounded-xl border-2 text-left text-xs sm:text-sm font-medium transition flex items-center gap-3 ${
-                          showCorrectMark
-                            ? 'border-success-border bg-success-surface text-success-text font-semibold'
-                            : showIncorrectMark
-                              ? 'border-danger-border bg-danger-surface text-danger-text line-through font-semibold'
-                              : isSelected
-                                ? 'border-primary bg-primary-fixed/30 text-ink font-semibold ring-2 ring-primary/30'
-                                : 'border-line hover:border-line-strong bg-card text-ink'
-                        }`}
+                        aria-pressed={isThisSelected}
+                        className={`w-full p-4 rounded-xl border-2 text-left text-xs sm:text-sm transition flex items-center gap-3 ${optStyle}`}
                       >
-                        <span className={`w-7 h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 ${isSelected || showCorrectMark ? 'bg-primary text-white' : 'bg-subtle text-muted'}`}>
+                        <span className={`w-7 h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 ${
+                          hasAnswered && isThisCorrect
+                            ? 'bg-success text-white'
+                            : hasAnswered && isThisSelected && !isThisCorrect
+                            ? 'bg-danger text-white'
+                            : isThisSelected
+                            ? 'bg-primary text-white'
+                            : 'bg-subtle text-muted'
+                        }`}>
                           {opt.id}
                         </span>
                         <span className="flex-1">{opt.text}</span>
-                        {showCorrectMark && <Check className="w-5 h-5 text-success-text flex-shrink-0" />}
-                        {showIncorrectMark && <XCircle className="w-5 h-5 text-danger-text flex-shrink-0" />}
+
+                        {hasAnswered && isThisCorrect && (
+                          <span className="flex items-center gap-1 text-xs font-bold text-success-text bg-success-surface px-2.5 py-1 rounded-lg border border-success-border">
+                            <Check className="w-4 h-4 text-success-text flex-shrink-0" />
+                            <span>Correct</span>
+                          </span>
+                        )}
+                        {hasAnswered && isThisSelected && !isThisCorrect && (
+                          <span className="flex items-center gap-1 text-xs font-bold text-danger-text bg-danger-surface px-2.5 py-1 rounded-lg border border-danger-border">
+                            <XCircle className="w-4 h-4 text-danger-text flex-shrink-0" />
+                            <span>Your Choice</span>
+                          </span>
+                        )}
                       </button>
                     );
                   })}
                 </div>
 
-                {selectedAnswers[currentQ.id] && (
-                  <div className="max-w-2xl space-y-2 rounded-xl border border-success-border bg-success-surface p-3.5 text-xs text-ink">
-                    <div className="flex items-center gap-2 font-semibold text-success-text">
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Answer revealed</span>
+                {/* Instant Answer & Detailed Explanation Panel */}
+                {selectedAnswers[currentQ.id] && (() => {
+                  const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
+                  const userChoice = selectedAnswers[currentQ.id];
+                  const isUserCorrect = normalize(userChoice) === normalize(currentQ.correctOption);
+                  const correctOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(currentQ.correctOption));
+                  const userOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(userChoice));
+                  const marksForThisQ = Number((activeMock.totalMarks / allQuestions.length).toFixed(2));
+
+                  return (
+                    <div className={`max-w-2xl space-y-4 rounded-2xl border-2 p-5 transition-all shadow-md animate-fadeIn ${
+                      isUserCorrect
+                        ? 'bg-success-surface/80 border-success-border text-ink'
+                        : 'bg-danger-surface/40 border-danger-border text-ink'
+                    }`}>
+                      {/* Result Status Header */}
+                      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-line">
+                        <div className="flex items-center gap-2">
+                          {isUserCorrect ? (
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success text-white font-bold text-xs shadow-xs">
+                              <CheckCircle2 className="w-4 h-4" /> Correct Answer (+{marksForThisQ} Marks)
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger text-white font-bold text-xs shadow-xs">
+                              <XCircle className="w-4 h-4" /> Incorrect (-{activeMock.negativeMarksPerIncorrect} Penalty)
+                            </span>
+                          )}
+                        </div>
+
+                        <span className="text-[11px] font-semibold text-muted">
+                          Topic: <span className="text-ink font-bold">{currentQ.topic || currentQ.subject}</span>
+                        </span>
+                      </div>
+
+                      {/* Correct vs Selected Summary */}
+                      <div className="p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs">
+                        <div className="flex items-start gap-2">
+                          <span className="font-bold text-success-text flex-shrink-0 min-w-[110px]">Correct Option:</span>
+                          <span className="font-bold text-ink">
+                            Option {currentQ.correctOption} — {correctOptObj?.text || ''}
+                          </span>
+                        </div>
+                        {!isUserCorrect && (
+                          <div className="flex items-start gap-2">
+                            <span className="font-bold text-danger-text flex-shrink-0 min-w-[110px]">Your Answer:</span>
+                            <span className="text-muted line-through font-medium">
+                              Option {userChoice} — {userOptObj?.text || ''}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Mascot Reaction */}
+                      <div className="py-1 flex items-center justify-between">
+                        <CartoonMascot
+                          character={mascotChar}
+                          state={isUserCorrect ? 'celebrating' : 'cheer_up'}
+                          size="sm"
+                          onCharacterChange={(c) => setMascotChar(c)}
+                        />
+                        <span className="text-[11px] text-muted italic">
+                          {isUserCorrect ? 'Great job! Keep the momentum going.' : "Don't worry, review the explanation below to master this concept."}
+                        </span>
+                      </div>
+
+                      {/* Formula Context (if available) */}
+                      {currentQ.formulaContext && (
+                        <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">Formula / Law:</span>
+                          <span className="flex-1">{currentQ.formulaContext}</span>
+                          {currentQ.answerUnit && (
+                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
+                              Unit: {currentQ.answerUnit}
+                            </span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Step-by-Step Solution (if available) */}
+                      {currentQ.solutionSteps && currentQ.solutionSteps.length > 0 && (
+                        <div className="space-y-2 pt-1">
+                          <div className="text-[11px] font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                            <span>Step-by-Step Working:</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {currentQ.solutionSteps.map((step, sIdx) => (
+                              <div key={sIdx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface border border-line text-xs text-ink">
+                                <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                                  {sIdx + 1}
+                                </span>
+                                <span className="leading-relaxed font-mono">{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Full Official Solution Explanation */}
+                      <div className="pt-2 border-t border-line text-xs sm:text-sm text-ink leading-relaxed">
+                        <div className="font-bold text-primary mb-1.5 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          <span>Official Solution &amp; Explanation:</span>
+                        </div>
+                        <p className="whitespace-pre-line text-ink bg-surface p-3.5 rounded-xl border border-line text-xs sm:text-sm leading-relaxed">
+                          {currentQ.explanation || 'Official answer verified per state examination key and standard engineering references.'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <strong>Correct answer:</strong> {currentQ.correctOption}
-                    </div>
-                    <div>
-                      <strong>Explanation:</strong> {currentQ.explanation}
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
               </div>
             )}
@@ -1550,90 +1676,257 @@ export const StudentPortal: React.FC = () => {
                         </div>
                       </Card>
 
-                      {/* Question-by-Question Solution Review */}
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between text-xs text-muted">
-                          <h3 className="font-display font-bold text-sm text-ink flex items-center gap-2">
-                            <Eye className="w-4 h-4 text-primary" />
-                            <span>Question-by-Question Solution Review ({totalQs} Questions)</span>
-                          </h3>
-                        </div>
+                      {/* Question-by-Question Solution Review with Appeared-Only Default Filter */}
+                      {(() => {
+                        const allMockQs = targetMock.sections.flatMap((s) => s.questions);
+                        const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
 
-                        <div className="space-y-3">
-                          {targetMock.sections.flatMap((s) => s.questions).map((q, idx) => {
-                            const ans = sub.answers[q.id];
-                            const chosen = ans?.selected;
-                            const isCorrect = ans?.isCorrect;
-                            const wasAttempted = Boolean(chosen);
+                        const appearedQs = allMockQs.filter((q) => Boolean(sub.answers[q.id]?.selected));
+                        const incorrectQs = appearedQs.filter((q) => !sub.answers[q.id]?.isCorrect);
+                        const correctQs = appearedQs.filter((q) => sub.answers[q.id]?.isCorrect);
 
-                            return (
-                              <Card flush className="p-5 space-y-3" key={q.id}>
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="flex items-center gap-2 text-xs">
-                                    <span className="px-2 py-0.5 rounded bg-subtle text-ink font-mono font-bold text-[10px]">
-                                      Q.{idx + 1}
-                                    </span>
-                                    <span className="font-semibold text-ink-soft">{q.subject}</span>
-                                    <span className="text-muted-faint">•</span>
-                                    <span className="text-muted">{q.topic}</span>
-                                  </div>
+                        const displayedQs = reviewFilter === 'appeared'
+                          ? appearedQs
+                          : reviewFilter === 'incorrect'
+                          ? incorrectQs
+                          : reviewFilter === 'correct'
+                          ? correctQs
+                          : allMockQs;
 
-                                  <div>
-                                    {wasAttempted ? (
-                                      isCorrect ? (
-                                        <span className="px-2.5 py-1 rounded-full bg-success-surface text-success-text font-bold text-xs flex items-center gap-1">
-                                          <CheckCircle2 className="w-3.5 h-3.5" /> Correct (+{targetMock.totalMarks / totalQs})
-                                        </span>
-                                      ) : (
-                                        <span className="px-2.5 py-1 rounded-full bg-danger-surface text-danger-text font-bold text-xs flex items-center gap-1">
-                                          <XCircle className="w-3.5 h-3.5" /> Incorrect (-{targetMock.negativeMarksPerIncorrect})
-                                        </span>
-                                      )
-                                    ) : (
-                                      <span className="px-2.5 py-1 rounded-full bg-subtle text-muted font-semibold text-xs">
-                                        Skipped (0.00)
-                                      </span>
-                                    )}
-                                  </div>
+                        return (
+                          <div className="space-y-4">
+                            {/* Section Header & Filter Tabs */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-line">
+                              <h3 className="font-display font-bold text-base text-ink flex items-center gap-2">
+                                <Eye className="w-4 h-4 text-primary" />
+                                <span>Question-by-Question Solutions</span>
+                              </h3>
+
+                              {/* Filter Bar */}
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewFilter('appeared')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                    reviewFilter === 'appeared'
+                                      ? 'bg-primary text-white shadow-xs'
+                                      : 'bg-subtle text-muted hover:text-ink border border-line'
+                                  }`}
+                                >
+                                  <UserIcon className="w-3.5 h-3.5" />
+                                  <span>Appeared Only ({appearedQs.length})</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewFilter('incorrect')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                    reviewFilter === 'incorrect'
+                                      ? 'bg-danger text-white shadow-xs'
+                                      : 'bg-subtle text-muted hover:text-ink border border-line'
+                                  }`}
+                                >
+                                  <XCircle className="w-3.5 h-3.5" />
+                                  <span>Mistakes ({incorrectQs.length})</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewFilter('correct')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                    reviewFilter === 'correct'
+                                      ? 'bg-success text-white shadow-xs'
+                                      : 'bg-subtle text-muted hover:text-ink border border-line'
+                                  }`}
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                  <span>Correct ({correctQs.length})</span>
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewFilter('all')}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                    reviewFilter === 'all'
+                                      ? 'bg-ink text-white dark:bg-card dark:text-ink shadow-xs'
+                                      : 'bg-subtle text-muted hover:text-ink border border-line'
+                                  }`}
+                                >
+                                  <BookOpen className="w-3.5 h-3.5" />
+                                  <span>All Questions ({totalQs})</span>
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Subtitle explaining current filter */}
+                            <div className="text-xs text-muted">
+                              {reviewFilter === 'appeared' && (
+                                <span>Showing only the <strong>{appearedQs.length}</strong> questions you answered during this examination.</span>
+                              )}
+                              {reviewFilter === 'incorrect' && (
+                                <span>Showing <strong>{incorrectQs.length}</strong> questions answered incorrectly. Review solutions to improve.</span>
+                              )}
+                              {reviewFilter === 'correct' && (
+                                <span>Showing <strong>{correctQs.length}</strong> questions answered correctly.</span>
+                              )}
+                              {reviewFilter === 'all' && (
+                                <span>Showing all <strong>{totalQs}</strong> questions from this mock paper (attempted and skipped).</span>
+                              )}
+                            </div>
+
+                            {/* Empty State if filter returns 0 questions */}
+                            {displayedQs.length === 0 ? (
+                              <Card flush className="p-8 text-center space-y-3 border-dashed">
+                                <div className="w-10 h-10 rounded-full bg-subtle text-muted mx-auto flex items-center justify-center">
+                                  <BookOpen className="w-5 h-5" />
                                 </div>
-
-                                <QuestionStemFormatter stem={q.stem} />
-
-                                {/* Options with user choice vs official key */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                  {q.options.map((opt) => {
-                                    const isThisCorrect = opt.id === q.correctOption;
-                                    const isThisChosen = chosen === opt.id;
-
-                                    let optClass = 'bg-card border-line text-ink-soft';
-                                    if (isThisCorrect) {
-                                      optClass = 'bg-success-surface border-success-border text-success-text font-bold';
-                                    } else if (isThisChosen && !isThisCorrect) {
-                                      optClass = 'bg-danger-surface border-danger-border text-danger-text line-through font-semibold';
-                                    }
-
-                                    return (
-                                      <div key={opt.id} className={`p-2.5 rounded-lg border flex items-center gap-2 ${optClass}`}>
-                                        <span className="w-5 h-5 rounded font-mono font-bold text-center leading-5 text-[10px] bg-subtle-strong">
-                                          {opt.id}
-                                        </span>
-                                        <span className="flex-1">{opt.text}</span>
-                                        {isThisCorrect && <Check className="w-4 h-4 text-success-text flex-shrink-0" />}
-                                        {isThisChosen && !isThisCorrect && <XCircle className="w-4 h-4 text-danger-text flex-shrink-0" />}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-
-                                {/* Explanation */}
-                                <div className="p-3 rounded-xl bg-subtle border border-line text-xs text-ink-soft leading-relaxed pt-2">
-                                  <strong>Official Solution:</strong> {q.explanation}
-                                </div>
+                                <h4 className="font-bold text-sm text-ink">
+                                  {reviewFilter === 'appeared'
+                                    ? 'No questions were answered during this mock test.'
+                                    : reviewFilter === 'incorrect'
+                                    ? 'No incorrect answers! You got 100% of your attempted questions right.'
+                                    : 'No questions matching this filter.'}
+                                </h4>
+                                <p className="text-xs text-muted max-w-sm mx-auto">
+                                  {reviewFilter === 'appeared'
+                                    ? `You can study all ${totalQs} questions and their official solutions by clicking below.`
+                                    : 'Switch filters above to inspect other questions.'}
+                                </p>
+                                {reviewFilter === 'appeared' && (
+                                  <Button size="sm" variant="outline" onClick={() => setReviewFilter('all')}>
+                                    View All Questions ({totalQs})
+                                  </Button>
+                                )}
                               </Card>
-                            );
-                          })}
-                        </div>
-                      </div>
+                            ) : (
+                              <div className="space-y-4">
+                                {displayedQs.map((q, idx) => {
+                                  const ans = sub.answers[q.id];
+                                  const chosen = ans?.selected;
+                                  const isCorrect = ans?.isCorrect;
+                                  const wasAttempted = Boolean(chosen);
+                                  const marksPerQ = Number((targetMock.totalMarks / totalQs).toFixed(2));
+
+                                  return (
+                                    <Card flush className="p-5 space-y-3.5 border-line" key={q.id}>
+                                      <div className="flex items-start justify-between gap-3 flex-wrap">
+                                        <div className="flex items-center gap-2 text-xs flex-wrap">
+                                          <span className="px-2.5 py-0.5 rounded-lg bg-primary-fixed text-primary font-mono font-bold text-xs">
+                                            Q.{q.questionNumber || idx + 1}
+                                          </span>
+                                          <span className="font-semibold text-ink">{q.subject}</span>
+                                          <span className="text-muted-faint">•</span>
+                                          <span className="text-muted">{q.topic}</span>
+                                        </div>
+
+                                        <div>
+                                          {wasAttempted ? (
+                                            isCorrect ? (
+                                              <span className="px-3 py-1 rounded-full bg-success text-white font-bold text-xs flex items-center gap-1 shadow-xs">
+                                                <CheckCircle2 className="w-3.5 h-3.5" /> Correct (+{marksPerQ})
+                                              </span>
+                                            ) : (
+                                              <span className="px-3 py-1 rounded-full bg-danger text-white font-bold text-xs flex items-center gap-1 shadow-xs">
+                                                <XCircle className="w-3.5 h-3.5" /> Incorrect (-{targetMock.negativeMarksPerIncorrect})
+                                              </span>
+                                            )
+                                          ) : (
+                                            <span className="px-2.5 py-1 rounded-full bg-subtle text-muted font-semibold text-xs border border-line">
+                                              Skipped / Unattempted (0.00)
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      <QuestionStemFormatter stem={q.stem} />
+
+                                      {/* Options with user choice vs official key */}
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                        {q.options.map((opt) => {
+                                          const isThisCorrect = normalize(opt.id) === normalize(q.correctOption);
+                                          const isThisChosen = normalize(chosen) === normalize(opt.id);
+
+                                          let optClass = 'bg-card border-line text-ink-soft';
+                                          if (isThisCorrect) {
+                                            optClass = 'bg-success-surface border-success-border text-success-text font-bold ring-1 ring-success-border';
+                                          } else if (isThisChosen && !isThisCorrect) {
+                                            optClass = 'bg-danger-surface border-danger-border text-danger-text line-through font-semibold ring-1 ring-danger-border';
+                                          }
+
+                                          return (
+                                            <div key={opt.id} className={`p-3 rounded-xl border flex items-center gap-2.5 ${optClass}`}>
+                                              <span className={`w-6 h-6 rounded-lg font-mono font-bold text-center leading-6 text-xs flex-shrink-0 ${
+                                                isThisCorrect
+                                                  ? 'bg-success text-white'
+                                                  : isThisChosen && !isThisCorrect
+                                                  ? 'bg-danger text-white'
+                                                  : 'bg-subtle text-muted'
+                                              }`}>
+                                                {opt.id}
+                                              </span>
+                                              <span className="flex-1">{opt.text}</span>
+                                              {isThisCorrect && (
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded border border-success-border">
+                                                  <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                                                  <span>Key</span>
+                                                </span>
+                                              )}
+                                              {isThisChosen && !isThisCorrect && (
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-danger-text bg-danger-surface px-2 py-0.5 rounded border border-danger-border">
+                                                  <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                                  <span>Your Choice</span>
+                                                </span>
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+
+                                      {/* Formula context if available */}
+                                      {q.formulaContext && (
+                                        <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
+                                          <span className="font-bold text-indigo-600 dark:text-indigo-400">Formula:</span>
+                                          <span className="flex-1">{q.formulaContext}</span>
+                                          {q.answerUnit && (
+                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
+                                              Unit: {q.answerUnit}
+                                            </span>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {/* Step-by-step solution if available */}
+                                      {q.solutionSteps && q.solutionSteps.length > 0 && (
+                                        <div className="space-y-1.5 pt-1">
+                                          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-faint">
+                                            Step-by-Step Working:
+                                          </div>
+                                          {q.solutionSteps.map((step, sIdx) => (
+                                            <div key={sIdx} className="flex items-start gap-2 p-2 rounded-lg bg-subtle border border-line text-xs text-ink">
+                                              <span className="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                {sIdx + 1}
+                                              </span>
+                                              <span className="leading-relaxed font-mono">{step}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+
+                                      {/* Explanation */}
+                                      <div className="p-3.5 rounded-xl bg-subtle border border-line text-xs sm:text-sm text-ink-soft leading-relaxed">
+                                        <strong className="text-primary font-bold mr-1.5">Official Solution:</strong>
+                                        <span className="text-ink">
+                                          {q.explanation || 'Official answer verified per state examination key and syllabus standards.'}
+                                        </span>
+                                      </div>
+                                    </Card>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </>
                   );
                 })()}
@@ -1696,7 +1989,10 @@ export const StudentPortal: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setReviewingRecord(rec)}
+                            onClick={() => {
+                              setReviewFilter('appeared');
+                              setReviewingRecord(rec);
+                            }}
                             iconRight={<Eye className="w-3.5 h-3.5" />}
                           >
                             Review Solutions
