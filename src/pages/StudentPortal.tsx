@@ -927,7 +927,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     };
 
     return (
-      <div className="h-screen w-full max-w-full flex flex-col bg-canvas text-ink overflow-hidden">
+      <div className="h-screen h-[100dvh] w-full max-w-full flex flex-col bg-canvas text-ink overflow-hidden relative">
         {/* CBT Top Bar */}
         <header className="h-14 border-b border-line bg-card flex items-center justify-between px-2 sm:px-4 md:px-6 flex-shrink-0 z-20 w-full max-w-full overflow-hidden">
           <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-1 sm:mr-2">
@@ -993,7 +993,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           {/* Main Column: Question area and persistent sticky bottom navigation bar */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0 w-full max-w-full">
             {/* Scrollable Question area */}
-            <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 w-full max-w-full min-w-0">
+            <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 w-full max-w-full min-w-0 pb-28 sm:pb-32">
               <div className="flex items-center justify-between text-[11px] sm:text-xs text-muted pb-2 border-b border-line gap-2 flex-wrap">
                 <span className="font-bold text-primary flex-shrink-0">
                   Question {currentIndex + 1} of {allQuestions.length}
@@ -1173,6 +1173,25 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                             {currentQ.explanation || 'Official answer verified per state examination key and standard engineering references.'}
                           </p>
                         </div>
+
+                        {/* Inline Quick Next Question Button */}
+                        <div className="pt-2 flex items-center justify-between gap-2 border-t border-line/60">
+                          <span className="text-[11px] text-muted font-medium">Ready for next question?</span>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              if (currentIndex < allQuestions.length - 1) {
+                                setCurrentIndex((prev) => prev + 1);
+                              } else {
+                                setShowConfirmSubmit(true);
+                              }
+                            }}
+                            className="bg-primary text-white text-xs font-bold shadow-xs px-3 py-1.5"
+                            iconRight={<ArrowRight className="w-3.5 h-3.5" />}
+                          >
+                            {currentIndex === allQuestions.length - 1 ? 'Review & Submit' : 'Next Question'}
+                          </Button>
+                        </div>
                       </div>
                     );
                   })()}
@@ -1180,64 +1199,80 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               )}
             </main>
 
-            {/* Persistent Sticky Bottom Action Bar for Mobile, iPad, and Desktop */}
-            <footer className="border-t border-line bg-card/95 backdrop-blur-md px-2 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-1.5 sm:gap-2 shadow-md flex-shrink-0 z-10 w-full max-w-full">
-              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setFlagged((prev) => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }))}
-                  className="text-xs px-2 sm:px-3"
-                  icon={<Flag className={`w-3.5 h-3.5 ${flagged[currentQ.id] ? 'fill-warning text-warning' : ''}`} />}
-                >
-                  <span className="hidden sm:inline">{flagged[currentQ.id] ? 'Flagged for Review' : 'Mark for Review'}</span>
-                  <span className="sm:hidden">{flagged[currentQ.id] ? 'Flagged' : 'Flag'}</span>
-                </Button>
-                {selectedAnswers[currentQ.id] && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: null }))}
-                    className="text-xs text-muted hover:text-danger-text px-1.5 sm:px-2"
-                  >
-                    Clear
-                  </Button>
-                )}
-              </div>
-
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+            {/* ── Always-Visible Floating Next / Prev Navigation Dock ── */}
+            <div
+              role="navigation"
+              aria-label="Floating question navigation dock"
+              className="fixed bottom-3 sm:bottom-4 inset-x-2 sm:inset-x-auto sm:right-6 lg:right-80 z-40 max-w-md sm:max-w-none mx-auto sm:mx-0 flex items-center justify-between gap-1.5 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-2xl bg-card/95 backdrop-blur-md border border-line shadow-2xl ring-1 ring-black/10 dark:ring-white/10 animate-fadeIn"
+            >
+              {/* Left Group: Previous, Flag & Clear */}
+              <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={currentIndex === 0}
                   onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                   icon={<ArrowLeft className="w-3.5 h-3.5" />}
-                  className="text-xs px-2 sm:px-3"
+                  className="text-xs px-2.5 sm:px-3 font-semibold shadow-2xs"
                 >
                   <span className="hidden sm:inline">Previous</span>
                   <span className="sm:hidden">Prev</span>
                 </Button>
+
                 <Button
                   size="sm"
-                  onClick={() => {
-                    if (currentIndex < allQuestions.length - 1) {
-                      setCurrentIndex((prev) => prev + 1);
-                    } else {
-                      setShowConfirmSubmit(true);
-                    }
-                  }}
-                  className="bg-primary text-white text-xs font-bold shadow-sm px-2.5 sm:px-3.5"
-                  iconRight={<ArrowRight className="w-3.5 h-3.5" />}
+                  variant="outline"
+                  onClick={() => setFlagged((prev) => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }))}
+                  className="text-xs px-2 sm:px-2.5 shadow-2xs"
+                  icon={<Flag className={`w-3.5 h-3.5 ${flagged[currentQ.id] ? 'fill-warning text-warning' : ''}`} />}
+                  title={flagged[currentQ.id] ? 'Flagged for Review' : 'Mark for Review'}
                 >
-                  {currentIndex === allQuestions.length - 1 ? 'Review & Submit' : (
-                    <>
-                      <span className="hidden sm:inline">Save &amp; Next</span>
-                      <span className="sm:hidden">Next</span>
-                    </>
-                  )}
+                  <span className="hidden sm:inline">{flagged[currentQ.id] ? 'Flagged' : 'Flag'}</span>
                 </Button>
+
+                {selectedAnswers[currentQ.id] && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: null }))}
+                    className="text-xs text-muted hover:text-danger-text px-1.5 sm:px-2"
+                    title="Clear selected choice"
+                  >
+                    Clear
+                  </Button>
+                )}
               </div>
-            </footer>
+
+              {/* Center Group: Live Question Counter Indicator */}
+              <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-subtle border border-line text-xs font-mono font-bold text-ink flex-shrink-0 shadow-2xs">
+                <span className="text-primary">{currentIndex + 1}</span>
+                <span className="text-muted-faint font-normal">/</span>
+                <span>{allQuestions.length}</span>
+              </div>
+
+              {/* Right Group: Next / Save & Next / Submit */}
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (currentIndex < allQuestions.length - 1) {
+                    setCurrentIndex((prev) => prev + 1);
+                  } else {
+                    setShowConfirmSubmit(true);
+                  }
+                }}
+                className="bg-primary hover:bg-primary-dark text-white text-xs font-bold shadow-md px-3 sm:px-4 flex-shrink-0 transition active:scale-95"
+                iconRight={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                {currentIndex === allQuestions.length - 1 ? (
+                  <span>Review &amp; Submit</span>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">Save &amp; Next</span>
+                    <span className="sm:hidden">Next</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           {/* Right: Question Palette Sidebar (desktop) */}
