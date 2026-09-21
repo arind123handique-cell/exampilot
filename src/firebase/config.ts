@@ -7,20 +7,24 @@ import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 // Copy .env.example → .env and fill in your Firebase Console values.
 // NEVER hardcode credentials here — any value here is visible in the browser bundle.
 // Prefer private `CONFIG_FIREBASE_*` envs injected by CI; fall back to public `VITE_FIREBASE_*` for local dev.
-const resolveEnv = (key: keyof ImportMetaEnv) => {
+const resolveEnv = (key: keyof ImportMetaEnv, fallback: string = '') => {
   const privateKey = `CONFIG_${String(key)}` as keyof ImportMetaEnv;
-  // Try private config first, then Vite-prefixed public env
-  return String((import.meta as any).env?.[privateKey] ?? (import.meta as any).env?.[key] ?? '').trim();
+  // Try private config first, then Vite-prefixed public env, then default project fallback
+  return String(
+    (import.meta as any).env?.[privateKey] ??
+    (import.meta as any).env?.[key] ??
+    fallback
+  ).trim();
 };
 
 export const firebaseConfig = {
-  apiKey: resolveEnv('VITE_FIREBASE_API_KEY'),
-  authDomain: resolveEnv('VITE_FIREBASE_AUTH_DOMAIN'),
-  projectId: resolveEnv('VITE_FIREBASE_PROJECT_ID'),
-  storageBucket: resolveEnv('VITE_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: resolveEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: resolveEnv('VITE_FIREBASE_APP_ID'),
-  measurementId: resolveEnv('VITE_FIREBASE_MEASUREMENT_ID')
+  apiKey: resolveEnv('VITE_FIREBASE_API_KEY', 'AIzaSyCzyyUIqIYcIcApKe2813aCPRW2RdXF6u4'),
+  authDomain: resolveEnv('VITE_FIREBASE_AUTH_DOMAIN', 'exampilot-6836c.firebaseapp.com'),
+  projectId: resolveEnv('VITE_FIREBASE_PROJECT_ID', 'exampilot-6836c'),
+  storageBucket: resolveEnv('VITE_FIREBASE_STORAGE_BUCKET', 'exampilot-6836c.firebasestorage.app'),
+  messagingSenderId: resolveEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', '818400419174'),
+  appId: resolveEnv('VITE_FIREBASE_APP_ID', '1:818400419174:web:7efac6e633785d26cfbca7'),
+  measurementId: resolveEnv('VITE_FIREBASE_MEASUREMENT_ID', 'G-TF4YQG85N6')
 };
 
 // Validate if user has supplied actual Firebase keys (not empty/placeholder values)
