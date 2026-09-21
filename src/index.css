@@ -100,14 +100,30 @@
     --shadow: 0 0 0;
   }
 
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
   }
 
   body {
     @apply bg-canvas text-ink font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     overscroll-behavior-y: none;
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  #root {
+    overflow-x: hidden;
+    max-width: 100%;
+    width: 100%;
   }
 
   /* Material Symbols styling */

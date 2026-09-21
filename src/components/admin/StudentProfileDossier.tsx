@@ -49,10 +49,10 @@ export const StudentProfileDossier: React.FC<StudentProfileDossierProps> = ({
     : '0.0';
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto animate-fadeIn">
+    <div className="space-y-6 max-w-5xl mx-auto animate-fadeIn w-full max-w-full min-w-0 overflow-x-hidden">
       {/* Back button */}
       {onBack && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
           <button
             onClick={onBack}
             className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
@@ -60,17 +60,17 @@ export const StudentProfileDossier: React.FC<StudentProfileDossierProps> = ({
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to All Students List</span>
           </button>
-          <span className="text-xs text-muted">
+          <span className="text-xs text-muted truncate max-w-[200px]">
             Student UID: <code className="font-mono">{student.uid}</code>
           </span>
         </div>
       )}
 
       {/* Profile Identity Card */}
-      <Card flush className="p-6 sm:p-8 bg-gradient-to-r from-indigo-950/20 via-card to-card border-indigo-500/30 space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white font-display font-bold text-2xl flex items-center justify-center shadow-md shadow-indigo-600/30 flex-shrink-0">
+      <Card flush className="p-4 sm:p-8 bg-gradient-to-r from-indigo-950/20 via-card to-card border-indigo-500/30 space-y-6 w-full max-w-full overflow-hidden">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 w-full">
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0 w-full sm:w-auto">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-indigo-600 text-white font-display font-bold text-xl sm:text-2xl flex items-center justify-center shadow-md shadow-indigo-600/30 flex-shrink-0">
               {student.photoURL ? (
                 <img src={student.photoURL} alt="" className="w-full h-full rounded-2xl object-cover" />
               ) : (
@@ -78,9 +78,9 @@ export const StudentProfileDossier: React.FC<StudentProfileDossierProps> = ({
               )}
             </div>
 
-            <div className="space-y-1">
+            <div className="space-y-1 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-display font-bold text-xl sm:text-2xl text-ink">
+                <h1 className="font-display font-bold text-lg sm:text-2xl text-ink truncate">
                   {student.displayName}
                 </h1>
                 <Badge tone="brand" size="sm">
@@ -88,12 +88,12 @@ export const StudentProfileDossier: React.FC<StudentProfileDossierProps> = ({
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-3 text-xs text-muted flex-wrap">
-                <span className="flex items-center gap-1 text-ink-soft">
-                  <Mail className="w-3.5 h-3.5 text-muted" />
-                  <span>{student.email}</span>
+              <div className="flex items-center gap-2 sm:gap-3 text-xs text-muted flex-wrap">
+                <span className="flex items-center gap-1 text-ink-soft min-w-0">
+                  <Mail className="w-3.5 h-3.5 text-muted flex-shrink-0" />
+                  <span className="break-all">{student.email}</span>
                 </span>
-                <span className="text-muted-faint">•</span>
+                <span className="text-muted-faint hidden sm:inline">•</span>
                 <button
                   onClick={handleCopyUid}
                   className="flex items-center gap-1 font-mono text-[11px] text-muted hover:text-ink transition"

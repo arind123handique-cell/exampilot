@@ -29,7 +29,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const isAdminRole = activeTab === 'admin';
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas text-ink">
+    <div className="flex h-screen w-full max-w-full flex-col overflow-hidden bg-canvas text-ink">
       {/* ───── Top App Bar ───── */}
       <header className="z-20 flex h-14 flex-shrink-0 items-center justify-between gap-3 border-b border-line bg-card/90 px-3 backdrop-blur sm:px-6">
         {/* Brand */}

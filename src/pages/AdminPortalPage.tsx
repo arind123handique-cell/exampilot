@@ -139,7 +139,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   // ── Admin Security Gate ──
   if (!isAdminUnlocked) {
     return (
-      <div className="min-h-screen w-screen flex flex-col justify-center items-center p-4 bg-canvas text-ink">
+      <div className="min-h-screen w-full max-w-full flex flex-col justify-center items-center p-4 bg-canvas text-ink">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
             <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-600/30 mb-2">
@@ -206,7 +206,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas text-ink">
+    <div className="flex h-screen w-full max-w-full flex-col overflow-hidden bg-canvas text-ink">
       {/* ───── Dedicated Admin Top App Bar ───── */}
       {isFirebaseConfigured && hasAdminClaim === false && (
         <div className="z-20 flex items-center gap-2 border-b border-warning/40 bg-subtle px-3 py-2 text-[11px] text-muted sm:px-6">

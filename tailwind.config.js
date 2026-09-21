@@ -20,6 +20,9 @@ export default {
   darkMode: ['class', '[data-theme="dark"]'],
   theme: {
     extend: {
+      screens: {
+        'xs': '380px',
+      },
       colors: {
         /* ---- semantic surfaces ---- */
         canvas: 'rgb(var(--bg-canvas) / <alpha-value>)',

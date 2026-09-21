@@ -466,7 +466,7 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
               <span className="flex-shrink-0 rounded-md bg-primary px-2 py-0.5 text-[10px] sm:text-[11px] font-bold text-white shadow-xs">
                 {st.label}
               </span>
-              <span className="text-ink leading-relaxed flex-1 font-normal pt-0.5">
+              <span className="text-ink leading-relaxed flex-1 min-w-0 break-words font-normal pt-0.5">
                 {st.text}
               </span>
             </div>

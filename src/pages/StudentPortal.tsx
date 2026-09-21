@@ -626,7 +626,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen w-screen flex flex-col justify-center items-center p-4 bg-gradient-to-br from-indigo-50/50 via-canvas to-amber-50/30 dark:from-indigo-950/20 dark:via-canvas dark:to-slate-900/50 text-ink">
+      <div className="min-h-screen w-full max-w-full flex flex-col justify-center items-center p-4 bg-gradient-to-br from-indigo-50/50 via-canvas to-amber-50/30 dark:from-indigo-950/20 dark:via-canvas dark:to-slate-900/50 text-ink">
         <div className="w-full max-w-md space-y-4">
           {/* Animated Mascot Welcome Banner */}
           <div className="flex justify-center">
@@ -927,11 +927,11 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     };
 
     return (
-      <div className="h-screen w-screen flex flex-col bg-canvas text-ink overflow-hidden">
+      <div className="h-screen w-full max-w-full flex flex-col bg-canvas text-ink overflow-hidden">
         {/* CBT Top Bar */}
-        <header className="h-14 border-b border-line bg-card flex items-center justify-between px-2.5 sm:px-6 flex-shrink-0 z-20">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <span className="font-display font-bold text-xs sm:text-sm text-ink truncate max-w-[130px] xs:max-w-[200px] sm:max-w-xs md:max-w-md">
+        <header className="h-14 border-b border-line bg-card flex items-center justify-between px-2 sm:px-4 md:px-6 flex-shrink-0 z-20 w-full max-w-full overflow-hidden">
+          <div className="flex items-center gap-1.5 sm:gap-3 min-w-0 flex-1 mr-1 sm:mr-2">
+            <span className="font-display font-bold text-xs sm:text-sm text-ink truncate">
               {activeMock.title}
             </span>
             <span className="hidden md:inline px-2 py-0.5 rounded bg-subtle text-muted text-[11px] font-medium flex-shrink-0">
@@ -939,16 +939,17 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {/* Question palette — sidebar toggle for mobile & tablet */}
             <button
               type="button"
               onClick={() => setShowPaletteMobile(true)}
               aria-label="Open question palette"
-              className="lg:hidden flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl border border-line text-xs text-muted hover:text-ink transition"
+              className="lg:hidden flex items-center gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-lg sm:rounded-xl border border-line text-xs text-muted hover:text-ink transition flex-shrink-0"
+              title="Question Palette"
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span className="font-mono text-[11px] font-bold text-primary">{answeredCount}/{allQuestions.length}</span>
+              <Layers className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+              <span className="font-mono text-[10px] sm:text-[11px] font-bold text-primary">{answeredCount}/{allQuestions.length}</span>
             </button>
 
             {/* Cancel Test Option */}
@@ -956,8 +957,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               size="sm"
               variant="outline"
               onClick={() => setShowConfirmCancel(true)}
-              className="border-danger/40 text-danger-text hover:bg-danger-surface transition px-2 sm:px-2.5 text-xs"
+              className="border-danger/40 text-danger-text hover:bg-danger-surface transition px-1.5 sm:px-2.5 text-xs flex-shrink-0"
               icon={<X className="w-3.5 h-3.5" />}
+              title="Cancel Test"
             >
               <span className="hidden sm:inline">Cancel</span>
             </Button>
@@ -967,47 +969,47 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               role="timer"
               aria-live="polite"
               aria-label={`Time remaining ${formatTime(timeLeft)}`}
-              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-xl border text-xs font-mono font-bold ${
+              className={`flex items-center gap-1 px-1.5 sm:px-2.5 py-1 rounded-lg sm:rounded-xl border text-[11px] sm:text-xs font-mono font-bold flex-shrink-0 ${
                 timeLeft < 300 ? 'bg-danger-surface border-danger-border text-danger-text animate-pulse' : 'bg-subtle border-line text-ink'
               }`}
             >
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
               <span>{formatTime(timeLeft)}</span>
             </div>
 
             <Button
               size="sm"
               onClick={() => setShowConfirmSubmit(true)}
-              className="bg-primary text-white shadow-sm font-semibold text-xs sm:text-sm px-2.5 sm:px-3.5"
+              className="bg-primary text-white shadow-sm font-semibold text-xs px-2 sm:px-3 flex-shrink-0"
             >
-              <span className="hidden xs:inline">Submit Test</span>
-              <span className="xs:hidden">Submit</span>
+              <span className="hidden sm:inline">Submit Test</span>
+              <span className="sm:hidden">Submit</span>
             </Button>
           </div>
         </header>
 
         {/* Exam Body */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden w-full max-w-full">
           {/* Main Column: Question area and persistent sticky bottom navigation bar */}
-          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0 w-full max-w-full">
             {/* Scrollable Question area */}
-            <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-5">
+            <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 w-full max-w-full min-w-0">
               <div className="flex items-center justify-between text-[11px] sm:text-xs text-muted pb-2 border-b border-line gap-2 flex-wrap">
-                <span className="font-bold text-primary">
+                <span className="font-bold text-primary flex-shrink-0">
                   Question {currentIndex + 1} of {allQuestions.length}
                 </span>
-                <span className="truncate max-w-[160px] sm:max-w-none">{currentSecName}</span>
+                <span className="truncate max-w-[130px] xs:max-w-[180px] sm:max-w-none">{currentSecName}</span>
                 <span className="font-mono text-ink font-semibold flex-shrink-0">
                   +{Number((activeMock.totalMarks / allQuestions.length).toFixed(2))} / -{activeMock.negativeMarksPerIncorrect}
                 </span>
               </div>
 
               {currentQ && (
-                <div className="space-y-5 sm:space-y-6">
+                <div className="space-y-4 sm:space-y-6 w-full max-w-full min-w-0">
                   <QuestionStemFormatter stem={currentQ.stem} />
 
                   {/* Options A, B, C, D — touch-friendly tap targets and instant feedback */}
-                  <div className="space-y-2.5 max-w-2xl">
+                  <div className="space-y-2 sm:space-y-2.5 max-w-2xl w-full">
                     {currentQ.options.map((opt) => {
                       const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
                       const userChoice = selectedAnswers[currentQ.id];
@@ -1032,7 +1034,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                           type="button"
                           onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: opt.id }))}
                           aria-pressed={isThisSelected}
-                          className={`w-full p-3 sm:p-4 rounded-xl border-2 text-left text-xs sm:text-sm transition flex items-start gap-2.5 sm:gap-3 min-h-[48px] cursor-pointer ${optStyle}`}
+                          className={`w-full p-2.5 sm:p-4 rounded-xl border-2 text-left text-xs sm:text-sm transition flex items-start gap-2 sm:gap-3 min-h-[44px] cursor-pointer max-w-full ${optStyle}`}
                         >
                           <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5 ${
                             hasAnswered && isThisCorrect
@@ -1048,15 +1050,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                           <span className="flex-1 min-w-0 break-words leading-relaxed">{opt.text}</span>
 
                           {hasAnswered && isThisCorrect && (
-                            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-success-text bg-success-surface px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-success-border flex-shrink-0 self-center">
-                              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success-text flex-shrink-0" />
+                            <span className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-success-text bg-success-surface px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-success-border flex-shrink-0 self-center">
+                              <Check className="w-3 h-3 sm:w-4 sm:h-4 text-success-text flex-shrink-0" />
                               <span>Correct</span>
                             </span>
                           )}
                           {hasAnswered && isThisSelected && !isThisCorrect && (
-                            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-danger-text bg-danger-surface px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-danger-border flex-shrink-0 self-center">
-                              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-danger-text flex-shrink-0" />
-                              <span>Your Choice</span>
+                            <span className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-danger-text bg-danger-surface px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-danger-border flex-shrink-0 self-center">
+                              <XCircle className="w-3 h-3 sm:w-4 sm:h-4 text-danger-text flex-shrink-0" />
+                              <span className="hidden sm:inline">Your Choice</span>
+                              <span className="sm:hidden">Choice</span>
                             </span>
                           )}
                         </button>
@@ -1074,13 +1077,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                     const marksForThisQ = Number((activeMock.totalMarks / allQuestions.length).toFixed(2));
 
                     return (
-                      <div className={`max-w-2xl space-y-3.5 sm:space-y-4 rounded-2xl border-2 p-3.5 sm:p-5 transition-all shadow-md animate-fadeIn ${
+                      <div className={`w-full max-w-full sm:max-w-2xl space-y-3 sm:space-y-4 rounded-2xl border-2 p-3 sm:p-5 transition-all shadow-md animate-fadeIn overflow-hidden ${
                         isUserCorrect
                           ? 'bg-success-surface/80 border-success-border text-ink'
                           : 'bg-danger-surface/40 border-danger-border text-ink'
                       }`}>
                         {/* Result Status Header */}
-                        <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-line">
+                        <div className="flex items-center justify-between flex-wrap gap-2 pb-2.5 border-b border-line">
                           <div className="flex items-center gap-2">
                             {isUserCorrect ? (
                               <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-success text-white font-bold text-xs shadow-xs">
@@ -1093,22 +1096,22 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                             )}
                           </div>
 
-                          <span className="text-[11px] font-semibold text-muted">
+                          <span className="text-[11px] font-semibold text-muted truncate max-w-[150px] sm:max-w-none">
                             Topic: <span className="text-ink font-bold">{currentQ.topic || currentQ.subject}</span>
                           </span>
                         </div>
 
                         {/* Correct vs Selected Summary */}
-                        <div className="p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs">
-                          <div className="flex items-start gap-2">
-                            <span className="font-bold text-success-text flex-shrink-0 min-w-[95px] sm:min-w-[110px]">Correct Option:</span>
+                        <div className="p-2.5 sm:p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs w-full max-w-full">
+                          <div className="flex items-start gap-1.5 sm:gap-2">
+                            <span className="font-bold text-success-text flex-shrink-0 min-w-[85px] sm:min-w-[110px]">Correct Option:</span>
                             <span className="font-bold text-ink flex-1 min-w-0 break-words">
                               Option {currentQ.correctOption} — {correctOptObj?.text || ''}
                             </span>
                           </div>
                           {!isUserCorrect && (
-                            <div className="flex items-start gap-2">
-                              <span className="font-bold text-danger-text flex-shrink-0 min-w-[95px] sm:min-w-[110px]">Your Answer:</span>
+                            <div className="flex items-start gap-1.5 sm:gap-2">
+                              <span className="font-bold text-danger-text flex-shrink-0 min-w-[85px] sm:min-w-[110px]">Your Answer:</span>
                               <span className="text-muted line-through font-medium flex-1 min-w-0 break-words">
                                 Option {userChoice} — {userOptObj?.text || ''}
                               </span>
@@ -1123,16 +1126,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                             state={isUserCorrect ? 'celebrating' : 'cheer_up'}
                             size="sm"
                           />
-                          <span className="text-[11px] text-muted italic flex-1 min-w-0">
+                          <span className="text-[11px] text-muted italic flex-1 min-w-0 break-words">
                             {isUserCorrect ? 'Great job! Keep the momentum going.' : "Don't worry, review the explanation below to master this concept."}
                           </span>
                         </div>
 
                         {/* Formula Context (if available) */}
                         {currentQ.formulaContext && (
-                          <div className="p-3 sm:p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2 overflow-x-auto">
+                          <div className="p-2.5 sm:p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2 overflow-x-auto max-w-full">
                             <span className="font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">Formula / Law:</span>
-                            <span className="flex-1 whitespace-nowrap sm:whitespace-normal">{currentQ.formulaContext}</span>
+                            <span className="flex-1 min-w-0 break-words">{currentQ.formulaContext}</span>
                             {currentQ.answerUnit && (
                               <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[10px] sm:text-[11px] text-indigo-700 dark:text-indigo-300 flex-shrink-0">
                                 Unit: {currentQ.answerUnit}
@@ -1143,17 +1146,17 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
                         {/* Step-by-Step Solution (if available) */}
                         {currentQ.solutionSteps && currentQ.solutionSteps.length > 0 && (
-                          <div className="space-y-2 pt-1">
+                          <div className="space-y-2 pt-1 w-full max-w-full">
                             <div className="text-[11px] font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
                               <span>Step-by-Step Working:</span>
                             </div>
                             <div className="space-y-1.5">
                               {currentQ.solutionSteps.map((step, sIdx) => (
-                                <div key={sIdx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface border border-line text-xs text-ink">
+                                <div key={sIdx} className="flex items-start gap-2.5 p-2 sm:p-2.5 rounded-lg bg-surface border border-line text-xs text-ink">
                                   <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                                     {sIdx + 1}
                                   </span>
-                                  <span className="leading-relaxed font-mono">{step}</span>
+                                  <span className="leading-relaxed font-mono flex-1 min-w-0 break-words">{step}</span>
                                 </div>
                               ))}
                             </div>
@@ -1161,12 +1164,12 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                         )}
 
                         {/* Full Official Solution Explanation */}
-                        <div className="pt-2 border-t border-line text-xs sm:text-sm text-ink leading-relaxed">
+                        <div className="pt-2 border-t border-line text-xs sm:text-sm text-ink leading-relaxed w-full max-w-full">
                           <div className="font-bold text-primary mb-1.5 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                            <Sparkles className="w-3.5 h-3.5" />
+                            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
                             <span>Official Solution &amp; Explanation:</span>
                           </div>
-                          <p className="whitespace-pre-line text-ink bg-surface p-3 sm:p-3.5 rounded-xl border border-line text-xs sm:text-sm leading-relaxed">
+                          <p className="whitespace-pre-line text-ink bg-surface p-2.5 sm:p-3.5 rounded-xl border border-line text-xs sm:text-sm leading-relaxed break-words">
                             {currentQ.explanation || 'Official answer verified per state examination key and standard engineering references.'}
                           </p>
                         </div>
@@ -1178,13 +1181,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
             </main>
 
             {/* Persistent Sticky Bottom Action Bar for Mobile, iPad, and Desktop */}
-            <footer className="border-t border-line bg-card/95 backdrop-blur-md px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2 shadow-md flex-shrink-0 z-10">
-              <div className="flex items-center gap-1.5 sm:gap-2">
+            <footer className="border-t border-line bg-card/95 backdrop-blur-md px-2 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-1.5 sm:gap-2 shadow-md flex-shrink-0 z-10 w-full max-w-full">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setFlagged((prev) => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }))}
-                  className="text-xs"
+                  className="text-xs px-2 sm:px-3"
                   icon={<Flag className={`w-3.5 h-3.5 ${flagged[currentQ.id] ? 'fill-warning text-warning' : ''}`} />}
                 >
                   <span className="hidden sm:inline">{flagged[currentQ.id] ? 'Flagged for Review' : 'Mark for Review'}</span>
@@ -1195,21 +1198,21 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                     size="sm"
                     variant="ghost"
                     onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: null }))}
-                    className="text-xs text-muted hover:text-danger-text"
+                    className="text-xs text-muted hover:text-danger-text px-1.5 sm:px-2"
                   >
                     Clear
                   </Button>
                 )}
               </div>
 
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={currentIndex === 0}
                   onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                   icon={<ArrowLeft className="w-3.5 h-3.5" />}
-                  className="text-xs"
+                  className="text-xs px-2 sm:px-3"
                 >
                   <span className="hidden sm:inline">Previous</span>
                   <span className="sm:hidden">Prev</span>
@@ -1223,7 +1226,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                       setShowConfirmSubmit(true);
                     }
                   }}
-                  className="bg-primary text-white text-xs font-bold shadow-sm"
+                  className="bg-primary text-white text-xs font-bold shadow-sm px-2.5 sm:px-3.5"
                   iconRight={<ArrowRight className="w-3.5 h-3.5" />}
                 >
                   {currentIndex === allQuestions.length - 1 ? 'Review & Submit' : (
@@ -1386,10 +1389,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   // 3. AUTHENTICATED STUDENT PORTAL (MOCK TESTS & REVIEW ONLY)
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen w-screen flex flex-col bg-canvas text-ink overflow-x-hidden">
+    <div className="min-h-screen w-full max-w-full flex flex-col bg-canvas text-ink overflow-x-hidden">
       {/* ── Top Bar ── */}
-      <header className="h-14 border-b border-line bg-card/90 backdrop-blur px-3 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-20 sticky top-0">
-        <div className="flex items-center gap-2.5 min-w-0">
+      <header className="h-14 border-b border-line bg-card/90 backdrop-blur px-2.5 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-20 sticky top-0 w-full max-w-full overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm shadow-primary/30 flex-shrink-0">
             EP
           </div>
@@ -1543,7 +1546,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       </nav>
 
       {/* ── Main Student Content ── */}
-      <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6 pb-24 md:pb-8">
+      <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full max-w-full space-y-6 pb-24 md:pb-8 min-w-0 overflow-x-hidden">
         {/* ── TAB 1: AVAILABLE MOCK TESTS ── */}
         {studentTab === 'tests' && !reviewingRecord && (
           <div className="space-y-6 animate-fadeIn">
@@ -1934,44 +1937,44 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                         );
 
                                         return (
-                                          <div className={`p-3.5 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                          <div className={`p-3 sm:p-3.5 rounded-2xl border text-xs flex flex-col gap-2.5 w-full max-w-full overflow-hidden ${
                                             !wasAttempted
                                               ? 'bg-subtle/60 border-line'
                                               : isCorrect
                                               ? 'bg-success-surface/70 border-success-border'
                                               : 'bg-danger-surface/40 border-danger-border'
                                           }`}>
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider">Your Answer:</span>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 w-full">
+                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider flex-shrink-0">Your Answer:</span>
                                               {wasAttempted ? (
-                                                <span className={`px-2.5 py-1 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs ${
+                                                <div className={`px-2.5 py-1 rounded-xl font-bold text-xs flex items-start sm:items-center gap-1.5 shadow-2xs min-w-0 max-w-full ${
                                                   isCorrect
                                                     ? 'bg-success text-white'
                                                     : 'bg-danger text-white'
                                                 }`}>
-                                                  {isCorrect ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <XCircle className="w-3.5 h-3.5 flex-shrink-0" />}
-                                                  <span>Option {chosenOpt?.id || chosen} — {chosenOpt?.text || ans?.selectedText || 'Selected Choice'}</span>
-                                                </span>
+                                                  {isCorrect ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 sm:mt-0" /> : <XCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 sm:mt-0" />}
+                                                  <span className="min-w-0 break-words flex-1">Option {chosenOpt?.id || chosen} — {chosenOpt?.text || ans?.selectedText || 'Selected Choice'}</span>
+                                                </div>
                                               ) : (
-                                                <span className="px-2.5 py-1 rounded-xl bg-subtle text-muted font-medium border border-line">
+                                                <span className="px-2.5 py-1 rounded-xl bg-subtle text-muted font-medium border border-line self-start">
                                                   Not Attempted (Skipped)
                                                 </span>
                                               )}
                                             </div>
 
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider">Official Key:</span>
-                                              <span className="px-2.5 py-1 rounded-xl bg-success-surface text-success-text font-bold text-xs border border-success-border flex items-center gap-1.5">
-                                                <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                                                <span>Option {correctOpt?.id || q.correctOption} — {correctOpt?.text || ans?.correctText || ''}</span>
-                                              </span>
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0 w-full">
+                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider flex-shrink-0">Official Key:</span>
+                                              <div className="px-2.5 py-1 rounded-xl bg-success-surface text-success-text font-bold text-xs border border-success-border flex items-start sm:items-center gap-1.5 min-w-0 max-w-full">
+                                                <Check className="w-3.5 h-3.5 flex-shrink-0 mt-0.5 sm:mt-0" />
+                                                <span className="min-w-0 break-words flex-1">Option {correctOpt?.id || q.correctOption} — {correctOpt?.text || ans?.correctText || ''}</span>
+                                              </div>
                                             </div>
                                           </div>
                                         );
                                       })()}
 
                                       {/* Options with user choice vs official key */}
-                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs w-full max-w-full">
                                         {q.options.map((opt) => {
                                           const isThisCorrect = normalize(opt.id) === normalize(q.correctOption) || (ans?.correctText && opt.text === ans.correctText);
                                           const isThisChosen = normalize(chosen) === normalize(opt.id) || (ans?.selectedText && opt.text === ans.selectedText);
@@ -1986,7 +1989,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                           }
 
                                           return (
-                                            <div key={opt.id} className={`p-3 sm:p-3.5 rounded-xl border flex items-start gap-2.5 transition-all ${optClass}`}>
+                                            <div key={opt.id} className={`p-2.5 sm:p-3.5 rounded-xl border flex items-start gap-2 sm:gap-2.5 transition-all w-full max-w-full min-w-0 ${optClass}`}>
                                               <span className={`w-6 h-6 rounded-lg font-mono font-bold text-center leading-6 text-xs flex-shrink-0 mt-0.5 ${
                                                 isThisChosen && isThisCorrect
                                                   ? 'bg-success text-white'
@@ -2001,21 +2004,24 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                               <span className="flex-1 min-w-0 break-words leading-relaxed">{opt.text}</span>
 
                                               {isThisChosen && isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-success px-2 py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-success px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
                                                   <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                                                  <span>Your Choice &amp; Key</span>
+                                                  <span className="hidden xs:inline">Your Choice &amp; Key</span>
+                                                  <span className="xs:hidden">Match</span>
                                                 </span>
                                               )}
                                               {isThisChosen && !isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-danger px-2 py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-danger px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
                                                   <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                                                  <span>Your Choice</span>
+                                                  <span className="hidden xs:inline">Your Choice</span>
+                                                  <span className="xs:hidden">Choice</span>
                                                 </span>
                                               )}
                                               {isThisCorrect && !isThisChosen && (
-                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded-lg border border-success-border flex-shrink-0 self-center">
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-success-text bg-success-surface px-1.5 py-0.5 sm:px-2 sm:py-0.5 rounded-lg border border-success-border flex-shrink-0 self-center">
                                                   <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                                                  <span>Official Key</span>
+                                                  <span className="hidden xs:inline">Official Key</span>
+                                                  <span className="xs:hidden">Key</span>
                                                 </span>
                                               )}
                                             </div>
@@ -2025,11 +2031,11 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
                                       {/* Formula context if available */}
                                       {q.formulaContext && (
-                                        <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
-                                          <span className="font-bold text-indigo-600 dark:text-indigo-400">Formula:</span>
-                                          <span className="flex-1">{q.formulaContext}</span>
+                                        <div className="p-2.5 sm:p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2 max-w-full overflow-x-auto">
+                                          <span className="font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">Formula:</span>
+                                          <span className="flex-1 min-w-0 break-words">{q.formulaContext}</span>
                                           {q.answerUnit && (
-                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
+                                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[10px] sm:text-[11px] text-indigo-700 dark:text-indigo-300 flex-shrink-0">
                                               Unit: {q.answerUnit}
                                             </span>
                                           )}
@@ -2038,23 +2044,23 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
                                       {/* Step-by-step solution if available */}
                                       {q.solutionSteps && q.solutionSteps.length > 0 && (
-                                        <div className="space-y-1.5 pt-1">
+                                        <div className="space-y-1.5 pt-1 w-full max-w-full">
                                           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-faint">
                                             Step-by-Step Working:
                                           </div>
                                           {q.solutionSteps.map((step, sIdx) => (
-                                            <div key={sIdx} className="flex items-start gap-2 p-2 rounded-lg bg-subtle border border-line text-xs text-ink">
+                                            <div key={sIdx} className="flex items-start gap-2 p-2 rounded-lg bg-subtle border border-line text-xs text-ink w-full max-w-full">
                                               <span className="w-4 h-4 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
                                                 {sIdx + 1}
                                               </span>
-                                              <span className="leading-relaxed font-mono">{step}</span>
+                                              <span className="leading-relaxed font-mono flex-1 min-w-0 break-words">{step}</span>
                                             </div>
                                           ))}
                                         </div>
                                       )}
 
                                       {/* Explanation */}
-                                      <div className="p-3.5 rounded-xl bg-subtle border border-line text-xs sm:text-sm text-ink-soft leading-relaxed">
+                                      <div className="p-3 sm:p-3.5 rounded-xl bg-subtle border border-line text-xs sm:text-sm text-ink-soft leading-relaxed w-full max-w-full break-words">
                                         <strong className="text-primary font-bold mr-1.5">Official Solution:</strong>
                                         <span className="text-ink">
                                           {q.explanation || 'Official answer verified per state examination key and syllabus standards.'}

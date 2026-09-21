@@ -103,18 +103,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         className="bg-card rounded-2xl shadow-2xl border border-line w-full max-w-md overflow-hidden relative"
       >
         {/* Top Header */}
-        <div className="p-6 pb-4 border-b border-line flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-primary/25">
+        <div className="p-4 sm:p-6 pb-3 sm:pb-4 border-b border-line flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-white font-bold text-sm shadow-sm shadow-primary/25 flex-shrink-0">
               EP
             </div>
-            <div>
-              <h3 className="font-display font-semibold text-ink text-base">
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display font-semibold text-ink text-sm sm:text-base truncate">
                 {mode === 'signin' && 'Sign in to ExamPilot'}
                 {mode === 'signup' && 'Create Aspirant Account'}
                 {mode === 'forgot' && 'Reset Password'}
               </h3>
-              <p className="text-xs text-muted">
+              <p className="text-[11px] sm:text-xs text-muted line-clamp-1">
                 {mode === 'signin' && 'Access syllabus tracking & test analytics'}
                 {mode === 'signup' && 'Personalized study plan & AI tutor access'}
                 {mode === 'forgot' && 'Enter your email to receive recovery instructions'}
@@ -124,7 +124,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="p-1 rounded-lg text-muted-faint hover:text-ink-soft hover:bg-subtle-strong transition"
+            className="p-1 rounded-lg text-muted-faint hover:text-ink-soft hover:bg-subtle-strong transition flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
