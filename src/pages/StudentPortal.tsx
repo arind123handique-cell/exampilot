@@ -379,51 +379,20 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       sec.questions.forEach((q) => {
         // Deep clone question to avoid mutating shared bank
         const qCopy: MCQQuestion = JSON.parse(JSON.stringify(q));
-
-        // Find the text of the original correct option
-        const originalCorrectOpt = qCopy.options.find((o) => o.id === qCopy.correctOption);
-        const correctText = originalCorrectOpt ? originalCorrectOpt.text : '';
-
-        // Shuffle options uniquely for this attempt
-        const shuffledOptions = [...qCopy.options];
-        for (let i = shuffledOptions.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
-        }
-
-        const letters: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
-        let newCorrectLetter: 'A' | 'B' | 'C' | 'D' = 'A';
-
-        const remappedOptions = shuffledOptions.map((opt, idx) => {
-          const assignedId = letters[idx];
-          if (opt.text === correctText) {
-            newCorrectLetter = assignedId;
-          }
-          return {
-            ...opt,
-            id: assignedId
-          };
-        });
-
-        qCopy.options = remappedOptions;
-        qCopy.correctOption = newCorrectLetter;
-
         flat.push({ question: qCopy, sectionName: sec.name });
       });
     });
 
-    // Shuffle the question sequence so every student's exam is unique
-    for (let i = flat.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [flat[i], flat[j]] = [flat[j], flat[i]];
-    }
+    // Build sessionMock with the exact questions
+    const sessionMock: MockTest = {
+      ...mock,
+      sections: mock.sections.map((sec) => ({
+        ...sec,
+        questions: flat.filter((f) => f.sectionName === sec.name).map((f) => f.question)
+      }))
+    };
 
-    // Renumber sequentially
-    flat.forEach((item, index) => {
-      item.question.questionNumber = index + 1;
-    });
-
-    setActiveMock(mock);
+    setActiveMock(sessionMock);
     setAllQuestions(flat);
     setCurrentIndex(0);
     setSelectedAnswers({});
@@ -440,7 +409,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     setResumableDraft(null);
     toastSuccess(
       `Exam Started: ${mock.title}`,
-      `🎲 Unique Randomized Sequence · ${flat.length} Questions · ${mock.durationMinutes} Minutes`
+      `${flat.length} Questions · ${mock.durationMinutes} Minutes`
     );
   };
 
@@ -508,11 +477,12 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       questionStartRef.current = Date.now();
     }
 
-    const answerAudit: Record<string, { selected: 'A' | 'B' | 'C' | 'D' | null; isCorrect: boolean; timeSeconds: number; flagged?: boolean }> = {};
+    const answerAudit: Record<string, { selected: 'A' | 'B' | 'C' | 'D' | null; isCorrect: boolean; timeSeconds: number; flagged?: boolean; selectedText?: string | null; correctText?: string | null }> = {};
 
     allQuestions.forEach(({ question: q }) => {
       const chosen = selectedAnswers[q.id] || null;
-      const isCorrect = chosen === q.correctOption;
+      const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
+      const isCorrect = chosen ? normalize(chosen) === normalize(q.correctOption) : false;
       if (!chosen) {
         unattemptedCount++;
       } else if (isCorrect) {
@@ -520,11 +490,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       } else {
         incorrectCount++;
       }
+      const chosenOpt = q.options.find((o) => normalize(o.id) === normalize(chosen));
+      const correctOpt = q.options.find((o) => normalize(o.id) === normalize(q.correctOption));
+
       answerAudit[q.id] = {
         selected: chosen,
         isCorrect,
         timeSeconds: timeSpentRef.current[q.id] ?? 0,
-        flagged: Boolean(flagged[q.id])
+        flagged: Boolean(flagged[q.id]),
+        selectedText: chosenOpt?.text || null,
+        correctText: correctOpt?.text || null
       };
     });
 
@@ -1815,41 +1790,98 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
                                       <QuestionStemFormatter stem={q.stem} />
 
+                                      {/* Candidate Response vs Official Key Callout Bar */}
+                                      {(() => {
+                                        const chosenOpt = q.options.find(
+                                          (o) => normalize(o.id) === normalize(chosen) || (ans?.selectedText && o.text === ans.selectedText)
+                                        );
+                                        const correctOpt = q.options.find(
+                                          (o) => normalize(o.id) === normalize(q.correctOption) || (ans?.correctText && o.text === ans.correctText)
+                                        );
+
+                                        return (
+                                          <div className={`p-3.5 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                                            !wasAttempted
+                                              ? 'bg-subtle/60 border-line'
+                                              : isCorrect
+                                              ? 'bg-success-surface/70 border-success-border'
+                                              : 'bg-danger-surface/40 border-danger-border'
+                                          }`}>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider">Your Answer:</span>
+                                              {wasAttempted ? (
+                                                <span className={`px-2.5 py-1 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-2xs ${
+                                                  isCorrect
+                                                    ? 'bg-success text-white'
+                                                    : 'bg-danger text-white'
+                                                }`}>
+                                                  {isCorrect ? <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" /> : <XCircle className="w-3.5 h-3.5 flex-shrink-0" />}
+                                                  <span>Option {chosenOpt?.id || chosen} — {chosenOpt?.text || ans?.selectedText || 'Selected Choice'}</span>
+                                                </span>
+                                              ) : (
+                                                <span className="px-2.5 py-1 rounded-xl bg-subtle text-muted font-medium border border-line">
+                                                  Not Attempted (Skipped)
+                                                </span>
+                                              )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                              <span className="font-bold text-muted uppercase text-[10px] tracking-wider">Official Key:</span>
+                                              <span className="px-2.5 py-1 rounded-xl bg-success-surface text-success-text font-bold text-xs border border-success-border flex items-center gap-1.5">
+                                                <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                                                <span>Option {correctOpt?.id || q.correctOption} — {correctOpt?.text || ans?.correctText || ''}</span>
+                                              </span>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
+
                                       {/* Options with user choice vs official key */}
                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                         {q.options.map((opt) => {
-                                          const isThisCorrect = normalize(opt.id) === normalize(q.correctOption);
-                                          const isThisChosen = normalize(chosen) === normalize(opt.id);
+                                          const isThisCorrect = normalize(opt.id) === normalize(q.correctOption) || (ans?.correctText && opt.text === ans.correctText);
+                                          const isThisChosen = normalize(chosen) === normalize(opt.id) || (ans?.selectedText && opt.text === ans.selectedText);
 
                                           let optClass = 'bg-card border-line text-ink-soft';
-                                          if (isThisCorrect) {
+                                          if (isThisChosen && isThisCorrect) {
+                                            optClass = 'bg-success-surface border-success text-success-text font-bold ring-2 ring-success/30';
+                                          } else if (isThisCorrect) {
                                             optClass = 'bg-success-surface border-success-border text-success-text font-bold ring-1 ring-success-border';
                                           } else if (isThisChosen && !isThisCorrect) {
-                                            optClass = 'bg-danger-surface border-danger-border text-danger-text line-through font-semibold ring-1 ring-danger-border';
+                                            optClass = 'bg-danger-surface border-danger text-danger-text line-through font-semibold ring-2 ring-danger/30';
                                           }
 
                                           return (
-                                            <div key={opt.id} className={`p-3 rounded-xl border flex items-center gap-2.5 ${optClass}`}>
+                                            <div key={opt.id} className={`p-3.5 rounded-xl border flex items-center gap-2.5 transition-all ${optClass}`}>
                                               <span className={`w-6 h-6 rounded-lg font-mono font-bold text-center leading-6 text-xs flex-shrink-0 ${
-                                                isThisCorrect
+                                                isThisChosen && isThisCorrect
                                                   ? 'bg-success text-white'
                                                   : isThisChosen && !isThisCorrect
                                                   ? 'bg-danger text-white'
+                                                  : isThisCorrect
+                                                  ? 'bg-success text-white'
                                                   : 'bg-subtle text-muted'
                                               }`}>
                                                 {opt.id}
                                               </span>
                                               <span className="flex-1">{opt.text}</span>
-                                              {isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded border border-success-border">
-                                                  <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                                                  <span>Key</span>
+
+                                              {isThisChosen && isThisCorrect && (
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-success px-2 py-0.5 rounded-lg shadow-2xs">
+                                                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                                                  <span>Your Choice &amp; Key</span>
                                                 </span>
                                               )}
                                               {isThisChosen && !isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[11px] font-bold text-danger-text bg-danger-surface px-2 py-0.5 rounded border border-danger-border">
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-danger px-2 py-0.5 rounded-lg shadow-2xs">
                                                   <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
                                                   <span>Your Choice</span>
+                                                </span>
+                                              )}
+                                              {isThisCorrect && !isThisChosen && (
+                                                <span className="flex items-center gap-1 text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded-lg border border-success-border">
+                                                  <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                                                  <span>Official Key</span>
                                                 </span>
                                               )}
                                             </div>

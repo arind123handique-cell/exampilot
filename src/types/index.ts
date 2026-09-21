@@ -276,7 +276,14 @@ export interface TestSubmission {
   correctCount: number;
   incorrectCount: number;
   unattemptedCount: number;
-  answers: Record<string, { selected: 'A' | 'B' | 'C' | 'D' | null; isCorrect: boolean; timeSeconds: number; flagged?: boolean }>;
+  answers: Record<string, {
+    selected: 'A' | 'B' | 'C' | 'D' | null;
+    isCorrect: boolean;
+    timeSeconds: number;
+    flagged?: boolean;
+    selectedText?: string | null;
+    correctText?: string | null;
+  }>;
 }
 
 export interface AiChatMessage {
