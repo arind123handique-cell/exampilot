@@ -22,8 +22,9 @@ What it does
 5. Writes:
      pyq-inbox/out/<slug>.json     raw + validated extraction (the source of truth)
      src/data/pyq/generated.ts     the app's question bank, regenerated from out/
-6. Optionally syncs to Firestore when a service account is available (--firebase).
-7. Commits the result. Pushing requires an explicit --push.
+ 6. Syncs validated papers to Firestore when a service account is available.
+ 7. Commits the result. Pushing requires an explicit --push.
+
 
 The git push is deliberately opt-in: a mis-OCR'd answer key should never be
 published to a public repo without a human looking at the summary first.
@@ -85,6 +86,20 @@ IMAGE_BATCH_PAGES = 4
 # Characters per Gemini request when structuring an extracted text layer.
 TEXT_CHUNK_CHARS = 12000
 VALID_OPTION_IDS = ("A", "B", "C", "D")
+MIN_EXPLANATION_CHARS = 12
+GENERIC_EXPLANATION_PATTERNS = (
+    re.compile(r"^official answer key:\s*\([A-D]\)\.?$", re.I),
+    re.compile(r"^official answer is\s*\([A-D]\)\.?$", re.I),
+    re.compile(r"^answer:\s*[A-D]\.?$", re.I),
+    re.compile(r"^(?:n/?a|not available|not provided|see solution|no explanation)$", re.I),
+)
+
+
+def has_meaningful_explanation(value) -> bool:
+    text = str(value or "").strip()
+    return len(text) >= MIN_EXPLANATION_CHARS and not any(
+        pattern.fullmatch(text) for pattern in GENERIC_EXPLANATION_PATTERNS
+    )
 
 
 # ── Small helpers ────────────────────────────────────────────────────────────
@@ -416,18 +431,29 @@ def validate_questions(raw_list: list, meta: dict) -> tuple:
         if q_type not in ("CONCEPTUAL", "NUMERICAL", "FORMULA_RECALL"):
             q_type = "CONCEPTUAL"
 
+        explanation = str(entry.get("explanation") or "").strip()
+        if not has_meaningful_explanation(explanation):
+            rejected += 1
+            continue
+
+        try:
+            question_number = int(entry.get("questionNumber") or 0)
+        except (TypeError, ValueError):
+            question_number = 0
+        if question_number < 1:
+            question_number = len(out) + 1
+
         out.append(
             {
                 "stem": stem,
                 "options": options,
                 "correctOption": key,
-                "explanation": str(entry.get("explanation") or "").strip()
-                or f"Official answer key: ({key}).",
+                "explanation": explanation,
                 "subject": str(entry.get("subject") or meta.get("subject") or "General Studies").strip(),
                 "topic": str(entry.get("topic") or meta.get("paperType") or meta["examName"]).strip(),
                 "difficulty": difficulty,
                 "questionType": q_type,
-                "questionNumber": int(entry.get("questionNumber") or 0) or None,
+                "questionNumber": question_number,
             }
         )
 
@@ -515,17 +541,25 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
                     "pyqExam": meta["examName"],
                 }
             )
-        built_sections.append({"id": f"sec-{slugify(section['name'], 30)}", "name": section["name"], "questions": section_questions})
+        built_sections.append(
+            {
+                "id": f"sec-{slugify(section['name'], 30)}",
+                "name": section["name"],
+                "totalQuestions": len(section_questions),
+                "questions": section_questions,
+            }
+        )
         all_questions.extend(section_questions)
 
     total = len(all_questions)
     paper = {
         "id": f"pyq-{meta['slug']}",
+        "examId": meta["examId"],
         "examName": meta["examName"],
         "year": meta["year"],
         "paperType": meta["paperType"],
         "totalQuestions": total,
-        "downloadAvailable": False,
+        "downloadAvailable": True,
         "frequencyTags": [s["name"] for s in built_sections][:8],
         "questions": all_questions,
     }
@@ -756,7 +790,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-pages", type=int, help="only read the first N pages (debugging)")
     parser.add_argument("--push", action="store_true", help="git push after committing (off by default)")
     parser.add_argument("--no-commit", action="store_true", help="write files but do not commit")
-    parser.add_argument("--firebase", nargs="?", const="", help="path to a service account JSON for the Firestore sync")
+    parser.add_argument("--firebase", "--database", nargs="?", const="", help="path to a service account JSON for the Firestore sync")
+    parser.add_argument("--no-database", action="store_true", help="skip Firestore sync even if a service account is available")
     parser.add_argument("--rebuild", action="store_true", help="regenerate src/data/pyq/generated.ts from pyq-inbox/out only")
     parser.add_argument("--from-json", help="import an already-extracted JSON instead of calling Gemini")
     parser.add_argument("--dry-run", action="store_true", help="parse and report, but write/commit nothing")
