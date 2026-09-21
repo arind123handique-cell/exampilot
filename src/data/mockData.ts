@@ -14,13 +14,15 @@ import { STATEMENT_BASED_QUESTIONS } from './statementQuestions';
 import { CPM_PERT_QUESTIONS } from './cpmPertQuestions';
 import { EXAMVEDA_SOIL_QUESTIONS } from './soilMechanicsExamvedaBank';
 import { APSC_PHED_AE_CIVIL_2025_QUESTIONS } from './apscPhedAeCivilMock';
+import { APSC_PHED_AE_GS_2025_QUESTIONS } from './apscPhedAeGsMock';
 // Papers imported by the PYQ exporter (pyq-inbox/import-pyq.bat). Regenerated on
 // every run; the placeholder exports empty arrays, so this import is always safe.
 import { GENERATED_PYQ_PAPERS, GENERATED_PYQ_MOCK_TESTS } from './pyq/generated';
 
 export const GENERAL_STUDIES_QUESTIONS: MCQQuestion[] = [
   ...GS_CORE_QUESTIONS,
-  ...ASSAM_DWR_2026_QUESTIONS
+  ...ASSAM_DWR_2026_QUESTIONS,
+  ...APSC_PHED_AE_GS_2025_QUESTIONS
 ];
 
 export {
@@ -33,7 +35,8 @@ export {
   STATEMENT_BASED_QUESTIONS,
   CPM_PERT_QUESTIONS,
   EXAMVEDA_SOIL_QUESTIONS,
-  APSC_PHED_AE_CIVIL_2025_QUESTIONS
+  APSC_PHED_AE_CIVIL_2025_QUESTIONS,
+  APSC_PHED_AE_GS_2025_QUESTIONS
 };
 
 /**
@@ -476,6 +479,67 @@ export const MOCK_TEST_IES_CIVIL: MockTest = {
   ]
 };
 
+// Official APSC AE (PHED) Paper-I General Studies Mock Exam (Advt. 31/2025)
+export const MOCK_TEST_APSC_PHED_AE_GS_2025: MockTest = {
+  id: 'mock-apsc-phed-ae-gs-2025',
+  title: 'APSC AE (PHED) Paper-I General Studies Official Mock Exam (Advt. 31/2025)',
+  examId: 'apsc-phed-ae-gs-2025',
+  paperName: 'PAPER-I GENERAL STUDIES — Bachelor Degree Standard (100 MCQs)',
+  durationMinutes: 120,
+  totalMarks: 100,
+  negativeMarksPerIncorrect: 0.25,
+  sections: [
+    {
+      id: 'sec-apsc-phed-gs-current',
+      name: 'Unit I: Current Events of National & International importance (Q1-12)',
+      totalQuestions: 12,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(0, 12)
+    },
+    {
+      id: 'sec-apsc-phed-gs-history',
+      name: 'Unit II: History of India & History of Assam (Q13-27)',
+      totalQuestions: 15,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(12, 27)
+    },
+    {
+      id: 'sec-apsc-phed-gs-geo',
+      name: 'Unit III: World Geography including India & Assam (Q28-42)',
+      totalQuestions: 15,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(27, 42)
+    },
+    {
+      id: 'sec-apsc-phed-gs-econ',
+      name: 'Unit IV: Indian Economy, Indian National Movements (Q43-56)',
+      totalQuestions: 14,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(42, 56)
+    },
+    {
+      id: 'sec-apsc-phed-gs-mental',
+      name: 'Unit V: Mental Ability (Q57-68)',
+      totalQuestions: 12,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(56, 68)
+    },
+    {
+      id: 'sec-apsc-phed-gs-scitech',
+      name: 'Unit VI: Role and Impact of Science and Technology in India (Q69-78)',
+      totalQuestions: 10,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(68, 78)
+    },
+    {
+      id: 'sec-apsc-phed-gs-polity',
+      name: 'Unit VII: Indian Polity, Political System in India (Q79-90)',
+      totalQuestions: 12,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(78, 90)
+    },
+    {
+      id: 'sec-apsc-phed-gs-culture',
+      name: 'Unit VIII: Indian Culture (Q91-100)',
+      totalQuestions: 10,
+      questions: APSC_PHED_AE_GS_2025_QUESTIONS.slice(90, 100)
+    }
+  ]
+};
+
 // Official APSC AE Civil (PHED) Paper-II Mock Exam (Advt. 31/2025)
 export const MOCK_TEST_APSC_PHED_AE_CIVIL_2025: MockTest = {
   id: 'mock-apsc-phed-ae-civil-2025',
@@ -539,6 +603,7 @@ export const MOCK_TEST_APSC_PHED_AE_CIVIL_2025: MockTest = {
 
 export const MOCK_TESTS: MockTest[] = [
   // Official Syllabus Mock Tests
+  MOCK_TEST_APSC_PHED_AE_GS_2025,
   MOCK_TEST_APSC_PHED_AE_CIVIL_2025,
   // Imported PYQ papers come first so a freshly added paper is prominent.
   ...GENERATED_PYQ_MOCK_TESTS,
@@ -587,7 +652,15 @@ export const SUBJECT_GROUPS: SubjectGroup[] = [
       'Indian History & National Movement',
       'Indian Polity & Constitution',
       'Quantitative Aptitude & Reasoning',
-      'State General Knowledge (Assam & NE)'
+      'State General Knowledge (Assam & NE)',
+      'I. Current Events of National & International importance',
+      'II. History of India & History of Assam',
+      'III. World Geography including India & Assam',
+      'IV. Indian Economy, Indian National Movements',
+      'V. Mental Ability',
+      'VI. Role and Impact of Science and Technology in India',
+      'VII. Indian Polity, Political System in India',
+      'VIII. Indian Culture'
     ]
   },
   {

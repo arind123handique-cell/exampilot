@@ -42,7 +42,8 @@ export interface SubTopicNode {
 }
 
 export const UNIVERSAL_EXAMS: ExamEntry[] = [
-  { id: 'apsc-phed-ae-civil-2025', name: 'APSC AE Civil (PHED) — Advt. 31/2025', category: 'State PSC Engineering', color: '#2563EB', totalMarks: 100, durationHours: 2, description: 'Assam Public Service Commission Assistant Engineer (Civil) under Public Health Engineering Department. Paper-II (100 MCQs, 2 Hours).' },
+  { id: 'apsc-phed-ae-gs-2025', name: 'APSC AE (PHED) Paper-I General Studies — Advt. 31/2025', category: 'State PSC General Studies', color: '#0D9488', totalMarks: 100, durationHours: 2, description: 'Assam Public Service Commission AE PHED Paper-I General Studies (100 Objective MCQs, 2 Hours).' },
+  { id: 'apsc-phed-ae-civil-2025', name: 'APSC AE Civil (PHED) Paper-II — Advt. 31/2025', category: 'State PSC Engineering', color: '#2563EB', totalMarks: 100, durationHours: 2, description: 'Assam Public Service Commission Assistant Engineer (Civil) under Public Health Engineering Department. Paper-II (100 MCQs, 2 Hours).' },
   { id: 'apsc-ae-civil', name: 'APSC Assistant Engineer (Civil)', category: 'State PSC Engineering', color: '#4F46E5', totalMarks: 200, durationHours: 2, description: 'Assam Public Service Commission Assistant Engineer (Civil) under PWD / WRD / PHED.' },
   { id: 'upsc-cse', name: 'UPSC Civil Services Examination', category: 'Central Civil Services', color: '#0284C7', totalMarks: 400, durationHours: 4, description: 'Union Public Service Commission Preliminary Examination (GS Paper I & CSAT).' },
   { id: 'gate-ce', name: 'GATE Civil Engineering', category: 'National Engineering Entrance', color: '#7C3AED', totalMarks: 100, durationHours: 3, description: 'Graduate Aptitude Test in Engineering for M.Tech admissions and PSU recruitments.' },
@@ -1031,7 +1032,203 @@ export const APSC_PHED_CIVIL_SUBJECTS: SubjectNode[] = [
   }
 ];
 
+export const APSC_PHED_GS_SUBJECTS: SubjectNode[] = [
+  {
+    id: 'sub-phed-gs-current-events',
+    name: 'Current Events of National & International Importance',
+    domains: [
+      {
+        id: 'dom-phed-gs-current-events',
+        name: 'National & Global Affairs',
+        topics: [
+          {
+            id: 'tp-national-current-affairs',
+            name: 'National Current Events, Policies & Summits',
+            subtopics: [
+              { id: 'st-nat-events', name: 'National Affairs & Schemes', concepts: ['government initiatives', 'bilateral agreements', 'multilateral organizations'] },
+              { id: 'st-sports-awards', name: 'Sports & Honours', concepts: ['Olympics', 'National Games', 'Padma awards', 'Nobel prizes'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-history',
+    name: 'History of India & History of Assam',
+    domains: [
+      {
+        id: 'dom-phed-gs-history',
+        name: 'Ancient, Medieval, Modern & Assam History',
+        topics: [
+          {
+            id: 'tp-assam-history',
+            name: 'History of Assam (Ancient to Colonial)',
+            subtopics: [
+              { id: 'st-ahom-kingdom', name: 'Ahom Era & Battle of Saraighat', concepts: ['Sukapha', 'Paik system', 'Lachit Borphukan', 'Treaty of Yandabo'] },
+              { id: 'st-peasant-uprisings', name: 'Peasant Movements & National Struggle', concepts: ['Phulaguri Dhawa', 'Patharughat Ran', 'Assam in 1942 movement'] }
+            ],
+            weight: 4
+          },
+          {
+            id: 'tp-indian-history',
+            name: 'Indian History (Ancient to Modern)',
+            subtopics: [
+              { id: 'st-ancient-medieval', name: 'Ancient & Medieval India', concepts: ['Indus Valley', 'Mauryas', 'Mughals', 'Delhi Sultanate'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-geography',
+    name: 'World Geography including India & Assam',
+    domains: [
+      {
+        id: 'dom-phed-gs-geography',
+        name: 'Physical, Regional & Assam Geography',
+        topics: [
+          {
+            id: 'tp-assam-geography',
+            name: 'Geography of Assam & Northeast',
+            subtopics: [
+              { id: 'st-brahmaputra-barak', name: 'River Systems of Assam', concepts: ['Brahmaputra tributaries', 'Barak river', 'Majuli island', 'beels'] },
+              { id: 'st-parks-forests', name: 'National Parks & Forests of Assam', concepts: ['Kaziranga', 'Manas', 'Raimona', 'Dehing Patkai', 'Dibru-Saikhowa'] }
+            ],
+            weight: 4
+          },
+          {
+            id: 'tp-indian-world-geo',
+            name: 'Indian & World Geography',
+            subtopics: [
+              { id: 'st-physiography-india', name: 'Physiography & Climate of India', concepts: ['Himalayas', 'monsoon system', 'drainage patterns'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-economy-movement',
+    name: 'Indian Economy & Indian National Movement',
+    domains: [
+      {
+        id: 'dom-phed-gs-economy-movement',
+        name: 'Economic Structure & Freedom Struggle',
+        topics: [
+          {
+            id: 'tp-indian-economy',
+            name: 'Indian & Assam Economy',
+            subtopics: [
+              { id: 'st-macro-economy', name: 'National Income, NITI Aayog & Fiscal Policy', concepts: ['GDP', 'RBI monetary policy', 'GST', 'agriculture'] },
+              { id: 'st-assam-economy', name: 'Assam Economic Resources', concepts: ['tea industry', 'petroleum & natural gas', 'water resources'] }
+            ],
+            weight: 3.5
+          },
+          {
+            id: 'tp-national-movement',
+            name: 'Indian National Movement & Freedom Struggle',
+            subtopics: [
+              { id: 'st-1857-gandhian', name: '1857 Revolt & Gandhian Movements', concepts: ['Swadeshi', 'Non-Cooperation', 'Civil Disobedience', 'Quit India', 'Assam martyrs'] }
+            ],
+            weight: 3.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-mental-ability',
+    name: 'Mental Ability',
+    domains: [
+      {
+        id: 'dom-phed-gs-mental-ability',
+        name: 'Reasoning & Aptitude',
+        topics: [
+          {
+            id: 'tp-logical-analytical',
+            name: 'Logical, Analytical & Quantitative Aptitude',
+            subtopics: [
+              { id: 'st-reasoning', name: 'Deductive Reasoning & Series', concepts: ['coding-decoding', 'direction test', 'blood relations', 'syllogisms'] },
+              { id: 'st-quant-di', name: 'Quantitative Aptitude & Data Interpretation', concepts: ['percentages', 'ratios', 'averages', 'charts and graphs'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-science-tech',
+    name: 'Role and Impact of Science and Technology in India',
+    domains: [
+      {
+        id: 'dom-phed-gs-science-tech',
+        name: 'Scientific & Technological Developments',
+        topics: [
+          {
+            id: 'tp-isro-drdo-tech',
+            name: 'Space, Defense, Nuclear & Digital Technology',
+            subtopics: [
+              { id: 'st-space-defense', name: 'ISRO, DRDO & Nuclear Energy', concepts: ['Chandrayaan', 'Aditya-L1', 'Gaganyaan', 'Agni missiles', 'BARC'] },
+              { id: 'st-digital-renewable', name: 'Digital Infrastructure & Green Energy', concepts: ['UPI', 'artificial intelligence', 'National Solar Mission', 'green hydrogen'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-polity',
+    name: 'Indian Polity & Political System in India',
+    domains: [
+      {
+        id: 'dom-phed-gs-polity',
+        name: 'Constitutional Framework & Governance',
+        topics: [
+          {
+            id: 'tp-constitution-governance',
+            name: 'Constitution, Executive, Judiciary & Local Bodies',
+            subtopics: [
+              { id: 'st-fundamental-rights', name: 'Preamble, Rights & Duties', concepts: ['Part III', 'Directive Principles', 'constitutional amendments'] },
+              { id: 'st-parliament-state', name: 'Parliament, Governor & Sixth Schedule', concepts: ['Lok Sabha', 'Rajya Sabha', 'autonomous councils in Assam', 'Gauhati High Court'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-gs-culture',
+    name: 'Indian Culture',
+    domains: [
+      {
+        id: 'dom-phed-gs-culture',
+        name: 'Art, Heritage, Festivals & Assam Traditions',
+        topics: [
+          {
+            id: 'tp-culture-heritage',
+            name: 'Indian Art, Classical Dances & Assam Culture',
+            subtopics: [
+              { id: 'st-classical-arts', name: 'Temple Architecture & Classical Dances', concepts: ['Nagara/Dravida styles', 'classical dance forms', 'Hindustani & Carnatic music'] },
+              { id: 'st-assam-vaishnavite', name: 'Assam Neo-Vaishnavite Culture & Folk Traditions', concepts: ['Srimanta Sankardev', 'Sattriya dance', 'Bihu festivals', 'Muga silk', 'Namghars'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      }
+    ]
+  }
+];
+
 const HIERARCHY_MAP: Record<string, SubjectNode[]> = {
+  'apsc-phed-ae-gs-2025': APSC_PHED_GS_SUBJECTS,
   'apsc-phed-ae-civil-2025': APSC_PHED_CIVIL_SUBJECTS,
   'apsc-ae-civil': CIVIL_SUBJECTS,
   'upsc-cse': UPSC_CSE_SUBJECTS,

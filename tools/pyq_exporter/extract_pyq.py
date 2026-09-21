@@ -656,7 +656,7 @@ def to_firestore_value(value):
     return {"stringValue": str(value)}
 
 
-def firestore_sync(papers: list, mocks: list, service_account_path: str | None) -> bool:
+def firestore_sync(papers: list, mocks: list, service_account_path: str | None, inbox: Path | None = None) -> bool:
     """Mirror validated papers into Firestore catalogs; return True on success."""
     if not service_account_path:
         log("  Firestore sync skipped (no service account). Repo files are the source of truth.")
@@ -664,9 +664,9 @@ def firestore_sync(papers: list, mocks: list, service_account_path: str | None) 
 
     account_file = Path(service_account_path)
     if not account_file.is_absolute() and not account_file.is_file():
-        inbox_candidate = inbox_path(service_account_path)
-        if inbox_candidate.is_file():
-            account_file = inbox_candidate
+        resolved = (inbox or DEFAULT_INBOX) / service_account_path
+        if resolved.is_file():
+            account_file = resolved
     if not account_file.is_file():
         warn(f"service account not found at {account_file}")
         return False
@@ -875,7 +875,14 @@ def main() -> int:
     # ── Rebuild-only fast path ──
     if args.rebuild:
         log("Rebuilding src/data/pyq/generated.ts from pyq-inbox/out …")
-        rebuild_generated_ts(inbox, dry_run=args.dry_run)
+        papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run)
+        if not args.dry_run and not args.no_database:
+            service_account = args.firebase
+            if service_account == "":
+                service_account = os.environ.get("FIREBASE_SERVICE_ACCOUNT") or str(inbox / "serviceAccount.json")
+            if service_account:
+                log("\nSyncing to Firestore …")
+                firestore_sync(papers, mocks, service_account, inbox)
         return 0
 
     pdfs = find_pdfs(inbox)
@@ -1005,12 +1012,16 @@ def main() -> int:
         return 0
 
     # ── Optional Firestore mirror ──
-    service_account = args.firebase
-    if service_account == "":
-        service_account = os.environ.get("FIREBASE_SERVICE_ACCOUNT") or str(inbox / "serviceAccount.json")
+    if args.no_database:
+        service_account = None
+    else:
+        service_account = args.firebase
+        if service_account == "":
+            service_account = os.environ.get("FIREBASE_SERVICE_ACCOUNT") or str(inbox / "serviceAccount.json")
     if service_account:
         log("\nSyncing to Firestore …")
-        firestore_sync(papers, mocks, service_account)
+        if not firestore_sync(papers, mocks, service_account, inbox):
+            die("Firestore sync failed — aborting")
 
     # ── Commit / push ──
     if not args.no_commit:

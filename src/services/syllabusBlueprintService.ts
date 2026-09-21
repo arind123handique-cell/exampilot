@@ -186,6 +186,143 @@ export const APSC_PHED_AE_CIVIL_2025_SYLLABUS: SyllabusBlueprint = {
   ]
 };
 
+// -----------------------------------------------------------------------------
+// Official APSC AE (PHED) Paper-I General Studies Syllabus
+// Transcribed faithfully from official Assam Public Service Commission notification
+// -----------------------------------------------------------------------------
+export const APSC_PHED_AE_GS_2025_SYLLABUS: SyllabusBlueprint = {
+  id: 'apsc-phed-ae-gs-2025',
+  title: 'APSC AE (PHED) — Paper-I General Studies',
+  examAgency: 'Assam Public Service Commission (APSC)',
+  department: 'Public Health Engineering Department',
+  advertNo: 'Advt. No. 31/2025',
+  paper: 'PAPER-I GENERAL STUDIES (Multiple Choice Objective Type Questions)',
+  standard: 'Bachelor Degree Standard',
+  fullMarks: 100,
+  durationMinutes: 120, // 2-00 hours
+  totalQuestions: 100,
+  negativeMarksPerIncorrect: 0.25,
+  isOfficial: true,
+  branch: 'gs',
+  modules: [
+    {
+      id: 'mod-gs-current-events',
+      name: 'I. Current Events of National & International importance',
+      description: 'National & global affairs, bilateral summits, sports, awards, major policy decisions and multilateral organizations',
+      suggestedWeight: 12,
+      topics: [
+        'National current events, government initiatives and policies',
+        'International relations, global summits, treaties and bilateral agreements',
+        'Sports championships, Olympic games, national games and awards',
+        'National and international awards, honours, Nobel prizes, Padma awards',
+        'Important days, themes, global summits and international conferences'
+      ]
+    },
+    {
+      id: 'mod-gs-history',
+      name: 'II. History of India & History of Assam',
+      description: 'Ancient, medieval, and modern Indian history, and comprehensive history of Assam from ancient Kamarupa to post-independence',
+      suggestedWeight: 15,
+      topics: [
+        'Indus Valley Civilization, Vedic Period, Mauryas and Guptas',
+        'Medieval Indian kingdoms, Delhi Sultanate and Mughal Empire',
+        'Ancient Kamarupa: Varman, Salastambha and Pala dynasties',
+        'Ahom Kingdom (1228-1826): Sukapha, administrative system, Paik system, Battle of Saraighat & Lachit Borphukan',
+        'Koch Kingdom, Chutiya kingdom, Kachari dynasty and Matak rebellion',
+        'British Annexation of Assam (Treaty of Yandabo 1826) and colonial administration',
+        'Peasant uprisings in Assam (Phulaguri Dhawa 1861, Patharughat Ran 1894)'
+      ]
+    },
+    {
+      id: 'mod-gs-geography',
+      name: 'III. World Geography including India & Assam',
+      description: 'Physical, economic and human geography of the world, India, and detailed physiography and river systems of Assam',
+      suggestedWeight: 15,
+      topics: [
+        'Physical geography of the world: lithosphere, atmosphere, oceans, climate zones',
+        'Physiography of India: Himalayas, Indo-Gangetic Plains, Peninsular Plateau, Coastal Plains',
+        'Indian drainage system: Himalayan and Peninsular rivers, monsoons, climate, natural vegetation',
+        'Physiography of Assam: Brahmaputra Valley, Barak Valley and Karbi Anglong / Dima Hasao hill regions',
+        'River Brahmaputra and its tributaries (Subansiri, Jia Bharali, Manas, Dhansiri, Kopili)',
+        'Barak river system, wetlands (beels), Majuli river island, climate and rainfall patterns in Assam',
+        'Mineral resources, forests, national parks (Kaziranga, Manas, Orang, Nameri, Raimona, Dehing Patkai, Dibru-Saikhowa) and biosphere reserves'
+      ]
+    },
+    {
+      id: 'mod-gs-economy-national-movement',
+      name: 'IV. Indian Economy, Indian National Movements',
+      description: 'Structure of Indian economy, planning, reforms, agriculture, industry, and the freedom struggle against British rule',
+      suggestedWeight: 14,
+      topics: [
+        'Structure of Indian Economy, GDP, national income concepts and economic growth',
+        'NITI Aayog, Five-Year Plans, monetary policy (RBI) and fiscal policy (budgeting, GST)',
+        'Indian agriculture, rural economy, green revolution, inflation and banking reforms',
+        'Assam economy: tea industry, oil and natural gas sector, agriculture, sericulture and water resources',
+        'Revolt of 1857 in India and its reverberations in Assam (Maniram Dewan, Piyoli Baruah)',
+        'Indian National Movement: Early nationalist phase, Swadeshi movement, Non-Cooperation Movement (1920-22)',
+        'Civil Disobedience Movement (1930) and Quit India Movement (1942) with role of Assam (Kanaklata Barua, Kushal Konwar, Bhogeswari Phukanani)'
+      ]
+    },
+    {
+      id: 'mod-gs-mental-ability',
+      name: 'V. Mental Ability',
+      description: 'Logical reasoning, analytical reasoning, numerical aptitude, data interpretation and problem solving',
+      suggestedWeight: 12,
+      topics: [
+        'Logical reasoning, deductive logic, statements and assumptions, syllogisms',
+        'Analytical reasoning, series completion (number & letter series), analogy and classification',
+        'Coding-decoding, blood relations, direction sense test, seating arrangement',
+        'Quantitative aptitude: percentages, ratios, averages, profit & loss, time and work',
+        'Data interpretation: tables, bar graphs, pie charts and line graphs'
+      ]
+    },
+    {
+      id: 'mod-gs-sci-tech',
+      name: 'VI. Role and Impact of Science and Technology in India',
+      description: 'Developments in science, space exploration, defense tech, biotechnology, IT, renewable energy, and scientific research institutions in India',
+      suggestedWeight: 10,
+      topics: [
+        'Indian Space Research Programme (ISRO): Chandrayaan, Aditya-L1, Gaganyaan, satellite launch vehicles (PSLV, GSLV, LVM3)',
+        'Defense technology: DRDO missiles (Agni, BrahMos, Akash), indigenous defense platforms',
+        'Nuclear energy programme in India, BARC, NPCIL, three-stage nuclear power plan',
+        'Information technology, artificial intelligence, cybersecurity, digital public infrastructure (UPI, Aadhaar, DigiLocker)',
+        'Biotechnology, public health, vaccines, genetic engineering and agriculture applications',
+        'Renewable energy initiatives (solar, wind, green hydrogen, National Solar Mission) and environmental technology'
+      ]
+    },
+    {
+      id: 'mod-gs-polity',
+      name: 'VII. Indian Polity, Political System in India',
+      description: 'Constitutional framework, Fundamental Rights, Directive Principles, Union and State Executive, Judiciary, and Local Self-Government',
+      suggestedWeight: 12,
+      topics: [
+        'Making of Indian Constitution, Preamble, Constitutional features and sources',
+        'Fundamental Rights (Part III), Fundamental Duties (Part IVA) and Directive Principles of State Policy (Part IV)',
+        'Union Executive: President, Vice-President, Prime Minister and Council of Ministers',
+        'Union Parliament: Lok Sabha, Rajya Sabha, legislative procedure and parliamentary committees',
+        'State Government: Governor, Chief Minister, State Legislative Assembly and Sixth Schedule autonomous councils in Assam',
+        'Judiciary: Supreme Court of India, High Courts (Gauhati High Court jurisdiction), judicial review',
+        'Panchayati Raj and Municipalities (73rd & 74th Amendments), Election Commission of India and constitutional bodies'
+      ]
+    },
+    {
+      id: 'mod-gs-culture',
+      name: 'VIII. Indian Culture',
+      description: 'Art, architecture, classical dances, music, literature, religious movements, and the rich cultural heritage of Assam',
+      suggestedWeight: 10,
+      topics: [
+        'Indian architecture: temple styles (Nagara, Dravida, Vesara), stupas, rock-cut caves, Mughal architecture',
+        'Classical dance forms of India (Bharatnatyam, Kathak, Kathakali, Mohiniyattam, Kuchipudi, Odissi, Manipuri, Sattriya)',
+        'Indian classical music: Hindustani and Carnatic music traditions',
+        'Neo-Vaishnavite movement in Assam: Mahapurush Srimanta Sankardev, Madhavdev, Satras and Namghars',
+        'Sattriya dance, Borgeet, Ankiya Naat and Bhaona traditions of Assam',
+        'Folk culture and festivals of Assam: Rongali, Kongali, Bhogali Bihu, Ali-Aye-Ligang, Baishagu, Ambubachi Mela',
+        'Traditional crafts, textiles (Muga, Eri, Pat silk), bell-metal of Sarthebari, and literary milestones of Assam'
+      ]
+    }
+  ]
+};
+
 const STORAGE_KEY_CUSTOM_SYLLABI = 'exampilot_custom_syllabi';
 
 function getLocalCustomSyllabi(): SyllabusBlueprint[] {
@@ -211,7 +348,10 @@ function setLocalCustomSyllabi(syllabi: SyllabusBlueprint[]): void {
 export function getAllSyllabusBlueprints(): SyllabusBlueprint[] {
   const custom = getLocalCustomSyllabi();
   const customIds = new Set(custom.map((s) => s.id));
-  const base = [APSC_PHED_AE_CIVIL_2025_SYLLABUS].filter((s) => !customIds.has(s.id));
+  const base = [
+    APSC_PHED_AE_GS_2025_SYLLABUS,
+    APSC_PHED_AE_CIVIL_2025_SYLLABUS
+  ].filter((s) => !customIds.has(s.id));
   return [...base, ...custom];
 }
 
