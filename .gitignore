@@ -26,3 +26,6 @@ repro-*.png
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+.vercel
+.env*
