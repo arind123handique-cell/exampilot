@@ -993,7 +993,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           {/* Main Column: Question area and persistent sticky bottom navigation bar */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0 w-full max-w-full">
             {/* Scrollable Question area */}
-            <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 w-full max-w-full min-w-0 pb-28 sm:pb-32">
+            <main className="flex-1 overflow-y-auto overscroll-y-contain touch-pan-y p-2.5 sm:p-6 lg:p-8 space-y-4 sm:space-y-5 w-full max-w-full min-w-0 pb-28 sm:pb-32" style={{ WebkitOverflowScrolling: 'touch' }}>
               <div className="flex items-center justify-between text-[11px] sm:text-xs text-muted pb-2 border-b border-line gap-2 flex-wrap">
                 <span className="font-bold text-primary flex-shrink-0">
                   Question {currentIndex + 1} of {allQuestions.length}
@@ -1424,7 +1424,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   // 3. AUTHENTICATED STUDENT PORTAL (MOCK TESTS & REVIEW ONLY)
   // ─────────────────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen w-full max-w-full flex flex-col bg-canvas text-ink overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] w-full max-w-full flex flex-col bg-canvas text-ink">
       {/* ── Top Bar ── */}
       <header className="h-14 border-b border-line bg-card/90 backdrop-blur px-2.5 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-20 sticky top-0 w-full max-w-full overflow-hidden">
         <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
@@ -1581,7 +1581,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       </nav>
 
       {/* ── Main Student Content ── */}
-      <main className="flex-1 overflow-y-auto p-2.5 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full max-w-full space-y-6 pb-24 md:pb-8 min-w-0 overflow-x-hidden">
+      <main className="flex-1 p-2.5 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full max-w-full space-y-6 pb-28 md:pb-12 min-w-0">
         {/* ── TAB 1: AVAILABLE MOCK TESTS ── */}
         {studentTab === 'tests' && !reviewingRecord && (
           <div className="space-y-6 animate-fadeIn">

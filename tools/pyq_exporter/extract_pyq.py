@@ -832,6 +832,7 @@ def main() -> int:
         return 0
 
     env = load_env(REPO_ROOT / ".env")
+    env.update(load_env(inbox / ".env"))
     api_key = (
         args.api_key
         or os.environ.get("GEMINI_API_KEY")

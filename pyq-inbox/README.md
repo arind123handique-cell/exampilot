@@ -51,13 +51,15 @@ Everything after the script name is passed straight through:
 
 ## API key
 
-OCR and structuring use Gemini, so a key is required. Add it to `.env` in the repo root:
+OCR and structuring use Gemini, so a key is required. For a PYQ-only local setup, add it to
+`pyq-inbox/.env`:
 
 ```
 GEMINI_API_KEY=your_key_here
 ```
 
-Get one at <https://aistudio.google.com/apikey>. `VITE_GEMINI_API_KEY` is also honoured.
+This file is git-ignored and stays on this computer. The importer also checks the repository-root
+`.env` as a fallback. `VITE_GEMINI_API_KEY` is honoured when neither local key is present.
 
 ## Why it does not push automatically
 
