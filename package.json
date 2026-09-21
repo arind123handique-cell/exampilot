@@ -18,6 +18,8 @@
     "audit:content": "node scripts/audit-content-coverage.mjs",
     "audit:coverage": "node scripts/coverage-report.mjs --requests",
     "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox --supabase",
+    "pyq:math": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox --math --supabase",
+    "pyq:image": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox --force-image --supabase",
     "pyq:inspect": "python tools/pyq_exporter/extract_pyq.py --inspect",
     "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild --supabase",
     "supabase:dump": "tsx scripts/migrate-to-supabase.ts",

@@ -12,10 +12,19 @@ echo  Inbox : %~dp0
 echo  Repo  : %CD%
 echo.
 echo  Put question-paper PDFs in this folder, then run this file.
-echo  Anything after the file name is passed through, e.g.
-echo      import-pyq.bat --inspect      check text vs scanned
-echo      import-pyq.bat --push         publish to GitHub
-echo      import-pyq.bat --group topic  finer sub-heads
+echo.
+echo  Common flags:
+echo      import-pyq.bat                  import everything in the inbox
+echo      import-pyq.bat --math           math/formula-heavy paper (recommended
+echo                                      for papers with equations, diagrams)
+echo      import-pyq.bat --force-image    render all pages as images (safe default)
+echo      import-pyq.bat --push           import and publish to GitHub
+echo      import-pyq.bat --inspect        check text vs scanned (no API calls)
+echo      import-pyq.bat --dry-run        parse and summarise, write nothing
+echo      import-pyq.bat --rebuild        regenerate generated.ts from out\ only
+echo      import-pyq.bat --group topic    finer sub-heads by topic
+echo      import-pyq.bat --exam "APSC AE Civil" --year 2025
+echo      import-pyq.bat --math --push    math paper + publish
 echo ============================================================
 echo.
 

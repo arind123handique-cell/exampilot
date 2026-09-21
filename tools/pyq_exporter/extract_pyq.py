@@ -11,34 +11,42 @@ Drop one or more PDFs into `pyq-inbox/` and run:
 What it does
 ------------
 1. Reads every PDF in the inbox.
-2. Pulls the text layer with PyMuPDF. If a page has no usable text it is
-   rendered to an image and OCR'd with Gemini vision (same provider the app's
-   admin PDF ingestor uses).
-3. Asks Gemini to structure the paper into MCQs: stem, options A-D, the correct
-   key, a worked explanation, and a subject/topic.
-4. Validates and de-duplicates, then groups the questions into **sub-heads**
-   from their extracted subject/topic (see --group) and builds a MockTest whose
+2. Pulls the text layer with PyMuPDF. Pages with no text layer (or ALL pages when
+   --force-image / --math is set) are rendered to high-DPI PNG images so Gemini
+   Vision can OCR them — including embedded formula images and diagrams.
+3. Hybrid mode: for PDFs that have BOTH a text layer AND embedded images, every
+   page is rendered at high DPI and sent as an image; the text layer is NOT used
+   (guarantees formulas are not lost).
+4. Asks Gemini to structure the paper into MCQs. Math mode uses a richer prompt
+   that outputs Unicode math notation (∫, √, σ, ≤ …) and fills extra fields:
+   formulaContext, solutionSteps, referenceSource.
+5. Validates and de-duplicates, then groups the questions into sub-heads from
+   their extracted subject/topic (see --group) and builds a MockTest whose
    `sections` are those sub-heads.
-5. Writes:
+   Validation is relaxed for NUMERICAL and FORMULA_RECALL questions — shorter
+   stems and shorter explanations are accepted because a formula *is* the answer.
+6. Writes:
       pyq-inbox/out/<slug>.json     raw + validated extraction (the source of truth)
       src/data/pyq/generated.ts     the app's question bank, regenerated from out/
-  6. Syncs validated papers to Supabase when `--supabase` is passed (or SUPABASE_URL/
-     SUPABASE_ANON_KEY are set).
-  7. Commits the result. Pushing requires an explicit --push.
-
+7. Syncs validated papers to Supabase when --supabase is passed (or SUPABASE_URL/
+   SUPABASE_ANON_KEY are set).
+8. Commits the result. Pushing requires an explicit --push.
 
 The git push is deliberately opt-in: a mis-OCR'd answer key should never be
-published to a public repo without a human looking at the summary first.
+published without a human checking the summary first.
 
 Examples
 --------
-    extract_pyq.py --inspect                       # diagnose text vs scanned, no API calls
-    extract_pyq.py                                 # import everything in the inbox
-    extract_pyq.py --push                          # ...and publish
-extract_pyq.py --rebuild                       # regenerate generated.ts only
-     extract_pyq.py --rebuild --supabase            # ...and mirror into Supabase
-     extract_pyq.py --from-json pyq-inbox/out/x.json # import an already-extracted paper
-     extract_pyq.py --group topic                   # group sub-heads by topic instead of auto
+    extract_pyq.py --inspect                            # diagnose text vs scanned, no API calls
+    extract_pyq.py                                      # import everything in the inbox
+    extract_pyq.py --math                               # math-heavy paper (formulas, diagrams)
+    extract_pyq.py --force-image                        # always render pages as images
+    extract_pyq.py --push                               # import and publish
+    extract_pyq.py --rebuild                            # regenerate generated.ts only
+    extract_pyq.py --rebuild --supabase                 # ...and mirror into Supabase
+    extract_pyq.py --from-json pyq-inbox/out/x.json     # import an already-extracted paper
+    extract_pyq.py --group topic                        # group sub-heads by topic instead of auto
+    extract_pyq.py --exam "APSC AE Civil" --year 2025   # override metadata guessed from filename
 """
 
 from __future__ import annotations
@@ -56,7 +64,7 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Windows consoles default to cp1252 and blow up on the arrows/emoji below.
+# Windows consoles default to cp1252 and blow up on arrows/emoji/math symbols.
 try:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 except Exception:
@@ -70,25 +78,39 @@ GENERATED_TS = REPO_ROOT / "src" / "data" / "pyq" / "generated.ts"
 
 # ── Gemini ───────────────────────────────────────────────────────────────────
 GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
-# Mirrors DEFAULT_GEMINI_MODELS in src/services/geminiService.ts — most recent GA
-# flash models first, older ones as fallbacks for 404/429/503.
+# Most-recent GA flash models first; older ones as fallbacks for 404/429/503.
 GEMINI_MODELS = [
-    "gemini-3.5-flash-lite",
     "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
     "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
     "gemini-1.5-flash",
     "gemini-3.8-flash",
+    "gemini-3.5-flash-lite",
 ]
 
-# A page yielding less than this many characters is treated as scanned/imagery.
+# ── PDF reading ───────────────────────────────────────────────────────────────
+# A page yielding fewer than this many chars is treated as scanned/imagery.
 MIN_TEXT_CHARS_PER_PAGE = 80
-# Pages per Gemini request when OCR-ing images (token + payload sanity).
-IMAGE_BATCH_PAGES = 4
-# Characters per Gemini request when structuring an extracted text layer.
+# DPI used for rasterising normal pages.
+NORMAL_DPI = 150
+# DPI used when --math or --force-image is active (captures fine formula detail).
+MATH_DPI = 220
+# Pages per Gemini vision call (token + payload limit).
+IMAGE_BATCH_PAGES = 3
+# Characters per Gemini text call.
 TEXT_CHUNK_CHARS = 12000
+# If this fraction of pages contain embedded images, force full image mode.
+EMBEDDED_IMAGE_RATIO_THRESHOLD = 0.25
+
 VALID_OPTION_IDS = ("A", "B", "C", "D")
 MIN_EXPLANATION_CHARS = 12
+# Shorter threshold accepted for math-type questions.
+MIN_MATH_EXPLANATION_CHARS = 6
+MIN_STEM_CHARS = 12
+# For NUMERICAL / FORMULA_RECALL a stem like "Find σ if ε = 0.002" is valid.
+MIN_MATH_STEM_CHARS = 5
+
 GENERIC_EXPLANATION_PATTERNS = (
     re.compile(r"^official answer key:\s*\([A-D]\)\.?$", re.I),
     re.compile(r"^official answer is\s*\([A-D]\)\.?$", re.I),
@@ -97,9 +119,10 @@ GENERIC_EXPLANATION_PATTERNS = (
 )
 
 
-def has_meaningful_explanation(value) -> bool:
+def has_meaningful_explanation(value, math_mode: bool = False) -> bool:
     text = str(value or "").strip()
-    return len(text) >= MIN_EXPLANATION_CHARS and not any(
+    min_len = MIN_MATH_EXPLANATION_CHARS if math_mode else MIN_EXPLANATION_CHARS
+    return len(text) >= min_len and not any(
         pattern.fullmatch(text) for pattern in GENERIC_EXPLANATION_PATTERNS
     )
 
@@ -121,7 +144,7 @@ def die(msg: str, code: int = 1):
 
 
 def load_env(path: Path) -> dict:
-    """Minimal .env reader — enough for KEY=VALUE, ignores comments/blank lines."""
+    """Minimal .env reader — KEY=VALUE, ignores comments and blank lines."""
     env: dict = {}
     if not path.is_file():
         return env
@@ -132,7 +155,7 @@ def load_env(path: Path) -> dict:
                 continue
             key, _, value = line.partition("=")
             env[key.strip()] = value.strip().strip('"').strip("'")
-    except Exception as exc:  # pragma: no cover - defensive
+    except Exception as exc:
         warn(f"could not read {path.name}: {exc}")
     return env
 
@@ -183,18 +206,39 @@ def lenient_json(text: str):
 # ── PDF reading ──────────────────────────────────────────────────────────────
 
 
-def read_pdf(pdf_path: Path, max_pages: int | None = None) -> dict:
-    """
-    Returns {"mode": "text"|"scanned", "text": str, "images": [(mime, bytes)], "pages": n}
+def _has_embedded_images(page) -> bool:
+    """Return True if a page contains raster images (formula images, figures)."""
+    try:
+        return len(page.get_images(full=False)) > 0
+    except Exception:
+        return False
 
-    Text pages are read via PyMuPDF. Pages with no text layer are rendered to PNG
-    so Gemini can OCR them.
+
+def read_pdf(pdf_path: Path, max_pages: int | None = None, force_image: bool = False, dpi: int = NORMAL_DPI) -> dict:
+    """
+    Returns {
+        "mode": "text"|"scanned"|"hybrid"|"force_image",
+        "text": str,
+        "images": [(mime, bytes), ...],
+        "pages": int,
+        "text_pages": int,
+        "image_pages": int,
+        "embedded_image_pages": int,
+    }
+
+    Logic:
+    - force_image=True  → every page is rasterised regardless of text layer.
+    - Otherwise, pages with a text layer >= MIN_TEXT_CHARS_PER_PAGE are read as
+      text; fully-scanned pages are rendered to PNG.
+    - If >= EMBEDDED_IMAGE_RATIO_THRESHOLD of text-layer pages also contain embedded
+      raster images (formula figures, diagrams), the whole PDF is re-read in image
+      mode so no formula is lost.
     """
     try:
-        import pymupdf as fitz  # PyMuPDF (the `fitz` alias is deprecated)
+        import pymupdf as fitz
     except ImportError:
         try:
-            import fitz  # older PyMuPDF builds only expose this name
+            import fitz
         except ImportError:
             die("PyMuPDF is required. Install it with:  pip install pymupdf")
 
@@ -203,29 +247,73 @@ def read_pdf(pdf_path: Path, max_pages: int | None = None) -> dict:
     if max_pages:
         page_count = min(page_count, max_pages)
 
-    texts, images = [], []
-    text_pages = 0
+    # ── Pass 1: survey text / embedded-image ratio ───────────────────────────
+    text_page_indices, scanned_page_indices, embedded_image_page_count = [], [], 0
+    page_texts = {}
 
     for index in range(page_count):
         page = doc.load_page(index)
         page_text = (page.get_text() or "").strip()
         if len(page_text) >= MIN_TEXT_CHARS_PER_PAGE:
-            texts.append(page_text)
-            text_pages += 1
+            text_page_indices.append(index)
+            page_texts[index] = page_text
+            if _has_embedded_images(page):
+                embedded_image_page_count += 1
         else:
-            # Scanned/imagery page — rasterise for the vision model.
-            pixmap = page.get_pixmap(dpi=150)
+            scanned_page_indices.append(index)
+
+    embedded_ratio = (
+        embedded_image_page_count / max(len(text_page_indices), 1)
+        if text_page_indices
+        else 0.0
+    )
+
+    # ── Decide mode ──────────────────────────────────────────────────────────
+    use_image_mode = (
+        force_image
+        or len(text_page_indices) < max(1, page_count // 2)
+        or embedded_ratio >= EMBEDDED_IMAGE_RATIO_THRESHOLD
+    )
+
+    if use_image_mode:
+        mode = "force_image" if force_image else ("hybrid" if text_page_indices and scanned_page_indices else "scanned")
+        log(
+            f"    rendering all {page_count} page(s) at {dpi} DPI"
+            + (f" [{mode}: {embedded_image_page_count} text-pages have embedded formula images]" if not force_image else " [--force-image / --math]")
+        )
+        images = []
+        for index in range(page_count):
+            page = doc.load_page(index)
+            pixmap = page.get_pixmap(dpi=dpi)
             images.append(("image/png", pixmap.tobytes("png")))
+        doc.close()
+        return {
+            "mode": mode,
+            "text": "",
+            "images": images,
+            "pages": page_count,
+            "text_pages": len(text_page_indices),
+            "image_pages": page_count,
+            "embedded_image_pages": embedded_image_page_count,
+        }
+
+    # ── Pure text mode — render only the scanned pages ───────────────────────
+    images = []
+    for index in scanned_page_indices:
+        page = doc.load_page(index)
+        pixmap = page.get_pixmap(dpi=dpi)
+        images.append(("image/png", pixmap.tobytes("png")))
 
     doc.close()
-
-    mode = "text" if text_pages >= max(1, page_count // 2) else "scanned"
+    combined_text = "\n\n".join(page_texts[i] for i in sorted(text_page_indices))
     return {
-        "mode": mode,
-        "text": "\n\n".join(texts).strip(),
+        "mode": "text",
+        "text": combined_text.strip(),
         "images": images,
         "pages": page_count,
-        "text_pages": text_pages,
+        "text_pages": len(text_page_indices),
+        "image_pages": len(scanned_page_indices),
+        "embedded_image_pages": embedded_image_page_count,
     }
 
 
@@ -244,7 +332,7 @@ def gemini_generate(parts: list, api_key: str, models: list, max_output_tokens: 
             {
                 "contents": [{"parts": parts}],
                 "generationConfig": {
-                    "temperature": 0.2,
+                    "temperature": 0.15,
                     "maxOutputTokens": max_output_tokens,
                     "responseMimeType": "application/json",
                 },
@@ -259,7 +347,7 @@ def gemini_generate(parts: list, api_key: str, models: list, max_output_tokens: 
         )
 
         try:
-            with urllib.request.urlopen(request, timeout=180) as response:
+            with urllib.request.urlopen(request, timeout=240) as response:
                 body = json.loads(response.read().decode("utf-8", errors="replace"))
         except urllib.error.HTTPError as exc:
             detail = ""
@@ -267,7 +355,6 @@ def gemini_generate(parts: list, api_key: str, models: list, max_output_tokens: 
                 detail = json.loads(exc.read().decode("utf-8", errors="replace")).get("error", {}).get("message", "")
             except Exception:
                 pass
-            # A retired/overloaded model is worth retrying with the next name.
             if exc.code in (404, 429, 503):
                 warn(f"{model} unavailable ({exc.code}){': ' + detail if detail else ''}")
                 last_error = f"{model}: {exc.code} {detail}"
@@ -291,7 +378,9 @@ def gemini_generate(parts: list, api_key: str, models: list, max_output_tokens: 
     raise RuntimeError(f"all Gemini models failed ({last_error})")
 
 
-QUESTION_SCHEMA = """[
+# ── Prompt templates ─────────────────────────────────────────────────────────
+
+STANDARD_SCHEMA = """[
   {
     "questionNumber": 1,
     "stem": "Full question text. Preserve technical terms, code clauses and names. For 'Match the following', lay the two lists out on separate lines.",
@@ -310,10 +399,64 @@ QUESTION_SCHEMA = """[
   }
 ]"""
 
+MATH_SCHEMA = """[
+  {
+    "questionNumber": 1,
+    "stem": "Full question text. For equations use Unicode math: ∫, ∂, ∑, √, α, β, γ, δ, θ, σ, μ, ε, π, ∞, ≤, ≥, ≠, ², ³. For complex LaTeX enclose in $$...$$. Never leave a blank box — write the symbol you see.",
+    "options": [
+      { "id": "A", "text": "Exact value or expression, e.g. '42.5 kN/m²' or '2πr²'" },
+      { "id": "B", "text": "..." },
+      { "id": "C", "text": "..." },
+      { "id": "D", "text": "..." }
+    ],
+    "correctOption": "A",
+    "explanation": "Step-by-step justification. State the formula used, substitute values, give the result. Cite IS/ACI code clauses when applicable.",
+    "formulaContext": "Primary formula: e.g. 'σ = P/A'. Include variable definitions.",
+    "solutionSteps": "1. Identify given: ...\n2. Apply formula: ...\n3. Calculate: ...",
+    "referenceSource": "IS 456:2000 Cl. 26.4 / ASCE 7-16 / etc. (leave blank if not applicable)",
+    "subject": "Civil Engineering",
+    "topic": "Structural Analysis",
+    "difficulty": "HARD",
+    "questionType": "NUMERICAL"
+  }
+]"""
 
-def build_prompt(meta: dict, source: str) -> str:
-    origin = "the attached page images of an official question paper" if source == "image" else "the extracted text of an official question paper"
-    return f"""You are an exam-paper digitizer and subject-matter examiner.
+
+def build_prompt(meta: dict, source: str, math_mode: bool = False) -> str:
+    origin = (
+        "the attached page images of an official question paper"
+        if source == "image"
+        else "the extracted text of an official question paper"
+    )
+    schema = MATH_SCHEMA if math_mode else STANDARD_SCHEMA
+
+    math_instructions = (
+        """
+MATHEMATICAL CONTENT RULES (apply to every question):
+- READ every symbol, subscript, superscript, fraction and equation from the image — never skip or blank them.
+- Use Unicode where possible: α β γ δ ε ζ θ κ λ μ ν ξ π ρ σ τ φ ψ ω Δ Σ Ω
+  ∫ ∬ ∂ ∇ √ ∛ ∞ ≤ ≥ ≠ ≈ ± × ÷ ² ³ ⁻¹ · → ↔ ⊥ ∥ ∴ ∵
+- For complex expressions (matrices, multi-line integrals, continued fractions) wrap in $$ … $$
+  using standard LaTeX: $$\\frac{d^2y}{dx^2} + 2\\frac{dy}{dx} + y = 0$$
+- For 'Match the following': write "List I — 1. X  2. Y  3. Z | List II — a. P  b. Q  c. R"
+- questionType must be one of:
+    "CONCEPTUAL"     — fact/theory, no calculation
+    "NUMERICAL"      — requires arithmetic/algebra to obtain a numeric answer
+    "FORMULA_RECALL" — asks to identify/complete a formula or derive a result
+    "DIAGRAM_BASED"  — involves a figure, graph, or circuit (describe the figure in the stem)
+    "MATCH"          — match-the-following table
+"""
+        if math_mode
+        else ""
+    )
+
+    standard_type_note = (
+        '\n    - questionType: "CONCEPTUAL" | "NUMERICAL" | "FORMULA_RECALL".'
+        if not math_mode
+        else ""
+    )
+
+    return f"""You are an expert exam-paper digitizer and subject-matter examiner.
 
 Paper: {meta['examName']} ({meta['year']}) — {meta['paperType']}
 
@@ -322,52 +465,41 @@ From {origin}, do the following:
 2. Extract EVERY multiple-choice question (MCQ). Never invent, merge or renumber questions.
 3. For each question produce:
    - questionNumber: the number printed on the paper, else sequential order.
-   - stem: the complete question text. For "Match the following", put 'a. X   1. Y' pairs on separate lines.
-   - options: exactly four entries with ids "A","B","C","D" (strip the leading "(A)" from the text).
-   - correctOption: the printed key if the paper shows one; otherwise work out the authoritative answer.
-   - explanation: a short, high-yield justification (one or two sentences, cite a standard/clause when apt).
-   - subject: coarse subject, e.g. "Civil Engineering" or "General Studies".
-   - topic: the specific sub-head, e.g. "Soil Mechanics", "Indian Polity", "Assam History".
-   - difficulty: "EASY" | "MEDIUM" | "HARD".
-   - questionType: "CONCEPTUAL" | "NUMERICAL" | "FORMULA_RECALL".
+   - stem: the COMPLETE question text — preserve ALL symbols, values and units.{standard_type_note}
+   - options: exactly four entries with ids "A","B","C","D" (strip the leading "(A)" from the text). If an option is a numeric value or expression, write it exactly.
+   - correctOption: the printed key if visible; otherwise compute/identify the authoritative answer.
+   - explanation: a concise, high-yield justification (cite a standard/clause when apt).
+   - subject: coarse subject, e.g. "Civil Engineering" or "Mathematics".
+   - topic: the specific sub-topic, e.g. "Soil Mechanics", "Fluid Mechanics", "Indian Polity".
+   - difficulty: "EASY" | "MEDIUM" | "HARD".{math_instructions}
 
 Return ONLY a valid JSON array matching exactly this shape (no markdown fences, no commentary):
-{QUESTION_SCHEMA}
+{schema}
 
-If a question is illegible or has fewer than four options, skip it rather than guessing.
+If a question is illegible, has fewer than four readable options, or is purely a figure with no extractable text, skip it rather than guessing.
 """
 
 
-def extract_from_source(source: dict, meta: dict, api_key: str, models: list) -> list:
-    """Runs Gemini over the extracted text or the rendered images, in batches."""
+# ── Extraction ───────────────────────────────────────────────────────────────
+
+
+def extract_from_source(source: dict, meta: dict, api_key: str, models: list, math_mode: bool = False) -> list:
+    """
+    Runs Gemini over the extracted text or the rendered images, in batches.
+    Always prefers image mode when the source has images (force_image / hybrid / scanned).
+    Falls back to text-chunking only for pure text-layer PDFs.
+    """
     collected: list = []
 
-    if source["mode"] == "text" and source["text"]:
-        chunks = [
-            source["text"][i : i + TEXT_CHUNK_CHARS]
-            for i in range(0, len(source["text"]), TEXT_CHUNK_CHARS)
-        ]
-        for index, chunk in enumerate(chunks):
-            log(f"    structuring text chunk {index + 1}/{len(chunks)} …")
-            prompt = build_prompt(meta, "text")
-            raw = gemini_generate(
-                [{"text": prompt}, {"text": f"--- PAPER TEXT (part {index + 1}) ---\n{chunk}"}],
-                api_key,
-                models,
-            )
-            parsed = lenient_json(raw)
-            if isinstance(parsed, list):
-                collected.extend(parsed)
-            else:
-                warn(f"chunk {index + 1} did not return a JSON array; skipped")
-    else:
+    # Image mode (scanned, hybrid, force_image) — send page renders to Gemini Vision.
+    if source["images"]:
         images = source["images"]
         batches = [images[i : i + IMAGE_BATCH_PAGES] for i in range(0, len(images), IMAGE_BATCH_PAGES)]
         if not batches:
-            warn("no text and no rendered pages — nothing to extract")
+            warn("no rendered pages to process — nothing extracted")
         for index, batch in enumerate(batches):
-            log(f"    OCR image batch {index + 1}/{len(batches)} ({len(batch)} pages) …")
-            parts = [{"text": build_prompt(meta, "image")}]
+            log(f"    vision batch {index + 1}/{len(batches)} ({len(batch)} pages) …")
+            parts = [{"text": build_prompt(meta, "image", math_mode=math_mode)}]
             for mime, blob in batch:
                 parts.append(
                     {
@@ -377,67 +509,125 @@ def extract_from_source(source: dict, meta: dict, api_key: str, models: list) ->
                         }
                     }
                 )
-            raw = gemini_generate(parts, api_key, models)
-            parsed = lenient_json(raw)
-            if isinstance(parsed, list):
-                collected.extend(parsed)
-            else:
-                warn(f"image batch {index + 1} did not return a JSON array; skipped")
+            try:
+                raw = gemini_generate(parts, api_key, models)
+                parsed = lenient_json(raw)
+                if isinstance(parsed, list):
+                    collected.extend(parsed)
+                else:
+                    warn(f"vision batch {index + 1} did not return a JSON array; skipped")
+            except RuntimeError as exc:
+                warn(f"vision batch {index + 1} failed: {exc}")
+
+    # Text-only fallback for pure text-layer PDFs.
+    if not source["images"] and source["text"]:
+        chunks = [
+            source["text"][i : i + TEXT_CHUNK_CHARS]
+            for i in range(0, len(source["text"]), TEXT_CHUNK_CHARS)
+        ]
+        for index, chunk in enumerate(chunks):
+            log(f"    structuring text chunk {index + 1}/{len(chunks)} …")
+            prompt = build_prompt(meta, "text", math_mode=math_mode)
+            try:
+                raw = gemini_generate(
+                    [{"text": prompt}, {"text": f"--- PAPER TEXT (part {index + 1}) ---\n{chunk}"}],
+                    api_key,
+                    models,
+                )
+                parsed = lenient_json(raw)
+                if isinstance(parsed, list):
+                    collected.extend(parsed)
+                else:
+                    warn(f"text chunk {index + 1} did not return a JSON array; skipped")
+            except RuntimeError as exc:
+                warn(f"text chunk {index + 1} failed: {exc}")
 
     return collected
 
 
 # ── Validation, de-duplication, grouping ─────────────────────────────────────
 
+MATH_QUESTION_TYPES = {"NUMERICAL", "FORMULA_RECALL", "DIAGRAM_BASED", "MATCH"}
+ALL_QUESTION_TYPES = {"CONCEPTUAL", "NUMERICAL", "FORMULA_RECALL", "DIAGRAM_BASED", "MATCH"}
 
-def validate_questions(raw_list: list, meta: dict) -> tuple:
+
+def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> tuple:
     """Returns (questions, rejected_count). Questions are fully normalised."""
     out, rejected = [], 0
     seen_stems = set()
-    exam_slug = meta["slug"]
 
     for entry in raw_list:
         if not isinstance(entry, dict):
             rejected += 1
             continue
+
+        # ── Question type ──────────────────────────────────────────────────
+        q_type = str(entry.get("questionType") or "").strip().upper()
+        if q_type not in ALL_QUESTION_TYPES:
+            q_type = "CONCEPTUAL"
+        is_math_type = q_type in MATH_QUESTION_TYPES
+
+        # ── Stem ──────────────────────────────────────────────────────────
         stem = str(entry.get("stem") or "").strip()
-        if len(stem) < 12:
+        min_stem = MIN_MATH_STEM_CHARS if (math_mode or is_math_type) else MIN_STEM_CHARS
+        if len(stem) < min_stem:
             rejected += 1
             continue
 
+        # ── Options ───────────────────────────────────────────────────────
         options = []
         raw_options = entry.get("options")
         if isinstance(raw_options, list):
             for idx, opt in enumerate(raw_options[:4]):
                 text = str(opt.get("text") if isinstance(opt, dict) else opt or "").strip()
                 options.append({"id": VALID_OPTION_IDS[idx], "text": text})
-        if len(options) != 4 or any(not o["text"] for o in options):
-            rejected += 1
-            continue
+        # Accept math options that look empty but may be numeric (e.g. "0").
+        if len(options) != 4 or any(not o["text"] and o["text"] != "0" for o in options):
+            # Attempt to use "0" as a valid numeric option.
+            if len(options) == 4:
+                options = [
+                    {"id": o["id"], "text": o["text"] if o["text"] else "0"}
+                    for o in options
+                ]
+                if any(not o["text"] for o in options):
+                    rejected += 1
+                    continue
+            else:
+                rejected += 1
+                continue
 
+        # ── Answer key ────────────────────────────────────────────────────
         key = str(entry.get("correctOption") or "").strip().upper()[:1]
         if key not in VALID_OPTION_IDS:
             rejected += 1
             continue
 
-        fingerprint = re.sub(r"[^a-z0-9]+", "", stem.lower())[:180]
-        if fingerprint in seen_stems:
-            rejected += 1  # duplicate
-            continue
-        seen_stems.add(fingerprint)
-
-        difficulty = str(entry.get("difficulty") or "").strip().upper()
-        if difficulty not in ("EASY", "MEDIUM", "HARD"):
-            difficulty = "MEDIUM"
-        q_type = str(entry.get("questionType") or "").strip().upper()
-        if q_type not in ("CONCEPTUAL", "NUMERICAL", "FORMULA_RECALL"):
-            q_type = "CONCEPTUAL"
-
-        explanation = str(entry.get("explanation") or "").strip()
-        if not has_meaningful_explanation(explanation):
+        # ── De-duplicate ──────────────────────────────────────────────────
+        # Strip math symbols for fingerprinting so "σ = 5" and "s=5" aren't both kept.
+        fingerprint_text = re.sub(r"[^a-z0-9]+", "", stem.lower())[:180]
+        if fingerprint_text in seen_stems:
             rejected += 1
             continue
+        seen_stems.add(fingerprint_text)
 
+        # ── Difficulty ────────────────────────────────────────────────────
+        difficulty = str(entry.get("difficulty") or "").strip().upper()
+        if difficulty not in ("EASY", "MEDIUM", "HARD"):
+            difficulty = "HARD" if is_math_type else "MEDIUM"
+
+        # ── Explanation ───────────────────────────────────────────────────
+        explanation = str(entry.get("explanation") or "").strip()
+        if not has_meaningful_explanation(explanation, math_mode=math_mode or is_math_type):
+            # For math questions: synthesise a minimal explanation if Gemini omitted it.
+            if math_mode or is_math_type:
+                formula_ctx = str(entry.get("formulaContext") or "").strip()
+                steps = str(entry.get("solutionSteps") or "").strip()
+                explanation = (formula_ctx or steps or f"Correct answer: {key}.")
+            else:
+                rejected += 1
+                continue
+
+        # ── Question number ───────────────────────────────────────────────
         try:
             question_number = int(entry.get("questionNumber") or 0)
         except (TypeError, ValueError):
@@ -445,12 +635,20 @@ def validate_questions(raw_list: list, meta: dict) -> tuple:
         if question_number < 1:
             question_number = len(out) + 1
 
+        # ── Math-specific extra fields ────────────────────────────────────
+        formula_context = str(entry.get("formulaContext") or "").strip() or None
+        solution_steps = str(entry.get("solutionSteps") or "").strip() or None
+        reference_source = str(entry.get("referenceSource") or "").strip() or None
+
         out.append(
             {
                 "stem": stem,
                 "options": options,
                 "correctOption": key,
                 "explanation": explanation,
+                "formulaContext": formula_context,
+                "solutionSteps": solution_steps,
+                "referenceSource": reference_source,
                 "subject": str(entry.get("subject") or meta.get("subject") or "General Studies").strip(),
                 "topic": str(entry.get("topic") or meta.get("paperType") or meta["examName"]).strip(),
                 "difficulty": difficulty,
@@ -464,16 +662,9 @@ def validate_questions(raw_list: list, meta: dict) -> tuple:
 
 def group_into_sections(questions: list, group_mode: str = "auto") -> list:
     """
-    Groups questions into sub-heads.
-
-    Decision: sub-heads come from the extracted subject/topic rather than the
-    paper's printed section titles, because papers are frequently a single
-    undifferentiated run of 100 questions.
-
-    'auto' prefers `subject` when the paper spans several subjects, and falls back
-    to the finer-grained `topic` when it does not. Groups with a single question
-    are folded into a 'General' bucket so a 100-question paper does not produce
-    100 one-question sections.
+    Groups questions into sub-heads by subject or topic.
+    "auto" prefers subject when the paper spans ≥2 subjects; otherwise falls back to topic.
+    Singletons are folded into a "General" bucket to avoid 100 one-question sections.
     """
     def subject_of(q):
         return q.get("subject") or "General"
@@ -493,7 +684,7 @@ def group_into_sections(questions: list, group_mode: str = "auto") -> list:
     for question in questions:
         buckets.setdefault(key_of(question), []).append(question)
 
-    # Fold singletons away unless that would destroy the whole grouping.
+    # Fold singletons away unless that destroys the entire grouping.
     if len(buckets) > 1:
         merged: dict = {}
         general: list = []
@@ -536,6 +727,10 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
                     "options": question["options"],
                     "correctOption": question["correctOption"],
                     "explanation": question["explanation"],
+                    # Math-specific extras (None when not present):
+                    "formulaContext": question.get("formulaContext"),
+                    "solutionSteps": question.get("solutionSteps"),
+                    "referenceSource": question.get("referenceSource"),
                     "difficulty": question["difficulty"],
                     "questionType": question["questionType"],
                     "sourceType": "PYQ",
@@ -570,7 +765,7 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
         "title": f"{meta['examName']} ({meta['year']}) — {meta['paperType']}",
         "examId": meta["examId"],
         "paperName": meta["paperType"],
-        "durationMinutes": max(30, int(round(total * 1.2))),
+        "durationMinutes": max(30, int(round(total * 1.5))),  # math papers need more time
         "totalMarks": total,
         "negativeMarksPerIncorrect": 0.25,
         "sections": built_sections,
@@ -578,7 +773,7 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
     return paper, mock
 
 
-def rebuild_generated_ts(inbox: Path, dry_run: bool = False) -> tuple:
+def rebuild_generated_ts(inbox: Path, dry_run: bool = False, math_mode: bool = False) -> tuple:
     """Regenerates src/data/pyq/generated.ts from every pyq-inbox/out/*.json."""
     out_dir = inbox / "out"
     papers, mocks = [], []
@@ -597,7 +792,7 @@ def rebuild_generated_ts(inbox: Path, dry_run: bool = False) -> tuple:
         meta.setdefault("paperType", "Question Paper")
         meta.setdefault("examId", slugify(meta["examName"], 30))
         meta.setdefault("group", "auto")
-        questions, rejected = validate_questions(payload.get("questions") or [], meta)
+        questions, rejected = validate_questions(payload.get("questions") or [], meta, math_mode=math_mode)
         if not questions:
             warn(f"skipping {json_path.name}: no validated questions (rejected {rejected})")
             continue
@@ -638,12 +833,9 @@ export const GENERATED_PYQ_MOCK_TESTS = {json.dumps(mocks, indent=2, ensure_asci
 
 # ── Supabase (optional) ──────────────────────────────────────────────────────
 #
-# The app's question bank lives in Supabase (see supabase/migrations). This
-# mirrors validated papers into the same three collections the admin portal
-# writes to: `questions`, `published_papers`, `custom_mock_tests`.
-#
-# Uses the PostgREST endpoint directly — no external deps beyond the standard
-# library — so the exporter runs anywhere Python is installed.
+# Mirrors validated papers into three tables the admin portal writes to:
+# `questions`, `published_papers`, `custom_mock_tests`.
+# Uses the PostgREST endpoint directly — no external deps beyond stdlib.
 
 SUPABASE_TABLES = ("questions", "published_papers", "custom_mock_tests")
 
@@ -677,7 +869,15 @@ def supabase_sync(papers: list, mocks: list, url: str, key: str) -> bool:
         log("  Supabase sync skipped (no URL/key). Repo files are the source of truth.")
         return True
 
-    from schema_map import paper_to_row, mock_to_row, question_to_row
+    # Import schema_map from the same directory as this script.
+    import importlib.util, sys as _sys
+    _sm_path = Path(__file__).with_name("schema_map.py")
+    _spec = importlib.util.spec_from_file_location("schema_map", _sm_path)
+    _mod = importlib.util.module_from_spec(_spec)
+    _spec.loader.exec_module(_mod)
+    paper_to_row = _mod.paper_to_row
+    mock_to_row = _mod.mock_to_row
+    question_to_row = _mod.question_to_row
 
     headers = {
         "Authorization": f"Bearer {key}",
@@ -710,18 +910,22 @@ def supabase_sync(papers: list, mocks: list, url: str, key: str) -> bool:
             return False
 
     for paper, mock in zip(papers, mocks):
-        paper_payload = paper_to_row({
-            **paper,
-            "publishedAt": published_at,
-            "publishedBy": published_by,
-            "source": "pyq-exporter",
-        })
-        mock_payload = mock_to_row({
-            **mock,
-            "publishedAt": published_at,
-            "publishedBy": published_by,
-            "source": "pyq-exporter",
-        })
+        paper_payload = paper_to_row(
+            {
+                **paper,
+                "publishedAt": published_at,
+                "publishedBy": published_by,
+                "source": "pyq-exporter",
+            }
+        )
+        mock_payload = mock_to_row(
+            {
+                **mock,
+                "publishedAt": published_at,
+                "publishedBy": published_by,
+                "source": "pyq-exporter",
+            }
+        )
         question_rows = [question_to_row(q) for q in paper["questions"]]
         ok = upsert("published_papers", [paper_payload])
         ok = upsert("custom_mock_tests", [mock_payload]) and ok
@@ -735,10 +939,6 @@ def supabase_sync(papers: list, mocks: list, url: str, key: str) -> bool:
     return failures == 0
 
 
-def inbox_path(value: str) -> Path:
-    return DEFAULT_INBOX / value
-
-
 # ── Git ──────────────────────────────────────────────────────────────────────
 
 
@@ -746,15 +946,10 @@ def git(args: list, check: bool = False) -> subprocess.CompletedProcess:
     identity = []
     result = subprocess.run(["git", "config", "user.email"], cwd=REPO_ROOT, capture_output=True, text=True)
     if result.returncode != 0 or not (result.stdout or "").strip():
-        # No global identity on this machine — supply a one-off author so an
-        # automated import never fails on an unset user.email.
         identity = [
-            "-c",
-            f"user.name={os.environ.get('PYQ_GIT_NAME', 'ExamPilot PYQ Bot')}",
-            "-c",
-            f"user.email={os.environ.get('PYQ_GIT_EMAIL', 'pyq-bot@users.noreply.github.com')}",
-            "-c",
-            "commit.gpgsign=false",
+            "-c", f"user.name={os.environ.get('PYQ_GIT_NAME', 'ExamPilot PYQ Bot')}",
+            "-c", f"user.email={os.environ.get('PYQ_GIT_EMAIL', 'pyq-bot@users.noreply.github.com')}",
+            "-c", "commit.gpgsign=false",
         ]
     return subprocess.run(
         ["git", *identity, *args], cwd=REPO_ROOT, capture_output=True, text=True, check=check
@@ -812,20 +1007,53 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--exam", help="exam name override (default: derived from the filename)")
     parser.add_argument("--year", type=int, help="paper year override")
     parser.add_argument("--paper-type", help="paper type override, e.g. 'Paper II (Technical)'")
-    parser.add_argument("--subject", help="default subject when the model does not give one")
+    parser.add_argument("--subject", help="default subject when the model does not provide one")
     parser.add_argument("--group", choices=["auto", "subject", "topic"], default="auto", help="how sub-heads are derived")
     parser.add_argument("--model", help="pin a Gemini model instead of auto-rotating")
-    parser.add_argument("--api-key", help="Gemini API key (default: GEMINI_API_KEY from the environment or .env)")
+    parser.add_argument("--api-key", help="Gemini API key (default: GEMINI_API_KEY from .env or environment)")
     parser.add_argument("--max-pages", type=int, help="only read the first N pages (debugging)")
     parser.add_argument("--push", action="store_true", help="git push after committing (off by default)")
     parser.add_argument("--no-commit", action="store_true", help="write files but do not commit")
-    parser.add_argument("--firebase", "--database", nargs="?", const="", help="DEPRECATED — use --supabase; path to a service account JSON for Firestore sync")
-    parser.add_argument("--no-database", action="store_true", help="skip the database sync even if credentials are available")
-    parser.add_argument("--supabase", nargs="?", const="", help="sync validated papers to Supabase (default: read SUPABASE_URL/SUPABASE_ANON_KEY from env)")
+    parser.add_argument(
+        "--math",
+        action="store_true",
+        help=(
+            "Math/formula-heavy paper mode: renders ALL pages at high DPI (220), "
+            "uses a math-aware Gemini prompt that outputs Unicode symbols and LaTeX, "
+            "extracts formulaContext + solutionSteps + referenceSource, and relaxes "
+            "the minimum stem/explanation length for NUMERICAL/FORMULA_RECALL questions."
+        ),
+    )
+    parser.add_argument(
+        "--force-image",
+        action="store_true",
+        help=(
+            "Force every page to be rendered as an image (even text-layer PDFs). "
+            "Useful when a PDF has a text layer but the questions include embedded "
+            "formula images, diagrams, or graphs."
+        ),
+    )
+    parser.add_argument(
+        "--dpi",
+        type=int,
+        default=0,
+        help=f"rasterisation DPI (default: {NORMAL_DPI} normal, {MATH_DPI} with --math)",
+    )
+    parser.add_argument(
+        "--no-database", action="store_true", help="skip the database sync even if credentials are available"
+    )
+    parser.add_argument(
+        "--supabase",
+        nargs="?",
+        const="",
+        help="sync validated papers to Supabase (reads SUPABASE_URL/SUPABASE_ANON_KEY from env)",
+    )
     parser.add_argument("--rebuild", action="store_true", help="regenerate src/data/pyq/generated.ts from pyq-inbox/out only")
     parser.add_argument("--from-json", help="import an already-extracted JSON instead of calling Gemini")
     parser.add_argument("--dry-run", action="store_true", help="parse and report, but write/commit nothing")
-    parser.add_argument("--inspect", action="store_true", help="report whether each PDF is text or scanned, then exit")
+    parser.add_argument("--inspect", action="store_true", help="report text-vs-scanned stats for each PDF, then exit")
+    # Kept for backwards-compat; does nothing (Firestore removed).
+    parser.add_argument("--firebase", "--database", nargs="?", const="", help=argparse.SUPPRESS)
     return parser.parse_args()
 
 
@@ -852,6 +1080,7 @@ def derive_meta(pdf_path: Path, args: argparse.Namespace, source_mode: str) -> d
         "group": args.group,
         "sourceFile": pdf_path.name,
         "sourceMode": source_mode,
+        "mathMode": args.math,
         "extractedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
 
@@ -873,17 +1102,24 @@ def main() -> int:
     inbox.mkdir(parents=True, exist_ok=True)
     out_dir = inbox / "out"
 
-    # ── Rebuild-only fast path ──
+    math_mode = args.math
+    force_image = args.force_image or math_mode
+    dpi = args.dpi or (MATH_DPI if math_mode else NORMAL_DPI)
+
+    if math_mode:
+        log("  [MATH MODE] High-DPI rendering, math-aware prompt, relaxed validation active.")
+    elif force_image:
+        log("  [FORCE IMAGE] All pages rendered as images.")
+
+    # ── Rebuild-only fast path ─────────────────────────────────────────────
     if args.rebuild:
         log("Rebuilding src/data/pyq/generated.ts from pyq-inbox/out …")
-        papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run)
+        papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run, math_mode=math_mode)
         if not args.dry_run and not args.no_database:
             url, key = _supabase_env()
-            if args.supabase == "":
+            if args.supabase is not None:
                 url = url or os.environ.get("SUPABASE_URL", "")
                 key = key or os.environ.get("SUPABASE_ANON_KEY", "")
-            if args.supabase:
-                url, key = args.supabase, key
             if url and key:
                 log("\nSyncing to Supabase …")
                 if not supabase_sync(papers, mocks, url, key):
@@ -892,18 +1128,19 @@ def main() -> int:
 
     pdfs = find_pdfs(inbox)
 
-    # ── Diagnostics ──
+    # ── Diagnostics ───────────────────────────────────────────────────────
     if args.inspect:
         if not pdfs:
             die(f"no PDFs found in {inbox}")
         log(f"Inspecting {len(pdfs)} PDF(s):\n")
         for pdf in pdfs:
-            source = read_pdf(pdf, args.max_pages)
+            source = read_pdf(pdf, args.max_pages, force_image=False, dpi=NORMAL_DPI)
+            emb = source.get("embedded_image_pages", 0)
             rate = len(source["text"]) // max(1, source["pages"])
             log(
                 f"  {pdf.name}\n"
                 f"    pages={source['pages']}  text_pages={source['text_pages']}  "
-                f"chars/page≈{rate}  mode={source['mode']}"
+                f"embedded_formula_pages={emb}  chars/page≈{rate}  mode={source['mode']}"
             )
         return 0
 
@@ -933,6 +1170,7 @@ def main() -> int:
         payload["meta"].setdefault("paperType", "Question Paper")
         payload["meta"].setdefault("examId", slugify(payload["meta"]["examName"], 30))
         payload["meta"].setdefault("group", args.group)
+        payload["meta"]["mathMode"] = math_mode
         payloads.append(payload)
         log(f"Loaded {len(payload.get('questions') or [])} raw question(s) from {json_path.name}")
     else:
@@ -950,35 +1188,33 @@ def main() -> int:
 
         for pdf in pdfs:
             log(f"\nReading {pdf.name} …")
-            source = read_pdf(pdf, args.max_pages)
+            source = read_pdf(pdf, args.max_pages, force_image=force_image, dpi=dpi)
             meta = derive_meta(pdf, args, source["mode"])
             log(
                 f"  {source['pages']} pages, mode={source['mode']}"
-                f" ({source['text_pages']} with a text layer)"
+                f" (text={source['text_pages']}, image={source['image_pages']}"
+                + (f", formula_embedded={source.get('embedded_image_pages', 0)}" if source.get('embedded_image_pages') else "")
+                + ")"
             )
             try:
-                raw_questions = extract_from_source(source, meta, api_key, models)
+                raw_questions = extract_from_source(source, meta, api_key, models, math_mode=math_mode)
             except RuntimeError as exc:
                 warn(f"extraction failed for {pdf.name}: {exc}")
                 continue
-            payloads.append(
-                {
-                    "meta": meta,
-                    "questions": raw_questions,
-                }
-            )
+            payloads.append({"meta": meta, "questions": raw_questions})
 
     if not payloads:
         die("nothing was extracted")
 
-    # ── Validate, persist per-paper JSON ──
+    # ── Validate, persist per-paper JSON ──────────────────────────────────
     out_dir.mkdir(parents=True, exist_ok=True)
     written_json = []
     total_kept = 0
 
     for payload in payloads:
         meta = payload["meta"]
-        questions, rejected = validate_questions(payload["questions"], meta)
+        is_math = meta.get("mathMode", False) or math_mode
+        questions, rejected = validate_questions(payload["questions"], meta, math_mode=is_math)
         sections = group_into_sections(questions, meta.get("group") or args.group)
 
         log(f"\n{meta['examName']} ({meta['year']}):")
@@ -996,6 +1232,7 @@ def main() -> int:
             "stats": {
                 "kept": len(questions),
                 "rejected": rejected,
+                "mathMode": is_math,
                 "subHeads": [{"name": s["name"], "count": len(s["questions"])} for s in sections],
             },
         }
@@ -1008,36 +1245,35 @@ def main() -> int:
             written_json.append(json_path)
         total_kept += len(questions)
 
-    # ── Regenerate the app-facing data module ──
+    # ── Regenerate the app-facing data module ─────────────────────────────
     log("\nRegenerating src/data/pyq/generated.ts …")
-    papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run)
+    papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run, math_mode=math_mode)
 
     if args.dry_run:
         log("\nDry run complete — nothing written.")
         return 0
 
-    # ── Optional Supabase mirror ──
+    # ── Optional Supabase mirror ───────────────────────────────────────────
     if args.no_database:
         url, key = "", ""
     else:
         url, key = _supabase_env()
-        if args.supabase == "":
+        if args.supabase is not None:
             url = url or os.environ.get("SUPABASE_URL", "")
             key = key or os.environ.get("SUPABASE_ANON_KEY", "")
-        if args.supabase:
-            url, key = args.supabase, key
     if url and key:
         log("\nSyncing to Supabase …")
         if not supabase_sync(papers, mocks, url, key):
             die("Supabase sync failed — aborting")
 
-    # ── Commit / push ──
+    # ── Commit / push ──────────────────────────────────────────────────────
     if not args.no_commit:
         log("\nCommitting …")
         commit_paths = [GENERATED_TS, *written_json]
         commit_and_push(
             commit_paths,
-            f"Import {len(payloads)} PYQ paper(s) from pyq-inbox ({total_kept} questions)",
+            f"Import {len(payloads)} PYQ paper(s) from pyq-inbox ({total_kept} questions)"
+            + (" [math mode]" if math_mode else ""),
             push=args.push,
         )
 
