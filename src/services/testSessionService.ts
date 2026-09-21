@@ -68,7 +68,7 @@ const STORAGE_KEYS = {
 };
 
 function getUserIdKey(userId?: string): string {
-  return userId && userId.trim() ? userId.trim() : 'guest_candidate';
+  return userId && userId.trim() ? userId.trim() : 'student_candidate';
 }
 
 function notifyUpdate(): void {

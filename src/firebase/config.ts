@@ -56,7 +56,7 @@ if (isFirebaseConfigured) {
     console.warn('[ExamPilot] Firebase initialization encountered an error:', error);
   }
 } else {
-  console.info('[ExamPilot] Running in Offline Local Mode — set CONFIG_FIREBASE_* (preferred) or VITE_FIREBASE_* variables in .env to enable cloud sync.');
+  console.warn('[ExamPilot] Firebase is not configured — set CONFIG_FIREBASE_* (preferred) or VITE_FIREBASE_* variables in .env to enable authentication.');
 }
 
 export { app, auth, db, analytics };
