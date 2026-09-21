@@ -1,3 +1,4 @@
+// cache-bust: force Vercel rebuild — offline fallback must be included
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';

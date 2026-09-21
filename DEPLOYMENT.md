@@ -1,8 +1,19 @@
 # ExamPilot — Deployment Guide
 
-## Vercel Environment Variables (REQUIRED)
+## Current Behavior: Offline-First with Firebase Enhancement
 
-The deployed site needs Firebase credentials to enable login. Add these in the Vercel dashboard:
+The app **works fully without any Firebase configuration**. When `VITE_FIREBASE_*` env vars are not set (e.g., on Vercel without dashboard config), `isFirebaseConfigured` returns `false` and the app automatically switches to **Offline Mode**:
+
+- Email/password sign-in creates a local session (saved to `localStorage`)
+- Google sign-in falls back to guest mode
+- Guest sign-in works as always
+- Progress, scores, and study history are all persisted locally
+
+To enable Firebase Auth (cloud sync, multi-device, admin features), add env vars as described below.
+
+## Vercel Environment Variables (OPTIONAL — for Firebase Auth)
+
+The deployed site works without these, but adding them enables cloud sync. Add these in the Vercel dashboard:
 
 **Dashboard URL**: `https://vercel.com/dashboard` → Select `exampilot-eight` → **Settings** → **Environment Variables**
 
@@ -23,29 +34,18 @@ Add all variables from `.env` in the **Production** environment:
 | `VITE_GEMINI_API_KEY` | *(leave empty)* |
 | `VITE_ADMIN_PASSCODE` | `ExamPilot@Admin2026!` |
 
-> **Security note**: These secrets are in `.env` locally but should NOT be in git. They're stored as Vercel project env vars.
+> **Security note**: These secrets are in `.env` locally but should NOT be in git. They're stored as Vercel project env vars. Note: Vite inlines `VITE_*` variables at **build time**, so they must be added to Vercel env vars BEFORE the build runs — they cannot be added to `vercel.json`'s `env` field.
 
-## Alternative: Vercel CLI
+## Why `vercel.json` `env` Field Doesn't Work
 
-```bash
-npx vercel env add VITE_FIREBASE_API_KEY production
-npx vercel env add VITE_FIREBASE_AUTH_DOMAIN production
-# ... repeat for all vars
-```
+Vite replaces `import.meta.env.VITE_*` at **build time** during `npm run build`. Vercel's `vercel.json` `env` field only provides runtime env vars (after build). So setting Firebase keys in `vercel.json` has no effect — the build output already has `isFirebaseConfigured = false` baked in.
 
-## Quick Fix (if dashboard is inaccessible)
-
-Add env vars directly in `vercel.json` as values (NOT recommended — exposes secrets in git):
-```json
-"env": { "VITE_FIREBASE_API_KEY": "AIzaSy...", ... }
-```
-
-Then commit & push `vercel.json`.
+**Solution**: Add env vars in Vercel dashboard → Settings → Environment Variables, or use `CONFIG_FIREBASE_*` private env vars.
 
 ## After Adding Env Vars
 
 1. **Redeploy**: `git push` triggers a new Vercel build automatically
-2. **Verify**: Check `https://exampilot-eight.vercel.app` — login should work
+2. **Verify**: Check `https://exampilot-eight.vercel.app` — Firebase Auth enabled
 3. **Check**: Firebase Auth domain must be whitelisted in Firebase Console → Authentication → Sign-in method → enable Email/Password and Anonymous
 
 ## Local Development
