@@ -77,7 +77,7 @@ export function mockTestToRow(
   };
 }
 
-export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil'];
+export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil', 'mock-pyq-ssc-cgl-2023-paper-i'];
 
 /**
  * Fetch all blacklisted / deleted mock test IDs from Supabase

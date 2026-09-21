@@ -195,7 +195,7 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
 const STORAGE_KEY_DELETED_MOCKS = 'exampilot_deleted_mock_ids';
 const STORAGE_KEY_DELETED_PAPERS = 'exampilot_deleted_paper_ids';
 const STORAGE_KEY_HIDDEN_MOCKS = 'exampilot_hidden_mock_ids';
-export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil'];
+export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil', 'mock-pyq-ssc-cgl-2023-paper-i'];
 
 export function getDeletedMockIds(): Set<string> {
   const raw = getLocal<string[]>(STORAGE_KEY_DELETED_MOCKS, []);

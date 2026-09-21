@@ -3330,95 +3330,15 @@ export const GENERATED_PYQ_PAPERS = [
         "pyqExam": "Civil 14"
       }
     ]
-  },
-  {
-    "id": "pyq-ssc-cgl-2023-paper-i",
-    "examId": "ssc-cgl",
-    "examName": "SSC CGL",
-    "year": 2023,
-    "paperType": "Paper I",
-    "totalQuestions": 2,
-    "downloadAvailable": true,
-    "frequencyTags": [
-      "General"
-    ],
-    "questions": [
-      {
-        "id": "pyq-ssc-cgl-2023-paper-i-q001",
-        "questionNumber": 1,
-        "examId": "ssc-cgl",
-        "subject": "General Studies",
-        "topic": "Modern Indian History",
-        "stem": "Who was the first Prime Minister of India?",
-        "options": [
-          {
-            "id": "A",
-            "text": "Jawaharlal Nehru"
-          },
-          {
-            "id": "B",
-            "text": "Sardar Patel"
-          },
-          {
-            "id": "C",
-            "text": "Mahatma Gandhi"
-          },
-          {
-            "id": "D",
-            "text": "Rajendra Prasad"
-          }
-        ],
-        "correctOption": "A",
-        "explanation": "Jawaharlal Nehru served as the first Prime Minister of India from 1947 to 1964.",
-        "difficulty": "EASY",
-        "questionType": "CONCEPTUAL",
-        "sourceType": "PYQ",
-        "pyqYear": 2023,
-        "pyqExam": "SSC CGL"
-      },
-      {
-        "id": "pyq-ssc-cgl-2023-paper-i-q002",
-        "questionNumber": 2,
-        "examId": "ssc-cgl",
-        "subject": "General Science",
-        "topic": "Chemistry",
-        "stem": "What is the pH value of pure water at 25 degrees Celsius?",
-        "options": [
-          {
-            "id": "A",
-            "text": "5"
-          },
-          {
-            "id": "B",
-            "text": "6"
-          },
-          {
-            "id": "C",
-            "text": "7"
-          },
-          {
-            "id": "D",
-            "text": "9"
-          }
-        ],
-        "correctOption": "C",
-        "explanation": "Pure water has a pH of 7 at 25 C, which is neutral on the pH scale.",
-        "difficulty": "EASY",
-        "questionType": "CONCEPTUAL",
-        "sourceType": "PYQ",
-        "pyqYear": 2023,
-        "pyqExam": "SSC CGL"
-      }
-    ]
   }
 ] as unknown as PYQPaper[];
 
 export const GENERATED_PYQ_MOCK_TESTS = [
   {
     "id": "mock-pyq-civil-14-2025",
-    "title": "Civil 14 (2025) — Question Paper",
+    "title": "Civil Engineering (Paper 14 - 2025) Official Exam",
     "examId": "civil-14",
-    "paperName": "Question Paper",
+    "paperName": "Civil Engineering Technical Paper 14 (100 Questions)",
     "durationMinutes": 120,
     "totalMarks": 100,
     "negativeMarksPerIncorrect": 0.25,
@@ -6839,90 +6759,6 @@ export const GENERATED_PYQ_MOCK_TESTS = [
             "sourceType": "PYQ",
             "pyqYear": 2025,
             "pyqExam": "Civil 14"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "id": "mock-pyq-ssc-cgl-2023-paper-i",
-    "title": "SSC CGL (2023) — Paper I",
-    "examId": "ssc-cgl",
-    "paperName": "Paper I",
-    "durationMinutes": 30,
-    "totalMarks": 2,
-    "negativeMarksPerIncorrect": 0.25,
-    "sections": [
-      {
-        "id": "sec-general",
-        "name": "General",
-        "totalQuestions": 2,
-        "questions": [
-          {
-            "id": "pyq-ssc-cgl-2023-paper-i-q001",
-            "questionNumber": 1,
-            "examId": "ssc-cgl",
-            "subject": "General Studies",
-            "topic": "Modern Indian History",
-            "stem": "Who was the first Prime Minister of India?",
-            "options": [
-              {
-                "id": "A",
-                "text": "Jawaharlal Nehru"
-              },
-              {
-                "id": "B",
-                "text": "Sardar Patel"
-              },
-              {
-                "id": "C",
-                "text": "Mahatma Gandhi"
-              },
-              {
-                "id": "D",
-                "text": "Rajendra Prasad"
-              }
-            ],
-            "correctOption": "A",
-            "explanation": "Jawaharlal Nehru served as the first Prime Minister of India from 1947 to 1964.",
-            "difficulty": "EASY",
-            "questionType": "CONCEPTUAL",
-            "sourceType": "PYQ",
-            "pyqYear": 2023,
-            "pyqExam": "SSC CGL"
-          },
-          {
-            "id": "pyq-ssc-cgl-2023-paper-i-q002",
-            "questionNumber": 2,
-            "examId": "ssc-cgl",
-            "subject": "General Science",
-            "topic": "Chemistry",
-            "stem": "What is the pH value of pure water at 25 degrees Celsius?",
-            "options": [
-              {
-                "id": "A",
-                "text": "5"
-              },
-              {
-                "id": "B",
-                "text": "6"
-              },
-              {
-                "id": "C",
-                "text": "7"
-              },
-              {
-                "id": "D",
-                "text": "9"
-              }
-            ],
-            "correctOption": "C",
-            "explanation": "Pure water has a pH of 7 at 25 C, which is neutral on the pH scale.",
-            "difficulty": "EASY",
-            "questionType": "CONCEPTUAL",
-            "sourceType": "PYQ",
-            "pyqYear": 2023,
-            "pyqExam": "SSC CGL"
           }
         ]
       }
