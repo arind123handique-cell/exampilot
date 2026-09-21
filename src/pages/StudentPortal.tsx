@@ -843,8 +843,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               </Button>
             </form>
 
-            <div className="pt-3 border-t border-line text-center text-xs text-muted">
-              Official Examination Platform · Session protected
+            <div className="pt-3 border-t border-line text-xs text-muted flex items-center justify-between">
+              <span>Official Examination Platform</span>
+              <a
+                href="/admin"
+                className="font-semibold text-primary hover:underline flex items-center gap-1"
+                title="Access Exam Creator & Admin Studio"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Admin Portal</span>
+              </a>
             </div>
           </Card>
         </div>
@@ -1445,6 +1453,14 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
         {/* Right controls */}
         <div className="flex items-center gap-2">
+          <a
+            href="/admin"
+            className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-line hover:border-primary hover:text-primary text-xs font-semibold text-muted transition shadow-2xs"
+            title="Open ExamPilot Admin Portal"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+            <span>Admin</span>
+          </a>
           <ThemeToggle />
           <button
             onClick={logout}
