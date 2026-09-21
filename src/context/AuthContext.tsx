@@ -260,6 +260,19 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signInWithEmail = async (email: string, pass: string) => {
     setError(null);
 
+    if (!isFirebaseConfigured || !auth) {
+      // Offline fallback — create a local session matching the email
+      const offlineProfile: UserProfile = {
+        uid: 'user-' + Date.now().toString(36),
+        email, displayName: email.split('@')[0], photoURL: null, isAnonymous: true,
+        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'intermediate', onboarded: true },
+        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
+      };
+      await saveUserProfile(offlineProfile);
+      setUser(offlineProfile);
+      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
+      return;
+    }
     try {
       const authInstance = requireAuth();
       await timeoutPromise(signInWithEmailAndPassword(authInstance, email, pass), 8000, 'Sign in timed out. Please check network connection.');
@@ -273,33 +286,27 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     setError(null);
 
+    if (!isFirebaseConfigured || !auth) {
+      const offlineProfile: UserProfile = {
+        uid: 'user-' + Date.now().toString(36), email, displayName: name || email.split('@')[0], photoURL: null, isAnonymous: true,
+        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'beginner', onboarded: false },
+        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
+      };
+      await saveUserProfile(offlineProfile);
+      setUser(offlineProfile);
+      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
+      return;
+    }
     try {
       const authInstance = requireAuth();
       const cred = await timeoutPromise(createUserWithEmailAndPassword(authInstance, email, pass), 10000, 'Sign up timed out. Please check network connection.');
       if (cred.user && name) {
-        try {
-          await updateProfile(cred.user, { displayName: name });
-        } catch {
-          // ignore display name update error
-        }
+        try { await updateProfile(cred.user, { displayName: name }); } catch { /* ignore */ }
       }
       const newProfile: UserProfile = {
-        uid: cred.user.uid,
-        email: cred.user.email,
-        displayName: name || cred.user.displayName || 'Aspirant',
-        photoURL: cred.user.photoURL || null,
-        preferences: {
-          examId: 'apsc-ae-civil',
-          examName: 'APSC Assistant Engineer (Civil)',
-          advtNumber: 'Advt 31/2025',
-          targetYear: 2026,
-          dailyHoursGoal: 4,
-          currentStream: 'Civil Engineering',
-          level: 'beginner',
-          onboarded: false
-        },
-        stats: { ...BASELINE_USER_STATS },
-        createdAt: new Date().toISOString()
+        uid: cred.user.uid, email: cred.user.email, displayName: name || cred.user.displayName || 'Aspirant', photoURL: cred.user.photoURL || null,
+        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'beginner', onboarded: false },
+        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
       };
       await saveUserProfile(newProfile);
       setUser(newProfile);
@@ -314,6 +321,17 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
   const signInWithGoogle = async () => {
     setError(null);
 
+    if (!isFirebaseConfigured || !auth) {
+      const offlineProfile: UserProfile = {
+        uid: 'user-' + Date.now().toString(36), email: null, displayName: 'Civil Engineering Aspirant', photoURL: null, isAnonymous: true,
+        preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'intermediate', onboarded: true },
+        stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
+      };
+      await saveUserProfile(offlineProfile);
+      setUser(offlineProfile);
+      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(offlineProfile));
+      return;
+    }
     try {
       const authInstance = requireAuth();
       const provider = new GoogleAuthProvider();
@@ -324,22 +342,9 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
         localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(profile));
       } else {
         const newProfile: UserProfile = {
-          uid: result.user.uid,
-          email: result.user.email,
-          displayName: result.user.displayName || 'Aspirant',
-          photoURL: result.user.photoURL || null,
-          preferences: {
-            examId: 'apsc-ae-civil',
-            examName: 'APSC Assistant Engineer (Civil)',
-            advtNumber: 'Advt 31/2025',
-            targetYear: 2026,
-            dailyHoursGoal: 4,
-            currentStream: 'Civil Engineering',
-            level: 'intermediate',
-            onboarded: true
-          },
-          stats: { ...BASELINE_USER_STATS },
-          createdAt: new Date().toISOString()
+          uid: result.user.uid, email: result.user.email, displayName: result.user.displayName || 'Aspirant', photoURL: result.user.photoURL || null,
+          preferences: { examId: 'apsc-ae-civil', examName: 'APSC Assistant Engineer (Civil)', advtNumber: 'Advt 31/2025', targetYear: 2026, dailyHoursGoal: 4, currentStream: 'Civil Engineering', level: 'intermediate', onboarded: true },
+          stats: { ...BASELINE_USER_STATS }, createdAt: new Date().toISOString()
         };
         await saveUserProfile(newProfile);
         setUser(newProfile);
