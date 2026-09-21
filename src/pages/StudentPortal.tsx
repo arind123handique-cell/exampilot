@@ -38,13 +38,7 @@ import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { StatTile } from '../components/ui/StatTile';
 import { EmptyState } from '../components/ui/EmptyState';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import {
-  MOCK_TESTS,
-  MOCK_TEST_DWR_2026,
-  MOCK_TEST_CIVIL_100,
-  MOCK_TEST_GS_100,
-  MOCK_TEST_IES_CIVIL
-} from '../data/mockData';
+import { MOCK_TESTS } from '../data/mockData';
 import {
   getAllCombinedMockTests,
   getAdminPublishedMockTests,
