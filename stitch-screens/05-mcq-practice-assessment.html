@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline-variant":"#c7c4d8","surface-container-high":"#dce9ff","on-primary-fixed":"#0f0069","tertiary-fixed-dim":"#4edea3","surface-dim":"#cbdbf5","on-secondary-container":"#5c647a","outline":"#777587","on-primary":"#ffffff","on-tertiary":"#ffffff","inverse-on-surface":"#eaf1ff","surface-bright":"#f8f9ff","secondary-fixed-dim":"#bec6e0","error":"#ba1a1a","tertiary-fixed":"#6ffbbe","tertiary":"#005338","primary":"#3525cd","surface-variant":"#d3e4fe","on-surface-variant":"#464555","on-primary-container":"#dad7ff","on-background":"#0b1c30","surface-container":"#e5eeff","surface-container-lowest":"#ffffff","inverse-surface":"#213145","secondary":"#565e74","background":"#f8f9ff","on-tertiary-container":"#67f4b7","tertiary-container":"#006e4b","surface-tint":"#4d44e3","on-secondary-fixed-variant":"#3f465c","primary-fixed":"#e2dfff","on-secondary-fixed":"#131b2e","on-tertiary-fixed":"#002113","surface-container-highest":"#d3e4fe","on-error":"#ffffff","on-tertiary-fixed-variant":"#005236","on-error-container":"#93000a","inverse-primary":"#c3c0ff","on-secondary":"#ffffff","secondary-container":"#dae2fd","error-container":"#ffdad6","surface-container-low":"#eff4ff","secondary-fixed":"#dae2fd","primary-container":"#4f46e5","on-primary-fixed-variant":"#3323cc","surface":"#f8f9ff","primary-fixed-dim":"#c3c0ff","on-surface":"#0b1c30"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","gutter-desktop":"1.5rem","space-md":"1rem","space-lg":"1.5rem","margin-desktop":"2.5rem","margin":"1rem","space-xl":"2.5rem","space-sm":"0.5rem","gutter":"1.25rem"},"fontFamily":{"body-sm":["Inter"],"headline-sm":["Geist"],"body-lg":["Inter"],"headline-xl":["Geist"],"label-sm":["Geist"],"headline-md":["Geist"],"body-md":["Inter"],"headline-lg":["Geist"],"headline-xl-mobile":["Geist"],"headline-lg-mobile":["Geist"],"label-md":["Geist"]},"fontSize":{"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-xl":["40px",{"lineHeight":"48px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="flex items-center gap-1.5"><span class="font-headline-sm text-headline-sm text-on-surface">ExamPilot AI</span><span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div></div></div><div class="px-space-md pt-space-xs pb-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-1.5"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Target Exam</span><span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">47 Days Left</span></div><div class="flex items-center justify-between"><div class="flex flex-col"><span class="font-headline-sm text-[14px] text-on-surface leading-tight">APSC AE Civil 2025</span><span class="font-body-sm text-body-sm text-on-surface-variant">Advt 31/2025</span></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">unfold_more</span></div></div></div><nav class="flex flex-col gap-1 px-space-sm pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-medium"><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="study-plan" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>Study Plan</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="syllabus-explorer" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Syllabus Explorer</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="practice-mcqs" href="#"><span class="material-symbols-outlined text-[20px]">ads_click</span><span>Practice &amp; MCQs</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="mock-tests" href="#"><span class="material-symbols-outlined text-[20px]">check_box</span><span>Mock Tests</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="previous-papers" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Previous Papers</span></a><a class="flex items-center justify-between px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-tutor" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[20px] text-primary">auto_awesome</span><span>AI Tutor</span></div><span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm uppercase tracking-wide">Active</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="progress-analytics" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Progress Analytics</span></a></nav></div><div class="p-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Debashis Sarma</span><span class="font-body-sm text-[12px] text-on-surface-variant">APSC AE 2025</span></div></div><a class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="user-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md flex-1 max-w-xl"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="relative flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input class="w-full bg-surface-container-low rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container transition-all" placeholder="Search topics, notes, questions... (Cmd+K)" type="text"/></div><div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span><span>AI Agent: Syllabus Synced (Assam PSC Portal)</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md"><span class="text-[14px]">🔥</span><span>7 Day Streak</span></div><button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span><span>New Practice Set</span></button><button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-md text-label-md hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">smart_toy</span><span>Ask Copilot</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Interactive Header Bar within Test Shell -->
+<div class="sticky top-16 z-30 w-full bg-surface-container-lowest shadow-sm px-space-lg py-3 flex flex-wrap items-center justify-between gap-y-3">
+<!-- Left: Context / Topic -->
+<div class="flex items-center gap-3 min-w-0">
+<div class="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]">architecture</span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-[15px] text-on-surface truncate">APSC AE Civil — Technical Paper II</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-[11px] uppercase tracking-wider">Advt 31/2025</span>
+</div>
+<span class="font-body-sm text-[12px] text-on-surface-variant truncate">RCC: Limit State Design • High-Yield Revision</span>
+</div>
+</div>
+<!-- Center: Question Progress Tracker -->
+<div class="flex flex-col items-center justify-center gap-1.5 w-64 max-w-full">
+<div class="flex items-center justify-between w-full font-label-md text-label-md">
+<span class="text-on-surface font-semibold">Question 7 of 20</span>
+<span class="text-primary font-bold">35% Complete</span>
+</div>
+<div class="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container rounded-full transition-all duration-500" style="width: 35%;"></div>
+</div>
+</div>
+<!-- Right: Metrics & Finish CTA -->
+<div class="flex items-center gap-3 flex-shrink-0">
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">
+<span class="material-symbols-outlined text-primary text-[18px]">timer</span>
+<span class="font-mono text-on-surface font-semibold" id="session-timer">08:42</span>
+</div>
+<div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-tertiary-fixed text-on-tertiary-fixed font-label-md text-label-md">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span class="font-semibold">83%</span>
+<span class="text-on-tertiary-fixed opacity-75">(5/6)</span>
+</div>
+<button class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-surface-container text-error hover:bg-error-container hover:text-on-error-container font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[16px]">flag</span>
+<span>Finish Session</span>
+</button>
+</div>
+</div>
+<!-- Main Body Split Layout -->
+<div class="w-full max-w-[1440px] mx-auto px-space-lg py-space-md grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT 70% (8 Cols on Desktop): Active Question & High Pedagogical Explanations -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<!-- Question Primary Surface -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md">
+<!-- Metadata Pill Row -->
+<div class="flex flex-wrap items-center justify-between gap-2 pb-space-xs">
+<div class="flex items-center gap-2">
+<span class="px-2.5 py-1 rounded-md bg-surface-container font-label-sm text-label-sm text-on-surface-variant font-semibold">QUESTION 07</span>
+<span class="text-outline-variant text-[12px]">•</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Single Choice</span>
+<span class="text-outline-variant text-[12px]">•</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-primary-fixed font-label-sm text-label-sm font-semibold">+2.0 / -0.50 Negative</span>
+</div>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[16px] text-primary">bookmark_added</span>
+<span>Assam PSC Technical Marking</span>
+</div>
+</div>
+<!-- Concept Pill -->
+<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-surface-container-low text-primary font-label-sm text-[12px] w-fit">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span class="font-medium">Concept: Limiting Depth of Neutral Axis (IS 456:2000 Clause 38.1)</span>
+</div>
+<!-- Question Text Prompt -->
+<div class="font-headline-sm text-headline-sm text-on-surface leading-relaxed pt-1">
+          As per <span class="font-semibold text-primary">IS 456:2000</span>, which of the following represents the limiting neutral axis depth ratio (<span class="font-mono font-medium">x<sub>u,max</sub> / d</span>) for <span class="font-bold underline decoration-primary decoration-2 underline-offset-4">Fe 415 grade</span> steel in the limit state of collapse (flexure)?
+        </div>
+<!-- Structural Diagram Inline Vector -->
+<div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col sm:flex-row items-center gap-4 my-1">
+<div class="flex-shrink-0 bg-surface-container-lowest p-2 rounded-lg shadow-sm">
+<svg class="text-on-surface overflow-visible" fill="none" height="90" viewbox="0 0 220 90" width="220">
+<!-- Beam Section -->
+<rect fill="#dae2fd" height="70" rx="3" stroke="#4f46e5" stroke-width="1.5" width="40" x="5" y="10"></rect>
+<circle cx="17" cy="65" fill="#3525cd" r="3"></circle>
+<circle cx="33" cy="65" fill="#3525cd" r="3"></circle>
+<text fill="#565e74" font-family="Inter" font-size="9" x="50" y="24">Strain Diagram</text>
+<!-- Strain Diagram Profile -->
+<path d="M 110 10 L 110 80" stroke="#777587" stroke-dasharray="2 2"></path>
+<path d="M 110 10 L 155 10 L 110 45 L 85 80 L 110 80" fill="rgba(79, 70, 229, 0.08)" stroke="#3525cd" stroke-width="1.8"></path>
+<text fill="#0b1c30" font-family="Geist" font-size="8" font-weight="600" x="160" y="14">0.0035</text>
+<text fill="#0b1c30" font-family="Geist" font-size="8" font-weight="600" x="35" y="86">0.002 + 0.87fy/Es</text>
+<line marker-end="url(#arrow)" stroke="#ba1a1a" stroke-width="1.5" x1="170" x2="170" y1="10" y2="45"></line>
+<text fill="#ba1a1a" font-family="Geist" font-size="9" font-weight="bold" x="175" y="32">xu,max</text>
+</svg>
+</div>
+<div class="flex flex-col justify-center gap-1 text-on-surface-variant font-body-sm text-[12px]">
+<span class="font-semibold text-on-surface">Linear Strain Compatibility Profile</span>
+<span>Equate compressive strain fiber at extreme edge to tensile strain at centroid of steel.</span>
+<span class="font-mono text-[11px] text-primary">Slope: E = 2.0 × 10⁵ MPa</span>
+</div>
+</div>
+<!-- Options Container -->
+<div class="flex flex-col gap-2.5 pt-1">
+<!-- Option A -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low cursor-pointer transition-colors shadow-sm group">
+<div class="flex items-center gap-3.5">
+<span class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center font-label-md font-bold text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary transition-colors">A</span>
+<span class="font-headline-sm text-[15px] text-on-surface font-medium">0.53</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant px-2 py-0.5 rounded bg-surface-container">Standard for Fe 250</span>
+</div>
+<!-- Option B (Selected & Correct State) -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-tertiary-fixed/30 shadow-sm relative overflow-hidden group">
+<div class="absolute left-0 top-0 bottom-0 w-1.5 bg-tertiary-container"></div>
+<div class="flex items-center gap-3.5 pl-1">
+<span class="w-8 h-8 rounded-lg bg-tertiary-container text-on-primary flex items-center justify-center font-label-md font-bold shadow-sm">B</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-[16px] text-on-surface font-semibold">0.48</span>
+<span class="font-body-sm text-[12px] text-tertiary">Selected • IS 456:2000 Cl. 38.1 Value</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[11px] font-bold uppercase tracking-wider">Correct Answer</span>
+<div class="w-7 h-7 rounded-full bg-tertiary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[16px]">check</span>
+</div>
+</div>
+</div>
+<!-- Option C -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low cursor-pointer transition-colors shadow-sm group">
+<div class="flex items-center gap-3.5">
+<span class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center font-label-md font-bold text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary transition-colors">C</span>
+<span class="font-headline-sm text-[15px] text-on-surface font-medium">0.46</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant px-2 py-0.5 rounded bg-surface-container">Standard for Fe 500</span>
+</div>
+<!-- Option D -->
+<div class="flex items-center justify-between p-3.5 rounded-xl bg-surface-container-lowest hover:bg-surface-container-low cursor-pointer transition-colors shadow-sm group">
+<div class="flex items-center gap-3.5">
+<span class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center font-label-md font-bold text-on-surface-variant group-hover:bg-primary-container group-hover:text-on-primary transition-colors">D</span>
+<span class="font-headline-sm text-[15px] text-on-surface font-medium">0.42</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant px-2 py-0.5 rounded bg-surface-container">Standard for Fe 550 / Fe 600</span>
+</div>
+</div>
+</div>
+<!-- Immediate Post-Answer Evaluation Card (High Pedagogical Value) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md relative overflow-hidden">
+<div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-tertiary to-primary"></div>
+<!-- Score & Velocity Banner -->
+<div class="flex flex-wrap items-center justify-between gap-3 pb-space-xs">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-tertiary-fixed text-tertiary flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">verified</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-[15px] text-tertiary font-bold">✓ Correct! Earned +2.0 Marks</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Time Taken: 34 seconds (Average peer time: 52s)</span>
+</div>
+</div>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-low text-primary font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+<span>Mastery: Limiting Neutral Axis Level 4</span>
+</div>
+</div>
+<!-- Step-by-Step Concise Explanation -->
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-2.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Rigorous Mathematical Derivation</span>
+<span class="font-label-sm text-[11px] text-primary">IS 456:2000 — Clause 38.1 Note</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-relaxed">
+            According to Clause 38.1 (Note) of IS 456:2000, the limiting value of <span class="font-mono font-semibold">x<sub>u,max</sub> / d</span> is calculated by equating maximum compressive strain in concrete (0.0035) and steel strain at yield (<span class="font-mono">0.002 + 0.87f<sub>y</sub> / E<sub>s</sub></span>) with <span class="font-mono">E<sub>s</sub> = 2.0 × 10⁵ N/mm²</span>:
+          </p>
+<!-- Monospaced Equation Card -->
+<div class="bg-surface-container-lowest p-space-sm rounded-lg flex flex-col sm:flex-row items-center justify-between gap-2 shadow-xs">
+<code class="font-mono text-[13px] text-primary font-semibold">
+              x<sub>u,max</sub> / d = 700 / (1100 + 0.87f<sub>y</sub>)
+            </code>
+<div class="text-right font-mono text-[12px] text-on-surface-variant">
+              f<sub>y</sub> = 415 ➔ 700 / (1100 + 361.05) = <span class="text-on-surface font-bold">0.479 ≈ 0.48</span>
+</div>
+</div>
+<!-- Formula Chip -->
+<div class="flex flex-wrap items-center gap-2 pt-1">
+<span class="font-label-sm text-[11px] text-on-surface-variant uppercase font-semibold">Related Identity:</span>
+<div class="px-2.5 py-1 rounded bg-surface-container text-on-secondary-container font-mono text-[11px]">
+              x<sub>u,max</sub> / d = 0.0035 / [0.0055 + 0.87f<sub>y</sub> / E<sub>s</sub>]
+            </div>
+</div>
+</div>
+<!-- Why This Matters & Exam Frequency -->
+<div class="p-3.5 rounded-xl bg-surface-container-high/40 flex items-start gap-3">
+<span class="text-[20px] flex-shrink-0">⭐</span>
+<div class="flex flex-col gap-1">
+<span class="font-label-md text-label-md font-bold text-on-primary-fixed">Assam PSC &amp; Central Civil Exams Repetition Index: High</span>
+<p class="font-body-sm text-[12px] text-on-surface-variant leading-normal">
+              This exact ratio appeared verbatim in <span class="font-semibold text-on-surface">APSC AE 2021 (Q.34)</span>, <span class="font-semibold text-on-surface">APSC JE 2023 (Q.12)</span>, and <span class="font-semibold text-on-surface">UPSC ESE 2019</span>. It remains among the top 3 most frequently tested structural design questions in Indian engineering competitive exams.
+            </p>
+</div>
+</div>
+<!-- Quick AI Expansion Dialog Prompt -->
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<img class="w-8 h-8 rounded-lg object-cover" data-alt="Close up architectural blueprint diagram on clean desk with digital tablet showing structural calculations and steel strain formulas in soft academic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCxyTOqllBCaCZr0AiGYs-9bQyIihMD9t08n6g3mT52NCU_4aODA6WVxfcfw3Ra485Oh07PCiQHYL5CfvMyZk-N8Hc52T5SnCpykronIZgHJUoEPh2QwV3y1NPw6sHKU1TfS3804xTbzbmowl1t420Lg0C-IVxyOU82aQviyE-whSvKBAGoDbno0WloRKzuQf5g7SDW1UWg4JZM0AtoEmdioQEzgYZkwrrY0VOLMm8wWiwIHnnVYR5Q"/>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Need derivation from stress blocks or moment capacity formulas?</span>
+</div>
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-sm text-label-sm hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[15px]">auto_awesome</span>
+<span>Ask AI Tutor (Alt+A)</span>
+</button>
+</div>
+</div>
+<!-- Bottom Action Dock Controls -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-3.5 flex flex-wrap items-center justify-between gap-3">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+<span>Previous (Q6)</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-low text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-label-md text-label-md transition-colors" title="Bookmark for Revision">
+<span class="material-symbols-outlined text-[16px] text-secondary">bookmark</span>
+<span>Mark for Review</span>
+</button>
+</div>
+<div class="flex items-center gap-2.5">
+<button class="flex items-center gap-1 px-3 py-2 rounded-lg text-on-surface-variant hover:text-error hover:bg-surface-container-low font-label-sm text-label-sm transition-colors" title="Report Inaccuracy">
+<span class="material-symbols-outlined text-[16px]">flag</span>
+<span class="hidden sm:inline">Report Question</span>
+</button>
+<button class="flex items-center gap-2 px-5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm">
+<span>Next Question (Q8)</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- RIGHT 30% (4 Cols on Desktop): Question Palette & Real-Time Diagnostic Workspace -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- Question Palette Matrix Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">apps</span>
+<span class="font-headline-sm text-[15px] text-on-surface">Question Palette</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">20 Total MCQs</span>
+</div>
+<!-- Legend -->
+<div class="grid grid-cols-2 gap-2 text-[11px] font-label-sm py-1.5 px-2 bg-surface-container-low rounded-lg text-on-surface-variant">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-tertiary-container flex-shrink-0"></span>
+<span>Answered (6)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-primary-container flex-shrink-0"></span>
+<span>Current (1)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-secondary-fixed-dim flex-shrink-0"></span>
+<span>Review (2)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded bg-surface-container flex-shrink-0"></span>
+<span>Unvisited (11)</span>
+</div>
+</div>
+<!-- Grid Matrix: 1 to 20 -->
+<div class="grid grid-cols-5 gap-2 pt-2">
+<!-- 1 to 6: Green Answered -->
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">1</button>
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">2</button>
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">3</button>
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">4</button>
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">5</button>
+<button class="h-9 rounded-lg bg-tertiary-container text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">6</button>
+<!-- 7: Active Blue with Indicator Ring -->
+<button class="h-9 rounded-lg bg-primary text-on-primary font-headline-sm text-[13px] flex items-center justify-center font-bold shadow-sm relative">
+<span>7</span>
+<span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-surface-bright animate-ping"></span>
+</button>
+<!-- 8 & 9: Amber Review -->
+<button class="h-9 rounded-lg bg-secondary-fixed text-on-secondary-fixed font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">8</button>
+<button class="h-9 rounded-lg bg-secondary-fixed text-on-secondary-fixed font-headline-sm text-[13px] flex items-center justify-center font-semibold hover:opacity-90 transition-opacity">9</button>
+<!-- 10 to 20: Gray Unvisited -->
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">10</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">11</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">12</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">13</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">14</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">15</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">16</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">17</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">18</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">19</button>
+<button class="h-9 rounded-lg bg-surface-container text-on-surface-variant font-headline-sm text-[13px] flex items-center justify-center font-medium hover:bg-surface-container-high transition-colors">20</button>
+</div>
+<div class="pt-2">
+<button class="w-full py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">filter_list</span>
+<span>Filter by Section &amp; Tag</span>
+</button>
+</div>
+</div>
+<!-- Real-Time Topic Mastery Breakdown -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">analytics</span>
+<span class="font-headline-sm text-[15px] text-on-surface">Session Mastery</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[10px] font-bold">LIVE METRIC</span>
+</div>
+<!-- Topic 1 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-on-surface truncate">RCC Singly Reinforced</span>
+<span class="text-tertiary font-bold font-mono">100%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-tertiary-container rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Topic 2 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-on-surface truncate">Neutral Axis Ratios (IS 456)</span>
+<span class="text-tertiary font-bold font-mono">100%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-tertiary-container rounded-full" style="width: 100%;"></div>
+</div>
+</div>
+<!-- Topic 3 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between font-label-md text-label-md">
+<span class="text-on-surface truncate">Stress Block Coefficients</span>
+<span class="text-primary font-bold font-mono">66%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 66.6%;"></div>
+</div>
+</div>
+<!-- Inline Sparkline / Velocity Graphic -->
+<div class="pt-2 p-3 rounded-lg bg-surface-container-low flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-[11px] text-on-surface-variant">Response Velocity</span>
+<span class="font-headline-sm text-[16px] text-on-surface font-semibold">41.2s <span class="font-body-sm text-[11px] text-tertiary font-normal">(-18s peer delta)</span></span>
+</div>
+<!-- Sparkline SVG -->
+<svg class="overflow-visible" fill="none" height="26" viewbox="0 0 70 26" width="70">
+<path d="M 2 20 L 15 15 L 30 18 L 45 8 L 60 12 L 68 4" stroke="#006e4b" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<circle cx="68" cy="4" fill="#006e4b" r="2.5"></circle>
+</svg>
+</div>
+</div>
+<!-- Quick AI Interactive Helper Panel -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-3 relative overflow-hidden">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-primary text-[14px]">psychology</span>
+</div>
+<span class="font-headline-sm text-[14px] text-on-surface font-semibold">AI Exam Copilot</span>
+</div>
+<span class="font-label-sm text-[10px] uppercase tracking-wider text-tertiary font-bold">Ready</span>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col gap-1.5">
+<span class="font-label-md text-[12px] font-semibold text-on-surface">Need derivation proof for 0.48?</span>
+<p class="font-body-sm text-[12px] text-on-surface-variant">
+            Tap below or press <kbd class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface font-mono text-[10px]">Alt+A</kbd> to generate an IS 456 stress-strain step-by-step resolution tailored to APSC Paper II.
+          </p>
+</div>
+<div class="flex flex-col gap-1.5">
+<button class="w-full py-2 px-3 rounded-lg bg-primary text-on-primary font-label-md text-[12px] font-medium hover:bg-primary-container transition-colors flex items-center justify-center gap-2 shadow-xs">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span>Derive Limit State Equations</span>
+</button>
+<button class="w-full py-1.5 px-3 rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-[12px] transition-colors flex items-center justify-center gap-1.5">
+<span class="material-symbols-outlined text-[14px]">history_edu</span>
+<span>View Previous Years' Repeats (5)</span>
+</button>
+</div>
+<!-- Academic Context Stamp Photo -->
+<div class="pt-1 flex items-center gap-2.5">
+<img class="w-10 h-10 rounded-lg object-cover flex-shrink-0" data-alt="Official Assam Public Service Commission civil engineering syllabus reference handbook page with neat technical diagrams and ink annotations" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDm_8C64NWIkonrPfKwJJ28ZsQ2TVyibVXU8oqM2W012SQqjr6ege3VsJNxqY1h5xr4cwnTNDD6htEsDBYHPXUPdjfW4n9kjeEp6G0qmB2FaeptIi34uYhSqoh0wAjLloPmq1AZZZXTRl-WBZujJUt0H3OWkJShCN7tVn4uimr7jua66rXhIedSl9DfQSpFkvOtdQSIazKHFBWnuPk185UDGl6jjse72zNB2vMNXfbKik4BWleVsXSw"/>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-[11px] font-semibold text-on-surface truncate">Indexed to APSC Code 2025</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant truncate">Syllabus Section 4.2 • Reinforced Concrete</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Interactive Keyboard / Session micro-script -->
+<script>
+    (function() {
+      // Simple dynamic timer increment
+      let seconds = 8 * 60 + 42;
+      const timerEl = document.getElementById('session-timer');
+      if (timerEl) {
+        setInterval(() => {
+          seconds++;
+          const mins = Math.floor(seconds / 60);
+          const secs = seconds % 60;
+          timerEl.textContent = 
+            (mins < 10 ? '0' : '') + mins + ':' + 
+            (secs < 10 ? '0' : '') + secs;
+        }, 1000);
+      }
+
+      // Shortcut listener for Alt+A
+      window.addEventListener('keydown', (e) => {
+        if (e.altKey && (e.key === 'a' || e.key === 'A')) {
+          e.preventDefault();
+          alert('AI Tutor Activated: Loading IS 456:2000 Clause 38.1 Limiting Depth Derivation...');
+        }
+      });
+    })();
+  </script>
+</div></main></div></body></html>

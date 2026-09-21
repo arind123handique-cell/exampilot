@@ -1,0 +1,2415 @@
+# EXAMPILOT AI — MASTER PRODUCT SPECIFICATION
+
+## AI Examination Operating System
+
+### VERSION 2.0 — COMPLETE PRODUCT REBUILD / EVOLUTION
+
+---
+
+# 1. ROLE
+
+You are the lead product architect, senior full-stack engineer, AI systems engineer, educational technology architect, UX designer, data architect, research engineer, and QA engineer responsible for transforming the existing ExamPilot AI project into a production-grade universal AI examination platform.
+
+Do NOT treat this as a simple UI enhancement.
+
+Do NOT merely add pages.
+
+Do NOT preserve weak architecture simply because it already exists.
+
+Inspect the existing project first, understand what is reusable, and then refactor or replace components where necessary.
+
+The objective is to create a serious examination-preparation system capable of supporting essentially ANY structured examination.
+
+Examples:
+
+* UPSC
+* APSC
+* State PSC
+* SSC
+* Banking
+* Railway
+* GATE
+* Engineering examinations
+* NEET
+* JEE
+* UGC NET
+* Teaching examinations
+* Law
+* Management
+* Medical
+* Science
+* Commerce
+* Defence
+* Polytechnic
+* University examinations
+* Departmental examinations
+* Professional certifications
+* Custom/private examinations
+
+The user should NOT need a separate application for each examination.
+
+---
+
+# 2. CORE PRODUCT VISION
+
+ExamPilot is not:
+
+* a question-answer chatbot
+* a static MCQ website
+* a PDF reader
+* a flashcard application
+* a generic AI tutor
+* a collection of mock tests
+* a gamified quiz application
+
+ExamPilot is:
+
+# AN AI EXAMINATION OPERATING SYSTEM
+
+Its primary responsibility is to convert examination information into an intelligent, continuously adapting preparation system.
+
+The fundamental loop is:
+
+EXAM
+↓
+OFFICIAL NOTIFICATION
+↓
+OFFICIAL SYLLABUS
+↓
+EXAM PATTERN
+↓
+PAPERS / SUBJECTS
+↓
+SUBJECTS / BRANCHES
+↓
+DOMAINS
+↓
+TOPICS
+↓
+SUBTOPICS
+↓
+CONCEPTS
+↓
+KNOWLEDGE
+↓
+SOURCES
+↓
+PYQs
+↓
+QUESTION PATTERNS
+↓
+QUESTION GENERATION
+↓
+PRACTICE
+↓
+MOCK TEST
+↓
+PERFORMANCE
+↓
+WEAKNESS DETECTION
+↓
+KNOWLEDGE GAP
+↓
+PERSONALIZED LEARNING
+↓
+RETEST
+↓
+MASTERY
+↓
+CONTINUOUS ADAPTATION
+
+The AI must continuously learn from the candidate's performance.
+
+---
+
+# 3. MOST IMPORTANT PRODUCT PRINCIPLE
+
+The application must be:
+
+# EXAM-CENTRIC, NOT PAGE-CENTRIC.
+
+Do not think:
+
+"User opens MCQ page."
+
+Think:
+
+"User is preparing for an examination and the entire application should understand that examination."
+
+Every module must operate around the selected examination.
+
+For example:
+
+APSC AE Civil
+
+must automatically create an examination environment containing:
+
+* official syllabus
+* papers
+* Civil Engineering subjects
+* General Studies
+* subject hierarchy
+* topic hierarchy
+* PYQs
+* question patterns
+* numerical patterns
+* important concepts
+* study priorities
+* mock blueprint
+* candidate mastery
+* weak areas
+* revision schedule
+* adaptive practice
+
+Changing the examination must dynamically change the entire ecosystem.
+
+---
+
+# 4. UNIVERSAL EXAM ENGINE
+
+Create a completely data-driven Universal Examination Engine.
+
+Never hardcode the application around Civil Engineering.
+
+The architecture must support:
+
+Exam
+→ Stage
+→ Paper
+→ Section
+→ Subject
+→ Domain
+→ Topic
+→ Subtopic
+→ Concept
+
+Example:
+
+UPSC CSE
+→ Prelims
+→ General Studies Paper I
+→ Geography
+→ Physical Geography
+→ Geomorphology
+→ Plate Tectonics
+→ Continental Drift
+
+Example:
+
+GATE Civil
+→ Engineering Mathematics
+→ Linear Algebra
+→ Eigenvalues
+→ Matrix Operations
+
+Example:
+
+APSC AE Civil
+→ Civil Engineering
+→ Fluid Mechanics
+→ Open Channel Flow
+→ Uniform Flow
+→ Manning Equation
+
+Example:
+
+SSC CGL
+→ General Awareness
+→ History
+→ Modern India
+→ Freedom Movement
+→ Non-Cooperation Movement
+
+The system must support unlimited hierarchy depth where necessary.
+
+---
+
+# 5. EXAM ONBOARDING
+
+When a user selects an examination, do NOT simply show a static configuration.
+
+Create an intelligent Exam Setup process.
+
+The system should collect:
+
+* Examination
+* Target year
+* Attempt
+* Stage
+* Preparation level
+* Available study hours
+* Examination date
+* Preferred language
+* Current knowledge level
+* Target score
+* Optional subjects where applicable
+* Preferred question difficulty
+* Previous preparation history
+
+If official examination information is available, automatically construct the exam environment.
+
+---
+
+# 6. OFFICIAL SOURCE FIRST
+
+Official sources have the highest authority.
+
+Priority:
+
+TIER 1
+Official examination authority
+Official notification
+Official syllabus
+Official regulations
+Official answer keys
+Official previous papers
+Official government publications
+
+TIER 2
+Government publications
+Standard textbooks
+Recognized institutions
+Official standards
+University material
+
+TIER 3
+Trusted educational/reference sources
+
+TIER 4
+General web sources
+
+Never silently treat Tier 3/4 information as official.
+
+Every important factual item should retain:
+
+* source
+* source type
+* publication
+* URL
+* date
+* verification state
+* relevant section/page where available
+
+---
+
+# 7. AUTOMATIC EXAM RESEARCH ENGINE
+
+Create an autonomous examination research pipeline.
+
+When a new exam is added:
+
+1. Discover official examination authority.
+2. Discover current notification.
+3. Discover official syllabus.
+4. Discover exam pattern.
+5. Discover marking scheme.
+6. Discover duration.
+7. Discover previous papers.
+8. Discover official answer keys where available.
+9. Extract syllabus.
+10. Build taxonomy.
+11. Identify subjects.
+12. Identify topics.
+13. Identify subtopics.
+14. Identify recurring PYQ concepts.
+15. Identify question types.
+16. Identify difficulty patterns.
+17. Identify source requirements.
+18. Build an examination blueprint.
+
+Do not assume that every examination follows the same pattern.
+
+---
+
+# 8. SYLLABUS INTELLIGENCE
+
+The syllabus is the backbone of ExamPilot.
+
+The system must transform an official syllabus into structured data.
+
+Example:
+
+"Strength of Materials"
+
+must potentially become:
+
+Strength of Materials
+├── Simple Stress and Strain
+├── Elastic Constants
+├── Shear Force
+├── Bending Moment
+├── Bending Stress
+├── Shear Stress
+├── Torsion
+├── Columns
+├── Principal Stress
+├── Mohr's Circle
+└── Deflection
+
+The system should distinguish:
+
+* explicit syllabus topics
+* inferred subtopics
+* supporting prerequisites
+* derived concepts
+
+Never represent inferred content as explicitly stated syllabus content.
+
+---
+
+# 9. KNOWLEDGE ENGINE
+
+Build a real Knowledge Engine.
+
+Every concept should become a structured knowledge entity.
+
+Possible entity types:
+
+* Definition
+* Concept
+* Principle
+* Theory
+* Law
+* Formula
+* Equation
+* Rule
+* Process
+* Method
+* Classification
+* Property
+* Characteristic
+* Application
+* Example
+* Exception
+* Assumption
+* Limitation
+* Cause
+* Effect
+* Relationship
+* Fact
+* Terminology
+* Date
+* Person
+* Event
+* Place
+* Diagram
+* Procedure
+* Standard
+* Code provision
+
+Each knowledge entity should contain:
+
+* ID
+* exam
+* subject
+* topic
+* subtopic
+* concept
+* explanation
+* prerequisites
+* related concepts
+* formulas
+* examples
+* common mistakes
+* source
+* confidence
+* verification status
+
+---
+
+# 10. KNOWLEDGE GRAPH
+
+Create relationships such as:
+
+prerequisite_of
+depends_on
+related_to
+part_of
+explains
+applied_in
+contrasts_with
+derived_from
+tested_by
+frequently_confused_with
+
+Example:
+
+Stress
+→ prerequisite_of
+Strain
+
+Strain
+→ prerequisite_of
+Hooke's Law
+
+Hooke's Law
+→ applied_in
+Elastic Analysis
+
+Elastic Analysis
+→ tested_by
+PYQ-2024-001
+
+This graph should power:
+
+* AI tutoring
+* adaptive learning
+* question generation
+* prerequisite detection
+* weakness analysis
+* revision
+* recommendations
+
+---
+
+# 11. PYQ INTELLIGENCE
+
+Previous Year Questions are NOT merely an archive.
+
+They are training data for understanding the examination.
+
+For every PYQ store:
+
+* year
+* examination
+* paper
+* subject
+* topic
+* subtopic
+* concept
+* question type
+* difficulty
+* marks
+* negative marking
+* answer
+* official answer where available
+* source
+* explanation
+* recurrence pattern
+* related questions
+* concept frequency
+
+The system must analyze:
+
+* repeated concepts
+* repeated formulas
+* repeated question structures
+* topic frequency
+* subject weight
+* difficulty trend
+* numerical pattern
+* statement-question pattern
+* conceptual traps
+
+Do not claim a question is an authentic PYQ unless its provenance is verified.
+
+---
+
+# 12. QUESTION FACTORY
+
+Build a powerful AI Question Factory.
+
+Question generation must NOT simply ask an LLM:
+
+"Generate 10 MCQs."
+
+Instead:
+
+EXAM BLUEPRINT
++
+SYLLABUS
++
+KNOWLEDGE GRAPH
++
+PYQ PATTERNS
++
+DIFFICULTY
++
+QUESTION TYPE
++
+CANDIDATE PROFILE
++
+LEARNING OBJECTIVE
+==================
+
+QUESTION
+
+Supported types:
+
+* Standard MCQ
+* Multiple statements
+* Assertion/Reason
+* Statement I/II
+* Match the following
+* Correct/Incorrect
+* Chronology
+* Classification
+* Conceptual
+* Numerical
+* Scenario
+* Case-based
+* Data interpretation
+* Formula-based
+* Application-based
+* Comparison
+* Cause/Effect
+* Diagram interpretation
+* Code/Rule-based
+
+---
+
+# 13. DIFFICULTY ENGINE
+
+Difficulty must be an actual measurable system.
+
+Use:
+
+EASY
+MEDIUM
+HARD
+VERY HARD
+EXPERT
+
+Difficulty should depend on:
+
+* conceptual complexity
+* number of reasoning steps
+* calculation complexity
+* distractor quality
+* prerequisite dependency
+* ambiguity risk
+* memory requirement
+* application requirement
+* time requirement
+* PYQ similarity
+* examination standard
+
+For competitive examinations, allow profiles such as:
+
+* School
+* Graduate
+* SSC
+* GATE
+* UPSC
+* IES/ESE
+* Advanced professional
+
+The system must never confuse "long question" with "difficult question."
+
+---
+
+# 14. NUMERICAL ENGINE
+
+Numerical questions must be deterministic wherever possible.
+
+Never trust an LLM alone for numerical answers.
+
+Pipeline:
+
+GENERATE DATA
+↓
+GENERATE QUESTION
+↓
+SOLVE PROGRAMMATICALLY
+↓
+INDEPENDENT SOLUTION
+↓
+RECALCULATE
+↓
+CHECK UNITS
+↓
+CHECK DIMENSIONS
+↓
+CHECK ASSUMPTIONS
+↓
+CHECK PHYSICAL REASONABLENESS
+↓
+GENERATE DISTRACTORS
+↓
+FINAL VALIDATION
+
+Support:
+
+* Engineering mathematics
+* Civil engineering
+* Physics
+* Chemistry
+* Finance
+* Statistics
+* Economics
+* Quantitative aptitude
+* Any domain with deterministic calculations
+
+Store solution steps.
+
+---
+
+# 15. QUESTION VALIDATION PIPELINE
+
+Every AI-generated question must pass:
+
+1. Factual accuracy
+2. Correct answer
+3. Unique answer
+4. Logical consistency
+5. Numerical correctness
+6. Unit validation
+7. Assumption validation
+8. Ambiguity detection
+9. Difficulty validation
+10. Syllabus relevance
+11. Source validation
+12. Duplicate detection
+13. PYQ contamination check
+14. Copyright/provenance check
+
+Rejected questions must NOT reach users.
+
+---
+
+# 16. ADAPTIVE LEARNING ENGINE
+
+This is one of the most important systems.
+
+Do not simply calculate:
+
+"Correct = +1."
+
+Track mastery per:
+
+* subject
+* domain
+* topic
+* subtopic
+* concept
+* question type
+* difficulty
+
+Track:
+
+* accuracy
+* attempts
+* response time
+* confidence
+* recent performance
+* historical performance
+* mistakes
+* skipped questions
+* hints used
+* revision frequency
+* forgetting interval
+* difficulty achieved
+
+Candidate mastery example:
+
+Fluid Mechanics
+→ 81%
+
+Open Channel Flow
+→ 64%
+
+Manning Equation
+→ 92%
+
+Hydraulic Jump
+→ 41%
+
+The system must know that the candidate is strong in Manning Equation but weak in Hydraulic Jump.
+
+---
+
+# 17. MISTAKE INTELLIGENCE
+
+Every wrong answer must be classified.
+
+Possible error types:
+
+* Knowledge gap
+* Concept confusion
+* Formula recall failure
+* Calculation error
+* Unit error
+* Sign error
+* Reading error
+* Careless mistake
+* Misinterpretation
+* Time pressure
+* Guessing
+* Distractor trap
+* Prerequisite weakness
+
+The system should NOT simply say:
+
+"Wrong answer."
+
+It should explain:
+
+"You know the formula, but your error pattern suggests a sign-convention mistake."
+
+Then generate targeted practice.
+
+---
+
+# 18. ADAPTIVE QUESTIONING
+
+After each response, dynamically decide what comes next.
+
+Example:
+
+Candidate answers Medium question correctly.
+
+→ Generate Hard question.
+
+Candidate answers Hard incorrectly.
+
+→ Diagnose error.
+
+→ Ask targeted Medium question.
+
+Candidate answers correctly.
+
+→ Return to Hard.
+
+Candidate repeatedly fails.
+
+→ Detect prerequisite weakness.
+
+→ Teach prerequisite.
+
+→ Give Easy confirmation question.
+
+→ Medium.
+
+→ Hard.
+
+→ Retest.
+
+Flow:
+
+FAILURE
+↓
+DIAGNOSIS
+↓
+PREREQUISITE
+↓
+THEORY
+↓
+EASY
+↓
+MEDIUM
+↓
+HARD
+↓
+RETEST
+↓
+MASTERY
+
+---
+
+# 19. AI TUTOR
+
+The AI Tutor must be syllabus-aware.
+
+It must know:
+
+* current examination
+* current subject
+* current topic
+* candidate mastery
+* mistakes
+* previous questions
+* available sources
+
+The tutor should support:
+
+"Explain this."
+
+"Explain like I'm a beginner."
+
+"Give me an engineering-level explanation."
+
+"Give me an analogy."
+
+"Show the derivation."
+
+"Give me a numerical example."
+
+"Ask me questions instead."
+
+"Find my weakness."
+
+"Test me."
+
+"Explain why option B is wrong."
+
+"Compare these two concepts."
+
+"Give me a memory trick."
+
+"Teach me only what is required for this exam."
+
+---
+
+# 20. AI TEACHING MODES
+
+Provide:
+
+1. Quick Revision
+2. Beginner
+3. Standard
+4. Exam-focused
+5. Deep Concept
+6. Numerical
+7. PYQ-focused
+8. Interview/Viva
+9. Last-minute revision
+
+The AI should avoid unnecessary content when the candidate asks for exam-focused preparation.
+
+---
+
+# 21. MOCK TEST ENGINE
+
+Mock tests must resemble serious examination platforms.
+
+Do NOT make the mock test feel like a game.
+
+Required features:
+
+* full-screen test interface
+* question palette
+* section navigation
+* mark for review
+* answered/unanswered state
+* save and next
+* previous/next
+* section switching
+* timer
+* auto-submit
+* negative marking
+* partial marking where applicable
+* calculator where permitted
+* instructions
+* question numbering
+* question status
+* keyboard shortcuts
+* mobile-friendly interface
+
+---
+
+# 22. MOCK TEST TYPES
+
+Support:
+
+* Full Mock
+* Subject Test
+* Domain Test
+* Topic Test
+* Chapter Test
+* PYQ Simulation
+* Daily Test
+* Revision Test
+* Weak Area Test
+* Adaptive Test
+* Custom Test
+* Previous Paper Simulation
+* Speed Test
+* Accuracy Test
+* Numerical Test
+* Concept Test
+
+---
+
+# 23. MOCK BLUEPRINT
+
+Before generating a mock, build a blueprint.
+
+Blueprint includes:
+
+* total questions
+* duration
+* marks
+* negative marking
+* subject distribution
+* topic distribution
+* difficulty distribution
+* question-type distribution
+* numerical/conceptual distribution
+* PYQ-pattern distribution
+
+The blueprint must respect the actual examination wherever official information exists.
+
+Never invent an examination pattern and present it as official.
+
+---
+
+# 24. ADAPTIVE MOCK
+
+Adaptive Mock should use:
+
+* candidate mastery
+* recent accuracy
+* difficulty performance
+* topic weakness
+* response time
+* question-type weakness
+* previous errors
+* revision status
+
+The goal is not merely to maximize score.
+
+The goal is to accurately identify knowledge gaps.
+
+---
+
+# 25. PERFORMANCE ANALYTICS
+
+After a mock, show:
+
+Score
+Accuracy
+Attempt rate
+Correct
+Incorrect
+Skipped
+Time used
+Average time/question
+Subject performance
+Topic performance
+Difficulty performance
+Question-type performance
+
+Then:
+
+# WHY DID YOU LOSE MARKS?
+
+Example:
+
+Civil Engineering — 72%
+
+Strength of Materials — 81%
+Fluid Mechanics — 67%
+Soil Mechanics — 48%
+
+Primary weakness:
+Consolidation
+
+Error pattern:
+Concept confusion + formula application
+
+Recommendation:
+Review effective stress → consolidation theory → solve 5 medium problems → solve 3 hard problems → retest.
+
+---
+
+# 26. SCORE SIMULATION
+
+Where sufficient historical/exam data exists, calculate:
+
+* raw score
+* normalized score where applicable
+* accuracy
+* expected marks lost to negative marking
+* time efficiency
+* topic efficiency
+
+Do NOT make unsupported predictions about actual rank or selection.
+
+If historical benchmark data is available, clearly label it as historical/reference information.
+
+---
+
+# 27. PERSONALIZED STUDY PLAN
+
+The study plan must be generated from:
+
+* examination date
+* available hours
+* current mastery
+* syllabus weight
+* topic importance
+* PYQ frequency
+* weakness
+* forgetting risk
+* previous performance
+
+Do not create a generic:
+
+"Monday: Mathematics
+Tuesday: Physics"
+
+plan.
+
+Instead:
+
+TODAY
+
+1. Hydraulic Jump — prerequisite repair
+2. 20 targeted MCQs
+3. 5 numerical problems
+4. Revision of Manning equation
+5. 15-minute recall test
+
+---
+
+# 28. SPACED REPETITION
+
+Track forgetting risk per concept.
+
+Automatically schedule:
+
+* first revision
+* second revision
+* active recall
+* practice
+* retest
+
+Do not force the same revision interval for every concept.
+
+Strong concepts should require less repetition.
+
+Weak concepts should receive more repetition.
+
+---
+
+# 29. EXAM READINESS ENGINE
+
+Create a dynamic readiness dashboard.
+
+Track:
+
+* syllabus coverage
+* knowledge mastery
+* PYQ coverage
+* question volume
+* mock performance
+* weak topics
+* revision completion
+* accuracy
+* speed
+* consistency
+* high-difficulty performance
+
+Display:
+
+# EXAM READINESS
+
+Not as a fake precise percentage.
+
+Use evidence-backed component metrics.
+
+Example:
+
+Syllabus Coverage: 82%
+Concept Mastery: 71%
+PYQ Exposure: 64%
+Mock Accuracy: 78%
+Hard Question Mastery: 53%
+Revision Health: 69%
+
+Then explain exactly what remains.
+
+---
+
+# 30. CONTENT GENERATION PIPELINE
+
+Create a continuous content engine.
+
+It should be capable of generating:
+
+* theory
+* notes
+* flashcards
+* formulas
+* examples
+* MCQs
+* numericals
+* case studies
+* PYQ-style questions
+* revision tests
+* mock tests
+
+Every generated item must be connected to:
+
+Exam
+→ Subject
+→ Topic
+→ Concept
+
+---
+
+# 31. AI MODEL ROUTING
+
+Do NOT use one model for everything.
+
+Create model routing.
+
+FAST MODEL:
+
+* classification
+* tagging
+* extraction
+* formatting
+* basic summaries
+
+REASONING MODEL:
+
+* difficult questions
+* numerical reasoning
+* complex explanations
+* validation
+* adaptive diagnosis
+
+RESEARCH MODEL:
+
+* web research
+* source synthesis
+* official document analysis
+
+EMBEDDING MODEL:
+
+* semantic search
+* duplicate detection
+* similarity
+* retrieval
+
+VISION/OCR MODEL:
+
+* scanned syllabus
+* question papers
+* diagrams
+* handwritten/printed documents where supported
+
+The architecture must allow providers/models to be swapped.
+
+Do not hardwire the application to a single AI provider.
+
+---
+
+# 32. RAG ARCHITECTURE
+
+Use:
+
+USER QUESTION
+↓
+QUERY UNDERSTANDING
+↓
+EXAM CONTEXT
+↓
+SYLLABUS CONTEXT
+↓
+KNOWLEDGE RETRIEVAL
+↓
+SOURCE RETRIEVAL
+↓
+PYQ RETRIEVAL
+↓
+CANDIDATE PROFILE
+↓
+MODEL
+↓
+VALIDATION
+↓
+ANSWER
+
+The AI should not answer from generic knowledge when exam-specific verified information is available.
+
+---
+
+# 33. DOCUMENT INGESTION
+
+Allow users/admins to upload:
+
+* PDF
+* DOCX
+* TXT
+* XLSX
+* CSV
+* images
+* question papers
+* syllabus documents
+* textbooks/reference documents
+
+Pipeline:
+
+UPLOAD
+↓
+OCR/PARSE
+↓
+DOCUMENT CLASSIFICATION
+↓
+CHUNKING
+↓
+METADATA
+↓
+SOURCE REGISTRATION
+↓
+KNOWLEDGE EXTRACTION
+↓
+VALIDATION
+↓
+INDEXING
+↓
+RAG
+
+---
+
+# 34. QUESTION PAPER INGESTION
+
+A user should be able to upload a previous examination paper.
+
+ExamPilot should attempt to extract:
+
+* questions
+* options
+* answer
+* year
+* subject
+* topic
+* question type
+* marks
+* difficulty
+* source
+
+Then allow human verification before marking it as an official PYQ.
+
+---
+
+# 35. ADMIN / CONTENT STUDIO
+
+Create a powerful administrative workspace.
+
+Sections:
+
+EXAM MANAGER
+SYLLABUS MANAGER
+SOURCE MANAGER
+KNOWLEDGE MANAGER
+PYQ MANAGER
+QUESTION FACTORY
+QUESTION REVIEW
+MOCK BLUEPRINT
+MOCK GENERATOR
+CONTENT AUDIT
+AI VALIDATION
+DUPLICATE DETECTION
+COVERAGE ANALYSIS
+
+Admin should be able to see:
+
+* generated
+* validated
+* rejected
+* needs review
+* conflicting
+* duplicate
+* published
+
+---
+
+# 36. CONTENT QUALITY SCORE
+
+Every generated item receives internal quality metrics.
+
+Measure:
+
+* factual confidence
+* source confidence
+* answer confidence
+* uniqueness
+* difficulty confidence
+* syllabus relevance
+* ambiguity risk
+* numerical confidence
+
+Low-confidence content should never automatically become published content.
+
+---
+
+# 37. ANTI-HALLUCINATION
+
+The system must explicitly distinguish:
+
+VERIFIED
+SUPPORTED
+INFERRED
+UNVERIFIED
+CONFLICTING
+NEEDS REVIEW
+
+Never fabricate:
+
+* sources
+* URLs
+* citations
+* statistics
+* formulas
+* laws
+* regulations
+* examination rules
+* PYQs
+* answers
+
+When evidence is unavailable, say:
+
+"Not verified."
+
+---
+
+# 38. COPYRIGHT / PYQ POLICY
+
+Do not falsely label AI-generated questions as previous-year questions.
+
+PYQs must retain provenance.
+
+AI may generate:
+
+"PYQ-style question"
+
+but must not claim:
+
+"UPSC 2022 PYQ"
+
+unless the source has been verified.
+
+---
+
+# 39. SEARCH EXPERIENCE
+
+Create global search.
+
+Search should understand:
+
+* exams
+* subjects
+* topics
+* concepts
+* questions
+* PYQs
+* notes
+* formulas
+* sources
+
+Example:
+
+User searches:
+
+"Bernoulli"
+
+Results:
+
+Bernoulli Equation
+Fluid Mechanics
+Theory
+Formula
+Related concepts
+PYQs
+Practice questions
+Numericals
+Weakness
+Study notes
+
+---
+
+# 40. USER DASHBOARD
+
+The dashboard should answer four questions immediately:
+
+1. What should I study now?
+2. What am I weak at?
+3. How am I progressing?
+4. Am I improving?
+
+Show:
+
+Today's mission
+Current streak
+Study time
+Mastery
+Weak areas
+Upcoming revision
+Recommended practice
+Recent mock
+Readiness
+Continue learning
+
+---
+
+# 41. UI/UX DIRECTION
+
+IMPORTANT:
+
+Move away from an overly cartoon/gimmicky examination interface.
+
+The current application contains extensive cartoon colors, bouncy animations, confetti, and playful components.
+
+Retain animation where useful, but make the primary interface:
+
+* professional
+* academic
+* modern
+* fast
+* clean
+* trustworthy
+* information-dense
+* exam-oriented
+
+Use animation for:
+
+* transitions
+* feedback
+* loading
+* progress
+* subtle achievement moments
+
+Do NOT use excessive:
+
+* bouncing
+* confetti
+* giant cartoon characters
+* childish cards
+* decorative motion
+
+The application should feel closer to:
+
+professional examination software
++
+modern AI workspace
++
+high-quality learning platform
+
+rather than a children's educational game.
+
+---
+
+# 42. RESPONSIVE DESIGN
+
+Desktop:
+
+* multi-column workspace
+* persistent navigation
+* large question area
+* analytics panels
+
+Tablet:
+
+* adaptive two-column layout
+
+Mobile:
+
+* thumb-friendly controls
+* bottom navigation where appropriate
+* compact question palette
+* swipe/next interaction
+* fixed timer
+* distraction-free test mode
+
+Target:
+
+360px and above.
+
+---
+
+# 43. PERFORMANCE
+
+Target:
+
+* fast first load
+* lazy loading
+* code splitting
+* cached content
+* offline fallback
+* optimistic UI
+* minimal unnecessary rerenders
+
+Do not load every question bank into the initial bundle.
+
+Use dynamic loading.
+
+---
+
+# 44. OFFLINE MODE
+
+Core study functionality should remain usable without network where technically possible.
+
+Offline:
+
+* previously downloaded syllabus
+* knowledge modules
+* saved questions
+* practice
+* numerical engine
+* saved mock
+* progress queue
+
+When network returns:
+
+SYNC
+↓
+CONFLICT DETECTION
+↓
+MERGE
+↓
+SYNC COMPLETE
+
+---
+
+# 45. DATABASE ARCHITECTURE
+
+Design normalized entities around:
+
+users
+exams
+exam_stages
+papers
+sections
+subjects
+domains
+topics
+subtopics
+concepts
+knowledge_entities
+knowledge_relationships
+sources
+documents
+document_chunks
+pyqs
+questions
+question_options
+question_validation
+question_attempts
+mock_tests
+mock_blueprints
+mock_attempts
+candidate_mastery
+candidate_errors
+study_plans
+study_sessions
+revision_schedule
+achievements
+ai_sessions
+ai_generations
+content_reviews
+
+Do not store the entire application state in a few giant documents.
+
+---
+
+# 46. SECURITY
+
+Never expose secret AI API keys in frontend code.
+
+Use:
+
+* server-side API routes
+* secure environment variables
+* Firebase security rules
+* authenticated access
+* role-based permissions
+* rate limiting
+* abuse protection
+
+Admin functions must be protected.
+
+---
+
+# 47. OBSERVABILITY
+
+Track:
+
+* AI generation failures
+* validation failures
+* API errors
+* latency
+* question quality
+* duplicate rate
+* source failures
+* ingestion failures
+* mock generation failures
+
+Create structured logs.
+
+---
+
+# 48. TESTING
+
+Implement:
+
+UNIT TESTS
+INTEGRATION TESTS
+AI VALIDATION TESTS
+NUMERICAL TESTS
+DATABASE TESTS
+E2E TESTS
+ACCESSIBILITY TESTS
+MOBILE TESTS
+
+Every important engine must have deterministic tests.
+
+---
+
+# 49. AUTOMATED QUALITY GATES
+
+Before publishing generated content:
+
+CHECK
+→ schema
+→ source
+→ answer
+→ uniqueness
+→ syllabus relevance
+→ difficulty
+→ numerical correctness
+→ ambiguity
+→ copyright/provenance
+
+If any critical check fails:
+
+REJECT.
+
+---
+
+# 50. AI AGENT ARCHITECTURE
+
+Create specialized agents.
+
+Possible agents:
+
+1. Exam Discovery Agent
+2. Syllabus Agent
+3. Research Agent
+4. Source Verification Agent
+5. Taxonomy Agent
+6. Knowledge Agent
+7. PYQ Agent
+8. Question Generator Agent
+9. Numerical Solver Agent
+10. Question Validator Agent
+11. Duplicate Detector Agent
+12. Mock Blueprint Agent
+13. Mock Generator Agent
+14. Performance Analyst Agent
+15. Adaptive Learning Agent
+16. Study Planner Agent
+17. Tutor Agent
+
+Agents must communicate through structured data.
+
+Do not allow uncontrolled agent-to-agent hallucination.
+
+---
+
+# 51. MASTER ORCHESTRATOR
+
+Create a central ExamPilot Orchestrator.
+
+It determines:
+
+"What does the system need to do next?"
+
+Example:
+
+User performs poorly in Soil Mechanics.
+
+Orchestrator:
+
+1. inspect errors
+2. identify weak concept
+3. inspect prerequisite
+4. retrieve theory
+5. generate explanation
+6. generate easy question
+7. validate
+8. deliver
+9. observe response
+10. generate next question
+11. update mastery
+12. schedule revision
+
+---
+
+# 52. COMMAND / CLI SYSTEM
+
+Retain and expand the CLI architecture.
+
+Commands should support:
+
+exam
+syllabus
+taxonomy
+knowledge
+research
+sources
+questions
+pyq
+mock
+study
+analytics
+audit
+
+Examples:
+
+exam analyze
+exam discover
+syllabus extract
+syllabus audit
+taxonomy build
+taxonomy expand
+knowledge discover
+knowledge build
+knowledge graph
+research topic
+sources verify
+questions generate
+questions validate
+questions deduplicate
+questions audit
+pyq ingest
+pyq analyze
+mock blueprint
+mock generate
+mock validate
+study plan
+progress analyze
+content audit
+
+---
+
+# 53. "CREATE AN EXAM" FEATURE
+
+One of the most important features.
+
+Admin/user should be able to select:
+
+CREATE NEW EXAM
+
+Then provide:
+
+Exam name
+Exam authority
+Official website
+Notification PDF
+Syllabus PDF
+Previous papers
+Answer keys
+Reference materials
+
+ExamPilot should automatically attempt to construct the complete examination environment.
+
+Result:
+
+NEW EXAM CREATED
+
+with:
+
+* syllabus
+* taxonomy
+* subjects
+* topics
+* PYQ archive
+* question blueprint
+* knowledge base
+* study plan framework
+* mock blueprint
+
+This is the key to truly universal examination support.
+
+---
+
+# 54. CANDIDATE DIGITAL TWIN
+
+Build a private candidate model.
+
+Represent:
+
+* strengths
+* weaknesses
+* mastery
+* speed
+* accuracy
+* confidence
+* error patterns
+* study habits
+* revision status
+* question preferences
+* topic history
+
+The system should continuously update this model.
+
+---
+
+# 55. PERSONALIZATION
+
+Two users preparing for the same examination should NOT receive identical preparation.
+
+Example:
+
+USER A:
+
+Strong Mathematics
+Weak Soil Mechanics
+
+USER B:
+
+Weak Mathematics
+Strong Soil Mechanics
+
+Their:
+
+* study plans
+* questions
+* explanations
+* revision
+* mocks
+
+should differ.
+
+---
+
+# 56. LEARNING OBJECTIVE SYSTEM
+
+Every question must have a learning objective.
+
+Examples:
+
+Recall
+Understand
+Apply
+Analyze
+Calculate
+Compare
+Evaluate
+Interpret
+
+The system should track mastery by learning objective.
+
+---
+
+# 57. QUESTION GENERATION EXAMPLE
+
+Bad:
+
+"Generate 10 questions about Soil Mechanics."
+
+Good:
+
+Exam: APSC AE Civil
+Subject: Soil Mechanics
+Topic: Consolidation
+Concept: Terzaghi 1D consolidation
+Difficulty: Hard
+Question Type: Numerical
+Learning Objective: Apply
+Candidate Mastery: 48%
+Known Error: Formula selection
+PYQ Pattern: Similar numerical appeared previously
+Required Time: 120 seconds
+
+Generate one question.
+
+Then independently solve and validate it.
+
+---
+
+# 58. EXPLANATION ENGINE
+
+Every answer explanation should adapt to the candidate.
+
+Default:
+
+Correct answer
+Why it is correct
+Why alternatives are wrong
+
+For numerical:
+
+Given
+Formula
+Substitution
+Calculation
+Answer
+Unit
+Sanity check
+
+For conceptual:
+
+Concept
+Reasoning
+Common trap
+Memory aid
+
+---
+
+# 59. REVISION ENGINE
+
+Generate automatic revision material from mistakes.
+
+Example:
+
+After 20 questions:
+
+User mistakes:
+
+* effective stress
+* permeability
+* consolidation
+
+Generate:
+
+5-minute revision sheet
++
+3 formulas
++
+3 common mistakes
++
+5 recall questions
++
+3 numerical questions
+
+---
+
+# 60. LAST-MINUTE MODE
+
+When examination date is close:
+
+Enable:
+
+# LAST-MINUTE REVISION
+
+Prioritize:
+
+* high-frequency concepts
+* weak concepts
+* frequently repeated PYQ patterns
+* formulas
+* factual recall
+* high-yield topics
+* previous mistakes
+
+Do not attempt to teach the entire syllabus.
+
+---
+
+# 61. EXAM DAY MODE
+
+Create a distraction-free mode.
+
+Features:
+
+* minimal UI
+* timer
+* question palette
+* section navigation
+* mark for review
+* auto-save
+* no unnecessary animation
+* no AI assistance during real simulation unless explicitly enabled for practice
+
+---
+
+# 62. GAMIFICATION
+
+Gamification should be optional and secondary.
+
+Keep:
+
+* streak
+* XP
+* achievements
+* milestones
+
+But never allow gamification to interfere with serious examination preparation.
+
+Do not reward mindless question volume over meaningful mastery.
+
+---
+
+# 63. LANGUAGE SUPPORT
+
+Architecture must support:
+
+* English
+* Hindi
+* regional languages
+* bilingual examination content
+
+Do not translate technical terms blindly.
+
+Allow:
+
+English term
++
+regional-language explanation.
+
+---
+
+# 64. ACCESSIBILITY
+
+Maintain:
+
+* keyboard navigation
+* screen-reader support
+* focus management
+* reduced motion
+* accessible colors
+* ARIA labels
+* accessible timer
+* accessible question navigation
+
+---
+
+# 65. PRODUCT NAVIGATION
+
+Recommended primary navigation:
+
+HOME
+
+PREPARE
+
+PRACTICE
+
+MOCK TEST
+
+PYQs
+
+AI TUTOR
+
+SYLLABUS
+
+REVISION
+
+ANALYTICS
+
+LIBRARY
+
+Do not expose every technical engine as a separate user-facing page.
+
+The underlying complexity should remain hidden.
+
+---
+
+# 66. HOME SCREEN
+
+The home screen should primarily show:
+
+## TODAY'S MISSION
+
+"Your next best action"
+
+Example:
+
+Study:
+Hydraulic Jump — 20 min
+
+Practice:
+10 targeted questions
+
+Revision:
+Effective Stress — 10 min
+
+Mock:
+15-question Fluid Mechanics test
+
+The AI decides the sequence based on the candidate model.
+
+---
+
+# 67. CONTEXTUAL AI
+
+The AI should always know where the user is.
+
+If user is viewing:
+
+APSC AE Civil
+→ Soil Mechanics
+→ Consolidation
+
+and asks:
+
+"Explain this."
+
+the AI should understand "this" automatically.
+
+No need for the user to restate context.
+
+---
+
+# 68. NO GENERIC AI ANSWERS
+
+Bad:
+
+"Here is a general explanation of consolidation."
+
+Good:
+
+"For APSC AE Civil, this topic is part of Soil Mechanics. Based on your previous attempts, your main difficulty is distinguishing primary consolidation from secondary compression..."
+
+The AI should use the candidate's actual data.
+
+---
+
+# 69. CONTINUOUS SELF-IMPROVEMENT
+
+The platform should analyze its own content.
+
+Detect:
+
+* questions users consistently report as confusing
+* questions with unusual answer distributions
+* questions with high abandonment
+* questions with unusually low/high difficulty
+* duplicate questions
+* incorrect answers
+* poor explanations
+
+Flag them for review.
+
+---
+
+# 70. IMPORTANT ARCHITECTURAL RULE
+
+Do not create fake intelligence through UI.
+
+A beautiful progress bar does not equal adaptive learning.
+
+A "AI Generated" label does not equal AI intelligence.
+
+A random question generator does not equal an adaptive engine.
+
+Every major AI feature must be backed by:
+
+DATA
++
+MODEL
++
+RULES
++
+VALIDATION
++
+FEEDBACK LOOP
+
+---
+
+# 71. EXISTING PROJECT MIGRATION
+
+First inspect the existing project.
+
+Identify reusable:
+
+* taxonomy engine
+* knowledge engine
+* research engine
+* numerical engine
+* question factory
+* Firebase integration
+* mock engine
+* analytics
+* accessibility
+* testing infrastructure
+
+Do not unnecessarily rewrite stable components.
+
+However, if existing architecture conflicts with this specification, refactor it.
+
+---
+
+# 72. DO NOT BREAK CURRENT FUNCTIONALITY
+
+Before modifying:
+
+Run:
+
+npm install
+npm run build
+npm test
+
+Then inspect current application.
+
+After each major change:
+
+npm run build
+npm test
+
+Fix regressions immediately.
+
+---
+
+# 73. DEVELOPMENT METHOD
+
+Work incrementally.
+
+PHASE 1
+Architecture audit
+
+PHASE 2
+Universal exam engine
+
+PHASE 3
+Syllabus intelligence
+
+PHASE 4
+Knowledge graph
+
+PHASE 5
+PYQ intelligence
+
+PHASE 6
+Question factory
+
+PHASE 7
+Validation engine
+
+PHASE 8
+Adaptive candidate model
+
+PHASE 9
+Mock engine
+
+PHASE 10
+AI tutor
+
+PHASE 11
+Study planner
+
+PHASE 12
+Analytics/readiness
+
+PHASE 13
+Professional UI redesign
+
+PHASE 14
+Testing
+
+PHASE 15
+Performance optimization
+
+---
+
+# 74. DEFINITION OF DONE
+
+ExamPilot is NOT complete because:
+
+* pages exist
+* buttons work
+* animations work
+* mock data exists
+
+It is complete when:
+
+1. A new examination can be added.
+2. Its syllabus can be ingested.
+3. Taxonomy is generated.
+4. Sources are attached.
+5. Knowledge is structured.
+6. PYQs can be ingested.
+7. Questions can be generated.
+8. Questions are validated.
+9. Mock tests can be generated from a blueprint.
+10. Candidate performance is recorded.
+11. Weaknesses are identified.
+12. Learning adapts to those weaknesses.
+13. Study plans adapt.
+14. Revision adapts.
+15. Retesting measures improvement.
+16. The system can explain WHY it recommended something.
+17. The system can identify uncertainty.
+18. The system does not fabricate sources or PYQs.
+19. The application works on desktop and mobile.
+20. The architecture supports additional examinations without rewriting the application.
+
+---
+
+# 75. FINAL PRODUCT PRINCIPLE
+
+Build ExamPilot so that the user feels:
+
+"I don't need to figure out what to study next.
+
+ExamPilot already knows my examination, understands the syllabus, understands what I know, understands what I don't know, and tells me exactly what I should do next."
+
+That is the product.
+
+Not:
+
+"Here are some MCQs."
+
+But:
+
+# "HERE IS YOUR PERSONAL AI EXAMINATION SYSTEM."
+
+---
+
+# 76. IMPLEMENTATION INSTRUCTION
+
+Start by auditing the existing repository against this specification.
+
+Create:
+
+/docs/ARCHITECTURE.md
+/docs/AI_SYSTEM.md
+/docs/DATA_MODEL.md
+/docs/EXAM_ENGINE.md
+/docs/QUESTION_ENGINE.md
+/docs/ADAPTIVE_ENGINE.md
+/docs/ROADMAP.md
+
+Then create a concrete implementation roadmap.
+
+For each item identify:
+
+* existing implementation
+* reusable code
+* missing functionality
+* required refactor
+* dependencies
+* tests
+* acceptance criteria
+
+Do NOT blindly implement everything at once.
+
+Prioritize the core intelligence:
+
+1. Universal Exam Engine
+2. Syllabus Engine
+3. Knowledge Engine
+4. PYQ Engine
+5. Question Engine
+6. Validation Engine
+7. Candidate Mastery Engine
+8. Adaptive Engine
+9. Mock Engine
+10. Study Planner
+
+Only after those are solid should UI polish and gamification receive major attention.
+
+---
+
+# FINAL COMMAND
+
+Transform the existing ExamPilot AI project into the above system.
+
+Think like a company building the core AI infrastructure for examination preparation, not like a developer adding another dashboard page.
+
+Reuse good existing code.
+
+Remove weak abstractions.
+
+Refactor when necessary.
+
+Do not fabricate functionality.
+
+Do not claim an engine is intelligent unless it actually uses structured data, candidate state, rules/models, and feedback.
+
+Build the underlying intelligence first.
+
+Then expose that intelligence through a fast, professional, modern examination interface.
+
+The final system must be capable of supporting a completely new examination with minimal engineering changes.
+
+# EXAMPILOT AI
+
+## ONE PLATFORM.
+
+## ANY EXAM.
+
+## ONE AI THAT LEARNS HOW YOU LEARN.

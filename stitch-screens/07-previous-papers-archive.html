@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"on-secondary-fixed-variant":"#3f465c","on-primary-fixed":"#0f0069","on-background":"#0b1c30","on-tertiary-fixed":"#002113","primary-container":"#4f46e5","background":"#f8f9ff","tertiary-fixed":"#6ffbbe","primary-fixed-dim":"#c3c0ff","on-tertiary-container":"#67f4b7","error":"#ba1a1a","error-container":"#ffdad6","inverse-surface":"#213145","on-tertiary-fixed-variant":"#005236","on-secondary-container":"#5c647a","on-error":"#ffffff","on-primary-fixed-variant":"#3323cc","secondary-fixed-dim":"#bec6e0","secondary-fixed":"#dae2fd","surface-container":"#e5eeff","tertiary-container":"#006e4b","surface-container-low":"#eff4ff","secondary-container":"#dae2fd","primary":"#3525cd","surface-container-highest":"#d3e4fe","outline-variant":"#c7c4d8","on-secondary-fixed":"#131b2e","outline":"#777587","on-primary":"#ffffff","on-secondary":"#ffffff","secondary":"#565e74","tertiary-fixed-dim":"#4edea3","surface-variant":"#d3e4fe","surface-container-high":"#dce9ff","inverse-primary":"#c3c0ff","surface-dim":"#cbdbf5","on-error-container":"#93000a","on-tertiary":"#ffffff","on-primary-container":"#dad7ff","tertiary":"#005338","surface-bright":"#f8f9ff","surface-tint":"#4d44e3","inverse-on-surface":"#eaf1ff","on-surface-variant":"#464555","surface-container-lowest":"#ffffff","primary-fixed":"#e2dfff","on-surface":"#0b1c30","surface":"#f8f9ff"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"gutter":"1.25rem","space-xs":"0.25rem","space-md":"1rem","margin-desktop":"2.5rem","gutter-desktop":"1.5rem","space-sm":"0.5rem","margin":"1rem","space-xl":"2.5rem","space-lg":"1.5rem"},"fontFamily":{"headline-sm":["Geist"],"body-lg":["Inter"],"body-md":["Inter"],"label-sm":["Geist"],"headline-xl-mobile":["Geist"],"headline-xl":["Geist"],"label-md":["Geist"],"body-sm":["Inter"],"headline-lg-mobile":["Geist"],"headline-lg":["Geist"],"headline-md":["Geist"]},"fontSize":{"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-xl":["40px",{"lineHeight":"48px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}],"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="flex items-center gap-1.5"><span class="font-headline-sm text-headline-sm text-on-surface">ExamPilot AI</span><span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div></div></div><div class="px-space-md pt-space-xs pb-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-1.5"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Target Exam</span><span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">47 Days Left</span></div><div class="flex items-center justify-between"><div class="flex flex-col"><span class="font-headline-sm text-[14px] text-on-surface leading-tight">APSC AE Civil 2025</span><span class="font-body-sm text-body-sm text-on-surface-variant">Advt 31/2025</span></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">unfold_more</span></div></div></div><nav class="flex flex-col gap-1 px-space-sm pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-medium"><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#">Dashboard</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="study-plan" href="#">Study Plan</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="syllabus-explorer" href="#">Syllabus Explorer</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="practice-mcqs" href="#">Practice &amp; MCQs</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="mock-tests" href="#">Mock Tests</a><a aria-current="page" class="flex items-center px-space-md py-2.5 rounded-xl transition-colors bg-primary-container text-on-primary font-medium" data-path="previous-papers" href="#">Previous Papers</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-tutor" href="#">AI Tutor</a><a class="flex items-center px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="progress-analytics" href="#">Progress Analytics</a></nav></div><div class="p-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Debashis Sarma</span><span class="font-body-sm text-[12px] text-on-surface-variant">APSC AE 2025</span></div></div><a class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="user-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md flex-1 max-w-xl"><div class="relative flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input class="w-full bg-surface-container-low rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container transition-all" placeholder="Search topics, notes, questions... (Cmd+K)" type="text"/></div><div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span><span>AI Agent: Syllabus Synced (Assam PSC Portal)</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md"><span class="text-[14px]">🔥</span><span>7 Day Streak</span></div><button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span><span>New Practice Set</span></button><button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-md text-label-md hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">smart_toy</span><span>Ask Copilot</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="px-space-md lg:px-space-xl py-space-md lg:py-space-lg flex flex-col gap-space-lg max-w-[1560px] mx-auto w-full">
+<!-- Top Breadcrumb & Intelligence Banner Header -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center gap-2 text-on-surface-variant font-label-sm uppercase tracking-wider">
+<span class="flex items-center gap-1 text-primary hover:underline cursor-pointer">
+<span class="material-symbols-outlined text-[15px]">folder_special</span>
+          APSC AE Civil 2025
+        </span>
+<span class="text-outline-variant">/</span>
+<span class="text-on-surface-variant">Archived Question Repository</span>
+<span class="text-outline-variant">/</span>
+<span class="text-primary font-bold">10-Year Gazette Index</span>
+</div>
+<div class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-md">
+<div class="flex flex-col max-w-3xl">
+<div class="flex items-center gap-2 mb-1">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+              Previous Year Papers &amp; Solved Archive
+            </h1>
+<span class="px-2 py-0.5 rounded bg-tertiary-container/10 text-tertiary font-label-sm font-semibold tracking-wide flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> OCR Verified
+            </span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+            Official gazette question papers digitized, OCR-extracted, and indexed directly against the APSC AE Civil Engineering syllabus (Advt 31/2025) and General Studies modules (2014 – 2024).
+          </p>
+</div>
+<div class="flex items-center gap-2 self-start xl:self-auto flex-wrap">
+<button class="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-surface-container-high text-on-surface hover:bg-surface-container-highest transition-all shadow-sm font-label-md text-label-md" id="btnHeatmap">
+<span class="material-symbols-outlined text-primary text-[18px]">waterfall_chart</span>
+<span>10-Yr Topic Heatmap</span>
+</button>
+<div class="relative">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary-container text-on-primary hover:bg-primary shadow-sm transition-all font-label-md text-label-md" id="btnSearchFilter">
+<span class="material-symbols-outlined text-[18px]">travel_explore</span>
+<span>Search 1,850+ Indexed PYQs</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Quick Filter Control Toolbar -->
+<div class="p-3 bg-surface-container-lowest rounded-xl shadow-[0_1px_4px_rgba(15,23,42,0.05)] flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+<div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 text-nowrap">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant mr-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">tune</span> Filter Exam:
+        </span>
+<!-- Year Pills -->
+<button class="px-3 py-1.5 rounded-lg bg-primary text-on-primary font-label-sm text-label-sm transition-colors shadow-xs">All Cycles</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors">2024 (Advt 11)</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors">2022</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors">2020</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors">2018–2014</button>
+<div class="h-4 w-px bg-outline-variant mx-1"></div>
+<!-- Paper Types -->
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary"></span> Paper-II (Civil Core)
+        </button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-label-sm text-label-sm transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> Paper-I (GS &amp; Assam GK)
+        </button>
+</div>
+<div class="flex items-center gap-2 shrink-0">
+<div class="flex items-center rounded-lg bg-surface-container-low p-1 gap-1">
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest text-on-surface font-label-sm text-label-sm shadow-xs flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-tertiary">verified</span>
+            Solved (IS Code Derived)
+          </button>
+<button class="px-2.5 py-1 rounded text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">timer</span>
+            Mock Test Mode
+          </button>
+</div>
+</div>
+</div>
+<!-- 1. KPI Summary Strip (Academic Precision) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-sm lg:gap-space-md">
+<!-- KPI 1 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Archived Gazette Papers</span>
+<span class="p-1.5 rounded-md bg-surface-container text-primary material-symbols-outlined text-[18px]">history_edu</span>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">14</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Official Sets</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">Civil Paper-II (8) &amp; GS Paper-I (6)</p>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Digitized MCQs</span>
+<span class="p-1.5 rounded-md bg-surface-container text-tertiary material-symbols-outlined text-[18px]">dataset</span>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">1,850</span>
+<span class="font-label-md text-label-md text-tertiary font-semibold flex items-center gap-0.5">
+<span class="material-symbols-outlined text-[14px]">bolt</span> 100% OCR
+            </span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">With sub-topic tagging &amp; clause keys</p>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col justify-between">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Your Solved Rate</span>
+<span class="p-1.5 rounded-md bg-surface-container text-primary-container material-symbols-outlined text-[18px]">fact_check</span>
+</div>
+<div class="mt-3">
+<div class="flex items-baseline gap-2">
+<span class="font-headline-lg text-headline-lg text-on-surface">68%</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">1,258 / 1,850</span>
+</div>
+<!-- Tiny Bar -->
+<div class="w-full h-1.5 rounded-full bg-surface-container mt-2 overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 68%;"></div>
+</div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="p-4 rounded-xl bg-surface-container-lowest shadow-[0_1px_3px_rgba(15,23,42,0.04)] flex flex-col justify-between relative overflow-hidden">
+<div class="absolute -right-4 -bottom-4 w-20 h-20 rounded-full bg-primary/5 pointer-events-none"></div>
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">Top Recurring Target</span>
+<span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[10px] font-bold uppercase tracking-wider">High Yield</span>
+</div>
+<div class="mt-3">
+<div class="font-headline-sm text-headline-sm text-on-surface leading-tight">
+            RCC Cl. 38 &amp; 40
+          </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-amber-600">repeat</span>
+            18 questions across 5 cycles
+          </p>
+</div>
+</div>
+</div>
+<!-- Main Dynamic Layout (2-Column Desktop Grid) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT COLUMN: Authentic Paper Cards Grid (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-md">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<h2 class="font-headline-sm text-headline-sm text-on-surface">Authentic Gazette Exam Papers</h2>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">Sorted by Recency</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Showing 4 of 14 Papers</span>
+</div>
+<!-- Card 1: APSC AE Civil 2024 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition-all hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] flex flex-col gap-space-sm relative">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<span class="w-9 h-9 rounded-lg bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-headline-sm text-headline-sm">24</span>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">APSC AE Civil 2024</h3>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Official Paper-II</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conducted: 17 November 2024 • Series 'A' Official Key Validated</p>
+</div>
+</div>
+<!-- Accuracy / Status Badge -->
+<div class="flex sm:flex-col items-end gap-1">
+<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Solved • 78% Accuracy
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">Score: 156 / 200</span>
+</div>
+</div>
+<!-- Highlight Matrix -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">verified</span>
+<span class="font-body-sm text-body-sm font-medium">Matches 84% with upcoming Advt 31/2025 syllabus pattern</span>
+</div>
+<div class="flex items-center gap-1.5 shrink-0">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">IS 456 Heavy</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">IRC:37 Flexible Pavements</span>
+</div>
+</div>
+<!-- Paper Metadata Strip -->
+<div class="grid grid-cols-3 gap-2 py-1 text-center">
+<div class="p-2 rounded-lg bg-surface-bright">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant block">Total Weight</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">100 MCQs • 200 M</span>
+</div>
+<div class="p-2 rounded-lg bg-surface-bright">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant block">Time Allowed</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">120 Minutes</span>
+</div>
+<div class="p-2 rounded-lg bg-surface-bright">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant block">Negative Marking</span>
+<span class="font-headline-sm text-headline-sm text-error">0.50 Marks (1/4th)</span>
+</div>
+</div>
+<!-- Actions Footer -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">play_circle</span>
+<span>Practice as CBT Mock</span>
+</button>
+<button class="px-3.5 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">view_list</span>
+<span>Extracted Questions (100)</span>
+</button>
+</div>
+<button class="px-3 py-2 rounded-lg text-primary hover:bg-primary-fixed/30 font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">download_for_offline</span>
+<span>Official PDF &amp; Keys</span>
+</button>
+</div>
+</div>
+<!-- Card 2: APSC AE Civil 2022 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition-all hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] flex flex-col gap-space-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<span class="w-9 h-9 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container font-headline-sm text-headline-sm">22</span>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">APSC AE Civil 2022</h3>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Official Paper-II</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conducted: 28 August 2022 • Complete Numerical Explanations Linked</p>
+</div>
+</div>
+<!-- Accuracy Badge -->
+<div class="flex sm:flex-col items-end gap-1">
+<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Solved • 74% Accuracy
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">Score: 148 / 200</span>
+</div>
+</div>
+<!-- Highlight Matrix -->
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary text-[18px]">psychology</span>
+<span class="font-body-sm text-body-sm font-medium">Geotech, Terzaghi Bearing Capacity &amp; Foundation Focus</span>
+</div>
+<div class="flex items-center gap-1.5 shrink-0">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">Step-by-step IS 6403</span>
+</div>
+</div>
+<!-- Actions Footer -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-2 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">replay</span>
+<span>Retake CBT Mock</span>
+</button>
+<button class="px-3.5 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">format_list_bulleted</span>
+<span>Explore Extracted Questions</span>
+</button>
+</div>
+<button class="px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+<span>View Answer Key</span>
+</button>
+</div>
+</div>
+<!-- Card 3: APSC AE Civil 2020 -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition-all hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] flex flex-col gap-space-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pl-2">
+<div class="flex items-center gap-2.5">
+<span class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center text-amber-800 font-headline-sm text-headline-sm">20</span>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">APSC AE Civil 2020</h3>
+<span class="px-2 py-0.5 rounded bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Official Paper-II</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Conducted: 06 December 2020 • High Yield Warning</p>
+</div>
+</div>
+<div class="flex sm:flex-col items-end gap-1">
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">pending</span> Unattempted
+              </span>
+<span class="font-label-sm text-label-sm text-amber-700 font-medium hidden sm:inline">Priority Drill</span>
+</div>
+</div>
+<!-- Highlight Matrix -->
+<div class="p-3 rounded-lg bg-amber-50/60 ml-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-950">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-700 text-[18px]">trending_up</span>
+<span class="font-body-sm text-body-sm font-medium">Fluid Mechanics &amp; Environmental Engineering repeat rate: 31%</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-white text-amber-800 font-label-sm text-label-sm font-semibold shadow-xs">High Yield Flag</span>
+</div>
+<!-- Actions Footer -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2 pl-2">
+<div class="flex items-center gap-2">
+<button class="px-4 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[16px]">timer</span>
+<span>Start Timed Simulation</span>
+</button>
+<button class="px-3.5 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">add_task</span>
+<span>Extract Questions to Study Plan</span>
+</button>
+</div>
+<button class="px-3 py-2 rounded-lg text-primary hover:bg-primary-fixed/30 font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>PDF Question Paper</span>
+</button>
+</div>
+</div>
+<!-- Card 4: APSC General Studies Paper-I (2024) -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_rgba(15,23,42,0.04)] transition-all hover:shadow-[0_6px_16px_rgba(15,23,42,0.07)] flex flex-col gap-space-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+<div class="flex items-center gap-2.5">
+<span class="w-9 h-9 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed font-headline-sm text-headline-sm">GS</span>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">APSC General Studies Paper-I</h3>
+<span class="px-2 py-0.5 rounded bg-tertiary/10 text-tertiary font-label-sm text-label-sm font-semibold">2024 Cycle</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Held: Nov 2024 • Assam Special History, Current Affairs &amp; Polity</p>
+</div>
+</div>
+<div class="flex sm:flex-col items-end gap-1">
+<span class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 font-label-sm text-label-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Solved • 81% Accuracy
+              </span>
+<span class="font-label-sm text-label-sm text-on-surface-variant hidden sm:inline">Score: 162 / 200</span>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-on-surface">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">menu_book</span>
+<span class="font-body-sm text-body-sm font-medium">Assam Heritage, Ahom Architecture, &amp; Constitution Articles 12–51A</span>
+</div>
+<div class="flex items-center gap-1 shrink-0">
+<span class="px-2 py-0.5 rounded bg-surface-container-lowest text-on-surface-variant font-label-sm text-label-sm">42 Assam GK Qs</span>
+</div>
+</div>
+<!-- Actions Footer -->
+<div class="pt-2 flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<button class="px-3.5 py-2 rounded-lg bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-container-highest transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">grading</span>
+<span>Review Explanations</span>
+</button>
+<button class="px-3.5 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-surface-container-high transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">refresh</span>
+<span>Practice Incorrect (19)</span>
+</button>
+</div>
+<button class="px-3 py-2 rounded-lg text-primary hover:bg-primary-fixed/30 font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Official Key Sheet</span>
+</button>
+</div>
+</div>
+<!-- Pagination / Load Older Archives -->
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col sm:flex-row items-center justify-between gap-3">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[18px]">inventory_2</span>
+<span>Looking for 2018, 2016, or 2014 Assistant Engineer Papers?</span>
+</div>
+<button class="px-4 py-1.5 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md hover:bg-surface-container-highest transition-colors shadow-xs">
+            Load 10 Older Archived Papers
+          </button>
+</div>
+</div>
+<!-- RIGHT COLUMN: PYQ Intelligence & Topic Recurrence Matrix (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<!-- 10-Year Topic Recurrence Engine Card -->
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-[0_2px_8px_rgba(15,23,42,0.04)] flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="p-1 rounded-md bg-primary-container text-on-primary material-symbols-outlined text-[16px]">analytics</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">10-Yr Recurrence Engine</h3>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">2014 – 2024</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+            Algorithmic frequency analysis across 1,850 digitized MCQs to prioritize high-yield modules.
+          </p>
+<!-- Frequency Breakdown List -->
+<div class="flex flex-col gap-3 mt-1">
+<!-- Item 1 -->
+<div class="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-low/60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-semibold">RCC &amp; Limit State Design (IS 456)</span>
+<span class="text-amber-600 text-[12px]">★</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[11px] font-bold">18.5%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-amber-500 rounded-full" style="width: 85%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+<span>Avg: 18.5 Qs / Exam</span>
+<span class="text-amber-700 font-medium">Very High Yield</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-low/60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Soil Mechanics &amp; Foundation</span>
+<span class="text-amber-600 text-[12px]">★</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[11px] font-bold">14.2%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-amber-500 rounded-full" style="width: 72%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+<span>Avg: 14.2 Qs / Exam</span>
+<span class="text-amber-700 font-medium">Very High Yield</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-low/60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Assam Geography &amp; History (GS)</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px] font-bold">16.0%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container rounded-full" style="width: 76%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+<span>Avg: 16.0 Qs / Paper-I</span>
+<span class="text-primary font-medium">Standard Core</span>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-low/60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Fluid Mechanics &amp; OCF</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container text-on-surface text-[11px] font-bold">11.0%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary-container/80 rounded-full" style="width: 55%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+<span>Avg: 11.0 Qs / Exam</span>
+<span class="text-on-surface-variant">Medium Yield</span>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="flex flex-col gap-1.5 p-2.5 rounded-lg bg-surface-container-low/60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Environmental Engg (BOD/COD)</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-rose-100 text-rose-800 text-[11px] font-bold">9.8%</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-rose-500 rounded-full" style="width: 48%;"></div>
+</div>
+<div class="flex items-center justify-between text-[11px] text-on-surface-variant">
+<span>Avg: 9.8 Qs / Exam</span>
+<span class="text-rose-700 font-medium">Critical Focus</span>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Question Extractor & Custom Drill Generator (Interactive Feature) -->
+<div class="p-space-md rounded-xl bg-gradient-to-br from-surface-container-lowest to-surface-container-low shadow-[0_2px_8px_rgba(15,23,42,0.04)] flex flex-col gap-space-sm">
+<div class="flex items-center gap-2">
+<span class="w-7 h-7 rounded-lg bg-primary flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined text-[16px]">smart_toy</span>
+</span>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">AI PYQ Custom Drill</h3>
+<p class="font-body-sm text-[12px] text-on-surface-variant">Synthesize past papers into targeted micro-drills</p>
+</div>
+</div>
+<div class="flex flex-col gap-2.5 pt-1">
+<label class="font-label-sm text-label-sm uppercase text-on-surface-variant">Select Focus Topic from Archive</label>
+<div class="relative">
+<select class="w-full px-3 py-2 bg-surface-container-lowest rounded-lg font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary shadow-xs appearance-none" id="topicSelector">
+<option value="shear">RCC: Shear &amp; Torsion (IS 456 Cl. 40)</option>
+<option value="bearing">Geotech: Terzaghi Bearing Capacity Factor</option>
+<option value="fluid">Hydraulics: Specific Energy &amp; Hydraulic Jump</option>
+<option value="assam">Assam GK: Treaty of Yandabo &amp; British Rule</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[18px]">expand_more</span>
+</div>
+<!-- Dynamic pill showing indexed count -->
+<div class="p-2.5 rounded-lg bg-surface-container flex items-center justify-between" id="filterResultNotice">
+<span class="font-body-sm text-body-sm text-on-surface flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary">filter_alt</span>
+<span id="drillCountLabel"><strong>14 past questions</strong> found (2014-2024)</span>
+</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold">Ready</span>
+</div>
+<button class="w-full mt-1 py-2.5 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]" id="btnGenerateDrill">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+<span>Generate 15-Minute PYQ Rapid Drill</span>
+</button>
+<p class="text-center font-body-sm text-[11px] text-on-surface-variant">Includes instant IS code clauses &amp; marks analysis</p>
+</div>
+</div>
+<!-- Official Gazette Verification Guarantee Banner -->
+<div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center gap-2 text-tertiary">
+<span class="material-symbols-outlined text-[20px]">verified_user</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wide">Gazette Verification Guarantee</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+            Every question in this repository is directly cross-referenced against original Assam Public Service Commission (Jawaharnagar, Khanapara) answer keys and officially released gazette notifications.
+          </p>
+<div class="flex items-center gap-4 pt-1 font-label-sm text-[11px] text-on-surface-variant">
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> APSC Certified Keys</span>
+<span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Zero AI Hallucination</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Modal: 10-Yr Topic Heatmap Dialog (Hidden by Default) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs hidden" id="heatmapModal">
+<div class="bg-surface-container-lowest rounded-2xl shadow-xl max-w-2xl w-full p-space-md flex flex-col gap-space-md">
+<div class="flex items-center justify-between pb-2 border-b border-surface-container">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[24px]">view_timeline</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">APSC AE 10-Year Topic Heatmap (2014–2024)</h3>
+</div>
+<button class="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-surface-container text-on-surface-variant transition-colors" id="btnCloseHeatmap">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-3 font-body-sm text-body-sm text-on-surface">
+<p class="text-on-surface-variant">Distribution of 100 questions per exam session by dominant subject cluster:</p>
+<div class="overflow-x-auto">
+<table class="w-full text-left text-[12px]">
+<thead class="bg-surface-container-low font-label-sm uppercase text-on-surface-variant">
+<tr>
+<th class="p-2 rounded-l">Subject Domain</th>
+<th class="p-2 text-center">2014</th>
+<th class="p-2 text-center">2018</th>
+<th class="p-2 text-center">2020</th>
+<th class="p-2 text-center">2022</th>
+<th class="p-2 text-center rounded-r bg-primary-fixed/20 text-primary font-bold">2024</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<tr>
+<td class="p-2 font-medium">RCC &amp; Pre-stressed</td>
+<td class="p-2 text-center bg-amber-50">14 Qs</td>
+<td class="p-2 text-center bg-amber-100">18 Qs</td>
+<td class="p-2 text-center bg-amber-100">17 Qs</td>
+<td class="p-2 text-center bg-amber-200 font-bold">21 Qs</td>
+<td class="p-2 text-center bg-amber-100 font-bold text-primary">19 Qs</td>
+</tr>
+<tr>
+<td class="p-2 font-medium">Soil Mechanics &amp; Foundation</td>
+<td class="p-2 text-center bg-amber-50">12 Qs</td>
+<td class="p-2 text-center bg-amber-100">15 Qs</td>
+<td class="p-2 text-center bg-amber-100">14 Qs</td>
+<td class="p-2 text-center bg-amber-200 font-bold">18 Qs</td>
+<td class="p-2 text-center bg-amber-100 font-bold text-primary">15 Qs</td>
+</tr>
+<tr>
+<td class="p-2 font-medium">Fluid Mechanics &amp; Hydraulics</td>
+<td class="p-2 text-center bg-surface-container-low">10 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">12 Qs</td>
+<td class="p-2 text-center bg-amber-50">15 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">10 Qs</td>
+<td class="p-2 text-center bg-surface-container-low text-primary">11 Qs</td>
+</tr>
+<tr>
+<td class="p-2 font-medium">Environmental Engineering</td>
+<td class="p-2 text-center bg-surface-container-low">8 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">9 Qs</td>
+<td class="p-2 text-center bg-amber-50">13 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">9 Qs</td>
+<td class="p-2 text-center bg-surface-container-low text-primary">10 Qs</td>
+</tr>
+<tr>
+<td class="p-2 font-medium">Surveying &amp; Transportation</td>
+<td class="p-2 text-center bg-surface-container-low">16 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">14 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">12 Qs</td>
+<td class="p-2 text-center bg-surface-container-low">11 Qs</td>
+<td class="p-2 text-center bg-surface-container-low text-primary">14 Qs</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-3 rounded-lg bg-surface-container-low flex items-center justify-between text-on-surface-variant font-body-sm text-[12px]">
+<span>Insight: RCC + Soil Mechanics combined form <strong>34% - 39%</strong> of the total technical paper weightage.</span>
+<button class="px-2.5 py-1 rounded bg-surface-container-lowest text-primary hover:underline font-medium" id="btnExportCSV">Download CSV</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    // Simple micro-interactions for modal and topic selector
+    const btnHeatmap = document.getElementById('btnHeatmap');
+    const heatmapModal = document.getElementById('heatmapModal');
+    const btnCloseHeatmap = document.getElementById('btnCloseHeatmap');
+    const topicSelector = document.getElementById('topicSelector');
+    const drillCountLabel = document.getElementById('drillCountLabel');
+    const btnGenerateDrill = document.getElementById('btnGenerateDrill');
+
+    const countsMap = {
+      'shear': '<strong>14 past questions</strong> found (2014-2024)',
+      'bearing': '<strong>18 past questions</strong> found (2014-2024)',
+      'fluid': '<strong>12 past questions</strong> found (2014-2024)',
+      'assam': '<strong>24 past questions</strong> found (2014-2024)'
+    };
+
+    if (topicSelector && drillCountLabel) {
+      topicSelector.addEventListener('change', (e) => {
+        drillCountLabel.innerHTML = countsMap[e.target.value] || '<strong>10 past questions</strong> found';
+      });
+    }
+
+    if (btnHeatmap && heatmapModal && btnCloseHeatmap) {
+      btnHeatmap.addEventListener('click', () => {
+        heatmapModal.classList.remove('hidden');
+      });
+      btnCloseHeatmap.addEventListener('click', () => {
+        heatmapModal.classList.add('hidden');
+      });
+      heatmapModal.addEventListener('click', (e) => {
+        if (e.target === heatmapModal) {
+          heatmapModal.classList.add('hidden');
+        }
+      });
+    }
+
+    if (btnGenerateDrill) {
+      btnGenerateDrill.addEventListener('click', () => {
+        const originalHtml = btnGenerateDrill.innerHTML;
+        btnGenerateDrill.innerHTML = '<span class="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Generating Drill...';
+        btnGenerateDrill.disabled = true;
+        setTimeout(() => {
+          btnGenerateDrill.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span> Drill Initialized!';
+          setTimeout(() => {
+            btnGenerateDrill.innerHTML = originalHtml;
+            btnGenerateDrill.disabled = false;
+          }, 1800);
+        }, 800);
+      });
+    }
+  </script>
+</div></main></div></body></html>

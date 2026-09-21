@@ -1,0 +1,28 @@
+# Secrets — .env holds Firebase credentials and the optional Gemini key
+.env
+.env.local
+.env.*.local
+
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+
+# Diagnostic output from scripts/live-ai-draft.mjs — raw model payloads
+live-ai-raw.txt
+live-ai-draft.json
+live-ai-combined.json
+
+# Python bytecode (scripts/ contains helper .py tooling)
+__pycache__/
+*.pyc
+
+# Local test artifacts from scripts/repro-submit.mjs
+repro-*.png
+
+# Editor / OS
+.DS_Store
+*.log
+.vscode/*
+!.vscode/extensions.json
+.idea/

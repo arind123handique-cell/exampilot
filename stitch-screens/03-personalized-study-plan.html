@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline-variant":"#c7c4d8","surface-container-high":"#dce9ff","on-primary-fixed":"#0f0069","tertiary-fixed-dim":"#4edea3","surface-dim":"#cbdbf5","on-secondary-container":"#5c647a","outline":"#777587","on-primary":"#ffffff","on-tertiary":"#ffffff","inverse-on-surface":"#eaf1ff","surface-bright":"#f8f9ff","secondary-fixed-dim":"#bec6e0","error":"#ba1a1a","tertiary-fixed":"#6ffbbe","tertiary":"#005338","primary":"#3525cd","surface-variant":"#d3e4fe","on-surface-variant":"#464555","on-primary-container":"#dad7ff","on-background":"#0b1c30","surface-container":"#e5eeff","surface-container-lowest":"#ffffff","inverse-surface":"#213145","secondary":"#565e74","background":"#f8f9ff","on-tertiary-container":"#67f4b7","tertiary-container":"#006e4b","surface-tint":"#4d44e3","on-secondary-fixed-variant":"#3f465c","primary-fixed":"#e2dfff","on-secondary-fixed":"#131b2e","on-tertiary-fixed":"#002113","surface-container-highest":"#d3e4fe","on-error":"#ffffff","on-tertiary-fixed-variant":"#005236","on-error-container":"#93000a","inverse-primary":"#c3c0ff","on-secondary":"#ffffff","secondary-container":"#dae2fd","error-container":"#ffdad6","surface-container-low":"#eff4ff","secondary-fixed":"#dae2fd","primary-container":"#4f46e5","on-primary-fixed-variant":"#3323cc","surface":"#f8f9ff","primary-fixed-dim":"#c3c0ff","on-surface":"#0b1c30"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","gutter-desktop":"1.5rem","space-md":"1rem","space-lg":"1.5rem","margin-desktop":"2.5rem","margin":"1rem","space-xl":"2.5rem","space-sm":"0.5rem","gutter":"1.25rem"},"fontFamily":{"body-sm":["Inter"],"headline-sm":["Geist"],"body-lg":["Inter"],"headline-xl":["Geist"],"label-sm":["Geist"],"headline-md":["Geist"],"body-md":["Inter"],"headline-lg":["Geist"],"headline-xl-mobile":["Geist"],"headline-lg-mobile":["Geist"],"label-md":["Geist"]},"fontSize":{"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-xl":["40px",{"lineHeight":"48px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="flex items-center gap-1.5"><span class="font-headline-sm text-headline-sm text-on-surface">ExamPilot AI</span><span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div></div></div><div class="px-space-md pt-space-xs pb-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-1.5"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Target Exam</span><span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">47 Days Left</span></div><div class="flex items-center justify-between"><div class="flex flex-col"><span class="font-headline-sm text-[14px] text-on-surface leading-tight">APSC AE Civil 2025</span><span class="font-body-sm text-body-sm text-on-surface-variant">Advt 31/2025</span></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">unfold_more</span></div></div></div><nav class="flex flex-col gap-1 px-space-sm pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-medium"><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard</span></a><a aria-current="page" class="flex items-center gap-3 px-space-md py-2.5 rounded-xl transition-colors bg-primary-container text-on-primary font-medium" data-path="study-plan" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>Study Plan</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="syllabus-explorer" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Syllabus Explorer</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="practice-mcqs" href="#"><span class="material-symbols-outlined text-[20px]">ads_click</span><span>Practice &amp; MCQs</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="mock-tests" href="#"><span class="material-symbols-outlined text-[20px]">check_box</span><span>Mock Tests</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="previous-papers" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Previous Papers</span></a><a class="flex items-center justify-between px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-tutor" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[20px] text-primary">auto_awesome</span><span>AI Tutor</span></div><span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm uppercase tracking-wide">Active</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="progress-analytics" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Progress Analytics</span></a></nav></div><div class="p-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Debashis Sarma</span><span class="font-body-sm text-[12px] text-on-surface-variant">APSC AE 2025</span></div></div><a class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="user-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md flex-1 max-w-xl"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="relative flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input class="w-full bg-surface-container-low rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container transition-all" placeholder="Search topics, notes, questions... (Cmd+K)" type="text"/></div><div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span><span>AI Agent: Syllabus Synced (Assam PSC Portal)</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md"><span class="text-[14px]">🔥</span><span>7 Day Streak</span></div><button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span><span>New Practice Set</span></button><button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-md text-label-md hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">smart_toy</span><span>Ask Copilot</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="relative w-full overflow-hidden bg-surface-container-low px-margin-desktop py-space-xl">
+<div class="absolute -right-24 -top-24 w-96 h-96 bg-primary-fixed/30 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute left-1/3 -bottom-20 w-80 h-80 bg-surface-container-high/60 rounded-full blur-2xl pointer-events-none"></div>
+<div class="relative max-w-7xl mx-auto flex flex-col gap-space-lg">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider">Dynamic Schedule</span>
+<span class="text-on-surface-variant font-label-sm text-label-sm">• Cycle 01 of 03</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-on-surface tracking-tight">Your 47-Day Preparation Plan</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl">
+            Precision-engineered around official Assam Public Service Commission syllabi weightages, current cognitive retention rates, and real-time diagnostic performance metrics.
+          </p>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md shadow-sm hover:bg-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+<span>Sync to Calendar</span>
+</button>
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary transition-colors">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Recalibrate</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-space-sm">
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Target Profile</span>
+<span class="material-symbols-outlined text-[18px] text-primary">account_balance</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">APSC AE Civil 2025</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant truncate">Advt 31/2025 • Dept of PWD</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Exam Timeline</span>
+<span class="material-symbols-outlined text-[18px] text-error">event_upcoming</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Nov 18, 2025</span>
+<span class="font-label-sm text-label-sm font-semibold text-error">47d left</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Paper I (GS) &amp; Paper II (Civil)</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Daily Target Pace</span>
+<span class="material-symbols-outlined text-[18px] text-tertiary">timer</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">4h 00m</span>
+<span class="font-label-sm text-label-sm text-tertiary">Balanced Load</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Standard 5 micro-blocks</span>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-1">
+<div class="flex items-center justify-between text-on-surface-variant">
+<span class="font-label-sm text-label-sm uppercase tracking-wide">Today's Logged Study</span>
+<span class="font-label-sm text-label-sm text-primary font-semibold">91.6%</span>
+</div>
+<div class="flex items-baseline gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">3h 40m</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ 4h 00m</span>
+</div>
+<div class="w-full h-1.5 rounded-full bg-surface-container mt-1 overflow-hidden">
+<div class="h-full rounded-full bg-primary-container" style="width: 91.6%"></div>
+</div>
+</div>
+</div>
+<div class="p-space-md rounded-xl bg-gradient-to-r from-primary/10 via-surface-container-high to-surface-container-lowest shadow-sm flex flex-col md:flex-row items-start md:items-center gap-space-md">
+<div class="w-10 h-10 rounded-xl bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[22px]">auto_awesome</span>
+</div>
+<div class="flex flex-col gap-0.5 flex-1">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface font-semibold">Adaptive Engine Adjustment Active</span>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm">High Diagnostic Impact</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+<strong class="text-on-surface">Why this plan?</strong> Your diagnostic test and previous practice sets identified weaker performance in RCC flexure and Shear Design. Additional high-yield numerical problem sessions have been scheduled for Day 12 and Day 13 before topic tests.
+          </p>
+</div>
+<button class="shrink-0 px-3.5 py-1.5 rounded-lg bg-surface-container-lowest text-primary font-label-md text-label-md shadow-sm hover:bg-surface transition-colors flex items-center gap-1">
+<span>Diagnostic Log</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto w-full px-margin-desktop py-space-xl flex flex-col lg:flex-row gap-space-xl items-start">
+<div class="w-full lg:w-2/3 flex flex-col gap-space-lg">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">view_timeline</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Curated Path Navigation</span>
+</div>
+<div class="flex items-center gap-1 text-on-surface-variant font-label-sm text-label-sm">
+<span>Scroll Timeline</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</div>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+<button class="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-container-lowest shadow-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span>
+<div class="flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface">Day 10</span>
+<span class="font-body-sm text-[11px] text-tertiary">Completed</span>
+</div>
+</button>
+<button class="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-container-lowest shadow-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px] text-tertiary">check_circle</span>
+<div class="flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface">Day 11</span>
+<span class="font-body-sm text-[11px] text-tertiary">Completed</span>
+</div>
+</button>
+<div class="shrink-0 flex items-center gap-2.5 px-4 py-2 rounded-xl bg-primary-container text-on-primary shadow-md">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-fixed animate-ping"></span>
+<div class="flex flex-col text-left">
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md font-semibold text-on-primary">Day 12 — Today</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-lowest/20 text-[10px] font-label-sm uppercase">Active</span>
+</div>
+<span class="font-body-sm text-[11px] text-primary-fixed">RCC Focus + General Studies</span>
+</div>
+</div>
+<button class="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-container-lowest shadow-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">schedule</span>
+<div class="flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface">Day 13</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Tomorrow</span>
+</div>
+</button>
+<button class="shrink-0 flex items-center gap-2 px-3.5 py-2 rounded-xl bg-surface-container-lowest shadow-sm text-on-surface-variant hover:bg-surface-container transition-colors">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant">restart_alt</span>
+<div class="flex flex-col text-left">
+<span class="font-label-md text-label-md text-on-surface">Day 14</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Revision &amp; Mock Drill</span>
+</div>
+</button>
+</div>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-baseline gap-2">
+<h2 class="font-headline-md text-headline-md text-on-surface">Day 12 Itinerary</h2>
+<span class="font-body-sm text-body-sm text-on-surface-variant">5 Learning Units • Estimated 3h 05m runtime</span>
+</div>
+<span class="px-2.5 py-1 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm">
+            Oct 02, 2025
+          </span>
+</div>
+<div class="relative flex flex-col gap-space-sm pl-4">
+<div class="absolute left-7 top-4 bottom-6 w-0.5 bg-surface-container-high -z-0"></div>
+<div class="relative z-10 flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-md">
+<div class="w-6 h-6 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant">09:00 – 10:00 (60 min)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">Civil Engineering</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Medium</span>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+                    Completed in 58m
+                  </span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-[16px] text-on-surface">RCC — Limit State Design: Singly &amp; Doubly Reinforced Beams</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Detailed analysis of strain diagrams, concrete stress block parameters according to IS 456:2000, and moment of resistance calculation.
+                </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-3 text-on-surface-variant font-body-sm text-[12px]">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">description</span>
+                    14 Pages Condensed
+                  </span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px]">psychology</span>
+                    Mastery: 92%
+                  </span>
+</div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">menu_book</span>
+<span>Review Notes</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-md ring-1 ring-primary/20">
+<div class="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+<span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+</div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-primary font-semibold">10:00 – 10:20 (20 min)</span>
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm">Formula Revision</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">High Yield</span>
+<span class="px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+                    In Progress
+                  </span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-[16px] text-on-surface">IS 456:2000 Key Clauses &amp; Limiting Neutral Axis Formulations</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Memorize Table 19 shear strength values, minimum reinforcement stipulations, and Limiting (Xu,max / d) ratios for Fe 250, 415, and 500.
+                </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2">
+<span class="font-body-sm text-[12px] text-on-surface-variant">12 min active elapsed</span>
+</div>
+<button class="px-3.5 py-1.5 rounded-lg bg-surface-container-high hover:bg-surface-variant text-primary font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">article</span>
+<span>View Formula Sheet</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-md">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0 mt-0.5 font-label-sm text-label-sm">
+              3
+            </div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant">10:20 – 11:00 (40 min)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">Practice &amp; Evaluation</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Exam Level</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm">Upcoming</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-[16px] text-on-surface">20 Target MCQs (APSC AE Standard) on Flexural Reinforcement</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Timer-enforced adaptive practice drill with Assam Public Service Commission negative marking scheme (-0.25 penalty per wrong answer).
+                </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px]">bolt</span>
+                  Predictive cut-off threshold: 16/20
+                </div>
+<button class="px-4 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md shadow-sm hover:bg-primary transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span>
+<span>Start MCQ Session</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-md">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0 mt-0.5 font-label-sm text-label-sm">
+              4
+            </div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant">18:00 – 18:45 (45 min)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">General Studies Paper I</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Easy-Medium</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm">Upcoming</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-[16px] text-on-surface">Indian Polity: Constitutional Framework &amp; Fundamental Rights (Articles 12-35)</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Focus on writ jurisdictions of High Court (Assam Gauhati HC) vs Supreme Court, Article 19 freedoms and reasonable restrictions.
+                </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px]">flag</span>
+                  Syllabus Unit 4.2
+                </div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">arrow_right_alt</span>
+<span>Start Topic</span>
+</button>
+</div>
+</div>
+</div>
+<div class="relative z-10 flex items-start gap-space-md p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:shadow-md">
+<div class="w-6 h-6 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0 mt-0.5 font-label-sm text-label-sm">
+              5
+            </div>
+<div class="flex flex-col flex-1 gap-2">
+<div class="flex flex-wrap items-center justify-between gap-2">
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant">18:45 – 19:05 (20 min)</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-label-sm text-label-sm">Adaptive Daily Revision</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Quick Drill</span>
+<span class="px-2 py-0.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm">Upcoming</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<h3 class="font-headline-sm text-[16px] text-on-surface">Spaced Repetition Flashcards: Yesterday's Mistakes</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Soil Mechanics Consolidation parameters: Terzaghi 1D consolidation differential equations, coefficient of volume compressibility (mv), and time factor (Tv).
+                </p>
+</div>
+<div class="flex items-center justify-between pt-1">
+<div class="flex items-center gap-2 text-on-surface-variant font-body-sm text-[12px]">
+<span class="material-symbols-outlined text-[15px]">style</span>
+                  18 targeted smart flashcards
+                </div>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">style</span>
+<span>Start Review</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-full lg:w-1/3 flex flex-col gap-space-lg shrink-0">
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">speed</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Weekly Pace</span>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-semibold">94% on track</span>
+</div>
+<div class="flex items-center gap-space-md">
+<div class="relative w-24 h-24 shrink-0 flex items-center justify-center">
+<svg class="w-full h-full transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-primary-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="94, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-sm text-headline-sm text-on-surface leading-none">94%</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant">Target</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex items-baseline gap-1.5">
+<span class="font-headline-md text-headline-md text-on-surface">26.5</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">/ 28.0 Hours</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              You are 1.5 hours ahead of the baseline benchmark for week 02.
+            </p>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-1 pt-1">
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">M</span>
+<div class="w-full h-12 bg-primary-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-primary">4.2</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+<div class="w-full h-12 bg-primary-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-primary">4.0</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">W</span>
+<div class="w-full h-12 bg-primary-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-primary">4.5</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">T</span>
+<div class="w-full h-12 bg-primary-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-primary">3.8</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">F</span>
+<div class="w-full h-12 bg-primary-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-primary">4.1</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+<div class="w-full h-12 bg-surface-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-secondary-container">3.7</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-1">
+<span class="font-label-sm text-[10px] text-on-surface-variant">S</span>
+<div class="w-full h-12 bg-surface-container rounded flex items-end justify-center p-0.5">
+<span class="font-label-sm text-[9px] text-on-secondary-container">2.2</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-space-lg rounded-xl bg-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">flag_circle</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Upcoming Milestones</span>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">more_horiz</span>
+</div>
+<div class="flex flex-col gap-space-sm">
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">quiz</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-primary font-semibold">Oct 15 (in 13 days)</span>
+<span class="font-headline-sm text-[14px] text-on-surface leading-snug">Mock Exam #1 (Full Syllabus Paper I)</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">100 MCQs • GS, Assam History &amp; Aptitude</span>
+</div>
+</div>
+<div class="p-space-sm rounded-lg bg-surface-container-low flex items-start gap-space-sm">
+<div class="w-8 h-8 rounded-lg bg-surface-container-high text-primary flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-[18px]">engineering</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant font-semibold">Oct 24 (in 22 days)</span>
+<span class="font-headline-sm text-[14px] text-on-surface leading-snug">Milestone Test: Civil Engineering Core</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">SOM, Structural Analysis, RCC &amp; Geotech</span>
+</div>
+</div>
+</div>
+</div>
+<div class="p-space-lg rounded-xl bg-gradient-to-b from-surface-container-low to-surface-container-lowest shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">smart_toy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-[15px] text-on-surface">AI Tutor Quick Assist</span>
+<span class="font-body-sm text-[12px] text-tertiary font-medium">Ready with Assam PSC context</span>
+</div>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+          Stuck on a concept today? Ask ExamPilot AI instant doubt solver tailored to civil engineering standards.
+        </p>
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm uppercase text-on-surface-variant tracking-wider">Suggested Query</span>
+<button class="text-left p-space-sm rounded-lg bg-surface-container-high hover:bg-surface-variant text-on-surface transition-colors flex items-start justify-between gap-2 group" id="doubt-prompt-btn">
+<span class="font-body-sm text-body-sm font-medium leading-relaxed group-hover:text-primary">
+              "Explain limiting depth of neutral axis for Fe 415"
+            </span>
+<span class="material-symbols-outlined text-[16px] text-primary shrink-0 mt-1">send</span>
+</button>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-lowest rounded-lg pl-3 pr-9 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant shadow-sm focus:outline-none focus:bg-surface-container transition-all" placeholder="Type engineering doubt..." type="text"/>
+<button class="absolute right-2.5 top-1/2 -translate-y-1/2 text-primary hover:text-on-surface transition-colors">
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const doubtBtn = document.getElementById('doubt-prompt-btn');
+    if (doubtBtn) {
+      doubtBtn.addEventListener('click', function() {
+        const input = doubtBtn.parentElement.nextElementSibling.querySelector('input');
+        if (input) {
+          input.value = "Explain limiting depth of neutral axis for Fe 415";
+          input.focus();
+        }
+      });
+    }
+  })();
+</script></main></div></body></html>

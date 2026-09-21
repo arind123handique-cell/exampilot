@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"outline-variant":"#c7c4d8","surface-container-high":"#dce9ff","on-primary-fixed":"#0f0069","tertiary-fixed-dim":"#4edea3","surface-dim":"#cbdbf5","on-secondary-container":"#5c647a","outline":"#777587","on-primary":"#ffffff","on-tertiary":"#ffffff","inverse-on-surface":"#eaf1ff","surface-bright":"#f8f9ff","secondary-fixed-dim":"#bec6e0","error":"#ba1a1a","tertiary-fixed":"#6ffbbe","tertiary":"#005338","primary":"#3525cd","surface-variant":"#d3e4fe","on-surface-variant":"#464555","on-primary-container":"#dad7ff","on-background":"#0b1c30","surface-container":"#e5eeff","surface-container-lowest":"#ffffff","inverse-surface":"#213145","secondary":"#565e74","background":"#f8f9ff","on-tertiary-container":"#67f4b7","tertiary-container":"#006e4b","surface-tint":"#4d44e3","on-secondary-fixed-variant":"#3f465c","primary-fixed":"#e2dfff","on-secondary-fixed":"#131b2e","on-tertiary-fixed":"#002113","surface-container-highest":"#d3e4fe","on-error":"#ffffff","on-tertiary-fixed-variant":"#005236","on-error-container":"#93000a","inverse-primary":"#c3c0ff","on-secondary":"#ffffff","secondary-container":"#dae2fd","error-container":"#ffdad6","surface-container-low":"#eff4ff","secondary-fixed":"#dae2fd","primary-container":"#4f46e5","on-primary-fixed-variant":"#3323cc","surface":"#f8f9ff","primary-fixed-dim":"#c3c0ff","on-surface":"#0b1c30"},"borderRadius":{"DEFAULT":"0.25rem","lg":"0.5rem","xl":"0.75rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","gutter-desktop":"1.5rem","space-md":"1rem","space-lg":"1.5rem","margin-desktop":"2.5rem","margin":"1rem","space-xl":"2.5rem","space-sm":"0.5rem","gutter":"1.25rem"},"fontFamily":{"body-sm":["Inter"],"headline-sm":["Geist"],"body-lg":["Inter"],"headline-xl":["Geist"],"label-sm":["Geist"],"headline-md":["Geist"],"body-md":["Inter"],"headline-lg":["Geist"],"headline-xl-mobile":["Geist"],"headline-lg-mobile":["Geist"],"label-md":["Geist"]},"fontSize":{"body-sm":["13px",{"lineHeight":"18px","fontWeight":"400"}],"headline-sm":["18px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"600"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}],"headline-xl":["40px",{"lineHeight":"48px","letterSpacing":"-0.02em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.04em","fontWeight":"600"}],"headline-md":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-lg":["32px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.015em","fontWeight":"600"}],"headline-lg-mobile":["24px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["13px",{"lineHeight":"16px","letterSpacing":"0.01em","fontWeight":"500"}]}}}}</script></head><body class="bg-surface font-body-md text-on-surface antialiased"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none"><div class="flex flex-col"><div class="h-16 px-space-md flex items-center justify-between"><div class="flex items-center gap-space-sm"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="flex items-center gap-1.5"><span class="font-headline-sm text-headline-sm text-on-surface">ExamPilot AI</span><span class="px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm uppercase tracking-wider">PRO</span></div></div></div><div class="px-space-md pt-space-xs pb-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col gap-1.5"><div class="flex items-center justify-between"><span class="font-label-sm text-label-sm uppercase text-on-surface-variant">Target Exam</span><span class="px-2 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm">47 Days Left</span></div><div class="flex items-center justify-between"><div class="flex flex-col"><span class="font-headline-sm text-[14px] text-on-surface leading-tight">APSC AE Civil 2025</span><span class="font-body-sm text-body-sm text-on-surface-variant">Advt 31/2025</span></div><span class="material-symbols-outlined text-on-surface-variant text-[20px]">unfold_more</span></div></div></div><nav class="flex flex-col gap-1 px-space-sm pt-space-xs" data-active-classes="bg-primary-container text-on-primary font-medium"><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="dashboard" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span>Dashboard</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="study-plan" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>Study Plan</span></a><a aria-current="page" class="flex items-center gap-3 px-space-md py-2.5 rounded-xl transition-colors bg-primary-container text-on-primary font-medium" data-path="syllabus-explorer" href="#"><span class="material-symbols-outlined text-[20px]">menu_book</span><span>Syllabus Explorer</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="practice-mcqs" href="#"><span class="material-symbols-outlined text-[20px]">ads_click</span><span>Practice &amp; MCQs</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="mock-tests" href="#"><span class="material-symbols-outlined text-[20px]">check_box</span><span>Mock Tests</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="previous-papers" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span>Previous Papers</span></a><a class="flex items-center justify-between px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="ai-tutor" href="#"><div class="flex items-center gap-3"><span class="material-symbols-outlined text-[20px] text-primary">auto_awesome</span><span>AI Tutor</span></div><span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm uppercase tracking-wide">Active</span></a><a class="flex items-center gap-3 px-space-md py-2.5 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="progress-analytics" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span><span>Progress Analytics</span></a></nav></div><div class="p-space-sm"><div class="p-space-sm rounded-xl bg-surface-container-low flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col"><span class="font-label-md text-label-md text-on-surface font-semibold leading-tight">Debashis Sarma</span><span class="font-body-sm text-[12px] text-on-surface-variant">APSC AE 2025</span></div></div><a class="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors" data-path="user-settings" href="#"><span class="material-symbols-outlined text-[18px]">settings</span></a></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 h-16 bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-lg"><div class="flex items-center gap-space-md flex-1 max-w-xl"><img alt="ExamPilot AI Brand Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AEtjO1VLQatu1Iz3zQ_fH3b23vyT55ZQMwTjwHbQM8OU2C1Wf8hoa1ZM5A1JDXugVjFnvx34HLqKDe419C14_v4ZthgXt_DGlIcOr7JUz2uT4Q0pe4_kmDnswy9wfqYH7Gth7P8c2WEg2Fe0WnwacgSoguxzrJhG5SpdsL8QqbH6mEK_2lt2sSM8h1T5zWriE0ECyolwW1xSg9EXXretUX2GKnLY8BATAGCiyaJJbZ7ds4A-Ln8nCIK_gf5dKJQ"/><div class="relative flex-1"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">search</span><input class="w-full bg-surface-container-low rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container transition-all" placeholder="Search topics, notes, questions... (Cmd+K)" type="text"/></div><div class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-surface-container text-on-secondary-container font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-tertiary-container animate-pulse"></span><span>AI Agent: Syllabus Synced (Assam PSC Portal)</span></div></div><div class="flex items-center gap-space-sm"><div class="flex items-center gap-1 px-3 py-1.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md"><span class="text-[14px]">🔥</span><span>7 Day Streak</span></div><button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary-container text-on-primary font-label-md text-label-md hover:bg-primary transition-colors shadow-sm"><span class="material-symbols-outlined text-[16px]">add</span><span>New Practice Set</span></button><button class="relative w-9 h-9 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-2 right-2 w-2 h-2 rounded-full bg-error"></span></button><button class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container text-primary font-label-md text-label-md hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[18px]">smart_toy</span><span>Ask Copilot</span></button><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Module Control Bar & Deep Context Header -->
+<section class="w-full px-space-lg py-space-md bg-surface-container-lowest shadow-sm">
+<div class="max-w-[1440px] mx-auto flex flex-col gap-space-sm">
+<!-- Title & Progress Overview Row -->
+<div class="flex flex-wrap items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-xl bg-primary-fixed flex items-center justify-center text-on-primary-fixed shadow-sm">
+<span class="material-symbols-outlined text-[24px]">account_tree</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-headline-md text-headline-md text-on-surface">Syllabus Explorer</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm">APSC AE Civil 2025</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Standardized Curricular Matrix • Assam Public Service Commission Combined Technical Exam</p>
+</div>
+</div>
+<!-- Master Metric Pill -->
+<div class="flex items-center gap-space-md bg-surface-container-low px-space-md py-2 rounded-xl">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Overall Readiness</span>
+<div class="flex items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-primary">38%</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">(33 of 86 modules mastered)</span>
+</div>
+</div>
+<div class="w-28 h-2 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 38.3%"></div>
+</div>
+</div>
+</div>
+<!-- Search & Segment Filter Bar -->
+<div class="flex flex-wrap items-center justify-between gap-space-md pt-space-xs">
+<div class="relative flex-1 min-w-[280px] max-w-xl">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">travel_explore</span>
+<input class="w-full bg-surface-container rounded-lg pl-9 pr-4 py-2 font-body-sm text-body-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:bg-surface-container-high transition-colors" placeholder="Search topics, codes (e.g. IS 456, Indian Polity, Surveying)..." type="text"/>
+</div>
+<!-- Metric Filter Pills -->
+<div class="flex items-center gap-1.5 flex-wrap">
+<button class="px-3 py-1.5 rounded-lg bg-on-surface text-surface font-label-md text-label-md flex items-center gap-1.5 shadow-sm">
+<span>All</span>
+<span class="text-surface/75 font-mono text-[11px]">86</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span>Strong</span>
+<span class="text-on-surface-variant font-mono text-[11px]">34</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span>Needs Practice</span>
+<span class="text-on-surface-variant font-mono text-[11px]">28</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span>Weak Areas</span>
+<span class="text-on-surface-variant font-mono text-[11px]">14</span>
+</button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>
+<span>Completed</span>
+<span class="text-on-surface-variant font-mono text-[11px]">32</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Master-Detail Split Workspace -->
+<div class="max-w-[1440px] w-full mx-auto px-space-lg py-space-lg">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+<!-- LEFT COLUMN: Syllabus Hierarchy Tree (35% -> col-span-5 in 12 col grid) -->
+<aside class="lg:col-span-4 xl:col-span-4 flex flex-col gap-space-md">
+<!-- Paper II: Civil Engineering Accordion Root -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[20px]">architecture</span>
+<div>
+<span class="font-headline-sm text-[15px] text-on-surface block leading-tight">Civil Engineering</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Paper II • 62 Topics</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">42%</span>
+<div class="w-12 h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 42%"></div>
+</div>
+</div>
+</div>
+<!-- Section: Structural Engineering -->
+<div class="mt-space-xs pt-space-xs flex flex-col gap-1">
+<div class="flex items-center justify-between px-2 py-1.5 rounded-lg bg-surface-container-low text-on-surface font-label-md text-label-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-on-surface-variant">folder_open</span>
+<span class="font-semibold">Structural Engineering</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">6 Units</span>
+</div>
+<!-- Subtopic Stack -->
+<div class="pl-4 ml-2 flex flex-col gap-1 mt-1">
+<!-- Item 1: Mechanics -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-tertiary text-[18px]">verified</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Engineering Mechanics</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-[10px]">100%</span>
+</div>
+<!-- Item 2: SOM -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-tertiary text-[18px]">check_circle</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Strength of Materials</span>
+</div>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-on-secondary-container font-label-sm text-[10px]">80%</span>
+</div>
+<!-- Item 3: RCC (Expanded & Active Parent) -->
+<div class="flex flex-col gap-1 bg-surface-container-low rounded-lg p-1.5">
+<div class="flex items-center justify-between px-2 py-1 text-on-surface font-label-md text-label-md">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[18px]">account_tree</span>
+<span class="font-semibold text-primary">Reinforced Concrete (RCC)</span>
+</div>
+<span class="font-label-sm text-[11px] text-primary bg-primary-fixed px-1.5 py-0.5 rounded font-mono">4 Modules</span>
+</div>
+<!-- Deep Sub-branches -->
+<div class="pl-3 flex flex-col gap-1 mt-1">
+<!-- Active Selected Node -->
+<div class="flex items-center justify-between p-2 rounded-lg bg-primary text-on-primary shadow-sm cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-[16px] text-on-primary">play_arrow</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md font-semibold truncate leading-tight">Limit State Design</span>
+<span class="text-[11px] text-on-primary/80 font-body-sm">Today • 140 MCQs</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-white/20 text-on-primary font-mono text-[11px]">65%</span>
+</div>
+<!-- Flexure & Shear -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Flexure &amp; Shear</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-secondary-container font-label-sm text-[10px]">35%</span>
+</div>
+<!-- Compression Members -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant">
+<div class="flex items-center gap-2 min-w-0">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm truncate">Compression Members</span>
+</div>
+<span class="text-[11px] font-mono">0%</span>
+</div>
+<!-- Footings -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant">
+<div class="flex items-center gap-2 min-w-0">
+<span class="w-2 h-2 rounded-full bg-outline-variant"></span>
+<span class="font-body-sm text-body-sm truncate">Footings &amp; Retaining Walls</span>
+</div>
+<span class="text-[11px] font-mono">0%</span>
+</div>
+</div>
+</div>
+<!-- Item 4: Steel -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-secondary text-[18px]">circle</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Design of Steel Structures</span>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-sm text-[10px]">20%</span>
+</div>
+<!-- Item 5: Analysis -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer text-on-surface-variant">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-outline-variant text-[18px]">radio_button_unchecked</span>
+<span class="font-body-sm text-body-sm truncate">Structural Analysis</span>
+</div>
+<span class="text-[11px] font-mono">0%</span>
+</div>
+</div>
+<!-- Subject 2: Geotechnical -->
+<div class="flex items-center justify-between p-2 mt-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">terrain</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface truncate">Geotechnical Engineering</span>
+<span class="font-body-sm text-[11px] text-on-surface-variant">Soil Mechanics &amp; Foundations</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-high text-on-secondary-container font-label-sm text-[10px]">55%</span>
+</div>
+<!-- Subject 3: Environmental (Weak) -->
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer bg-error-container/20">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-error text-[18px]">warning</span>
+<div class="flex flex-col min-w-0">
+<span class="font-label-md text-label-md text-on-surface truncate">Environmental Engineering</span>
+<span class="font-body-sm text-[11px] text-error">High priority weak area</span>
+</div>
+</div>
+<span class="px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-label-sm text-[10px]">28%</span>
+</div>
+</div>
+</div>
+<!-- Paper I: General Studies Accordion Root -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-sm">
+<div class="flex items-center justify-between pb-space-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">menu_book</span>
+<div>
+<span class="font-headline-sm text-[15px] text-on-surface block leading-tight">General Studies</span>
+<span class="font-body-sm text-[12px] text-on-surface-variant">Paper I • 24 Topics</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-sm text-label-sm text-on-surface-variant">29%</span>
+<div class="w-12 h-1.5 rounded-full bg-surface-container overflow-hidden">
+<div class="h-full bg-secondary rounded-full" style="width: 29%"></div>
+</div>
+</div>
+</div>
+<div class="mt-space-xs flex flex-col gap-1">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">gavel</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Indian Polity &amp; Constitution</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">3 Modules</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">temple_hindu</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Assam History, Art &amp; Culture</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">4 Modules</span>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container transition-colors cursor-pointer">
+<div class="flex items-center gap-2 min-w-0">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">trending_up</span>
+<span class="font-body-sm text-body-sm text-on-surface truncate">Indian Economy &amp; Assam Budget</span>
+</div>
+<span class="font-mono text-[11px] text-on-surface-variant">2 Modules</span>
+</div>
+</div>
+</div>
+<!-- Revision Matrix Fast Stat Card -->
+<div class="bg-surface-container-low rounded-xl p-space-md shadow-sm flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Target Metric</span>
+<span class="material-symbols-outlined text-primary text-[18px]">insights</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface">18 Days to Revision Cycle</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">APSC AE cutoff traditionally weights RCC and Soil Mechanics for 34% of total technical score.</p>
+</div>
+</aside>
+<!-- RIGHT COLUMN: Active Topic Study Detail (65% -> col-span-8 in 12 col grid) -->
+<main class="lg:col-span-8 xl:col-span-8 flex flex-col gap-space-md">
+<!-- Header & Breadcrumbs Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md relative overflow-hidden">
+<!-- Decorative subtle ambient corner glow -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary-fixed/20 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+<!-- Navigational Trail -->
+<div class="flex items-center gap-2 text-on-surface-variant font-label-md text-label-md flex-wrap">
+<span class="hover:text-on-surface transition-colors cursor-pointer">Civil Engineering</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-on-surface transition-colors cursor-pointer">Structural Engineering</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="hover:text-on-surface transition-colors cursor-pointer">RCC</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-primary font-semibold">Limit State Design</span>
+</div>
+<!-- Main Title & Action Bar -->
+<div class="flex flex-wrap items-start justify-between gap-space-md">
+<div class="flex flex-col gap-1">
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">RCC — Limit State Design</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Fundamental philosophy, safety factors, strain compatibility, and ultimate limit state equations for flexural members.
+              </p>
+</div>
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface font-label-md text-label-md transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">bookmark_border</span>
+<span>Save Reference</span>
+</button>
+</div>
+<!-- Context Badges -->
+<div class="flex flex-wrap items-center gap-2 pt-space-xs">
+<div class="px-2.5 py-1 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span>
+<span>High Exam Weightage (8-10 Qs in APSC)</span>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">speed</span>
+<span>Confidence: Medium (68%)</span>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">quiz</span>
+<span>140 MCQs Available</span>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">verified</span>
+<span>IS 456:2000 Clause 38.1</span>
+</div>
+</div>
+<!-- Segment Tabs -->
+<div class="flex items-center gap-1 pt-space-sm overflow-x-auto bg-surface-container-low p-1 rounded-xl">
+<button class="px-4 py-2 rounded-lg bg-surface-container-lowest text-on-surface font-label-md text-label-md font-semibold shadow-sm transition-colors whitespace-nowrap">
+              Overview &amp; Notes
+            </button>
+<button class="px-4 py-2 rounded-lg hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors whitespace-nowrap">
+              Formula Sheet
+            </button>
+<button class="px-4 py-2 rounded-lg hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors whitespace-nowrap">
+              Important Callouts
+            </button>
+<button class="px-4 py-2 rounded-lg hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors whitespace-nowrap flex items-center gap-1.5">
+<span>Previous Year Questions</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container-high text-on-secondary-container text-[11px] font-mono">18</span>
+</button>
+<button class="px-4 py-2 rounded-lg hover:bg-surface-container text-on-surface-variant font-label-md text-label-md transition-colors whitespace-nowrap flex items-center gap-1.5">
+<span class="material-symbols-outlined text-primary text-[16px]">smart_toy</span>
+<span>AI Tutor Q&amp;A</span>
+</button>
+</div>
+</div>
+<!-- Content Area 1: Quick Revision Summary & Graphical Breakdown -->
+<div class="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[22px]">summarize</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Quick Revision Summary</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant font-mono">REVISION BLOCK 01</span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed">
+            The <strong class="font-semibold text-primary">Limit State Method (LSM)</strong> is a semi-probabilistic design approach that ensures acceptable probabilities that the structure will not become unfit for use. It accounts for safety at ultimate loads (collapse) and serviceability at working loads (deflection, cracking, vibration).
+          </p>
+<!-- Core Data Comparison Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md pt-space-xs">
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Concrete Characteristics</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono text-[11px]">γm = 1.50</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface">fcd = 0.45 fck</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Accounts for 0.67 factor for size effect in structures, then divided by partial safety factor of 1.50.
+              </p>
+</div>
+<div class="p-space-md rounded-xl bg-surface-container-low flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Steel Reinforcement</span>
+<span class="px-2 py-0.5 rounded bg-surface-container text-on-surface font-mono text-[11px]">γm = 1.15</span>
+</div>
+<div class="font-headline-sm text-headline-sm text-on-surface">fsd = 0.87 fy</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+                Strict quality control in industrial manufacture allows a lower partial safety factor compared to site-cast concrete.
+              </p>
+</div>
+</div>
+<!-- Inline Technical SVG Diagram: Stress & Strain Profile for IS 456 Limit State -->
+<div class="mt-space-sm p-space-md rounded-xl bg-surface-container-low flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md text-on-surface font-semibold flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary">schema</span>
+<span>Stress-Strain Distribution at Limit State of Collapse (Flexure)</span>
+</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">IS 456 Fig. 21</span>
+</div>
+<div class="w-full bg-surface-container-lowest rounded-lg p-space-md flex flex-col items-center justify-center">
+<svg class="w-full max-w-xl h-44 text-on-surface" fill="none" viewbox="0 0 540 160" xmlns="http://www.w3.org/2000/svg">
+<!-- Neutral Axis Centerline -->
+<line stroke="currentColor" stroke-dasharray="4 4" stroke-opacity="0.2" stroke-width="1.5" x1="20" x2="520" y1="80" y2="80"></line>
+<text class="fill-current text-on-surface-variant text-[10px] font-mono" x="525" y="84">N.A.</text>
+<!-- Section Geometry -->
+<rect class="fill-surface-container-high" height="120" rx="3" width="45" x="50" y="20"></rect>
+<circle class="fill-primary" cx="72.5" cy="120" r="5"></circle>
+<text class="fill-current text-on-surface text-[11px] font-semibold" x="52" y="14">Cross Section</text>
+<text class="fill-current text-on-surface-variant text-[10px]" x="60" y="138">Ast</text>
+<!-- Strain Diagram -->
+<line stroke="currentColor" stroke-width="1.5" x1="180" x2="180" y1="20" y2="140"></line>
+<path class="fill-surface-variant opacity-60" d="M180 80 L 230 20 L 180 20 Z"></path>
+<path class="fill-surface-variant opacity-60" d="M180 80 L 140 120 L 180 120 Z"></path>
+<text class="fill-current text-on-surface text-[11px] font-semibold" x="160" y="14">Strain Profile</text>
+<text class="fill-current text-primary font-mono text-[10px] font-bold" x="235" y="24">εcu = 0.0035</text>
+<text class="fill-current text-on-surface-variant font-mono text-[10px]" x="100" y="125">0.87fy/Es + 0.002</text>
+<!-- Stress Diagram -->
+<line stroke="currentColor" stroke-width="1.5" x1="340" x2="340" y1="20" y2="140"></line>
+<!-- Parabolic-Rectangular stress block -->
+<path class="fill-primary-fixed" d="M340 20 H 420 V 55 Q 410 75 340 80 Z"></path>
+<!-- Steel tension arrow -->
+<line class="text-primary" stroke="currentColor" stroke-width="2" x1="340" x2="410" y1="120" y2="120"></line>
+<polygon class="fill-primary" points="410,117 418,120 410,123"></polygon>
+<!-- Compressive Force Vector -->
+<line class="text-tertiary-container" stroke="currentColor" stroke-width="2" x1="340" x2="430" y1="46" y2="46"></line>
+<polygon class="fill-tertiary-container" points="430,43 438,46 430,49"></polygon>
+<text class="fill-current text-tertiary font-mono text-[10px] font-bold" x="442" y="50">C = 0.36 fck b xu</text>
+<text class="fill-current text-primary font-mono text-[10px] font-bold" x="424" y="124">T = 0.87 fy Ast</text>
+<!-- Lever arm notation -->
+<line class="text-on-surface-variant" stroke="currentColor" stroke-dasharray="2 2" stroke-width="1" x1="475" x2="475" y1="46" y2="120"></line>
+<text class="fill-current text-on-surface font-mono text-[10px]" x="482" y="85">z = d - 0.42xu</text>
+</svg>
+</div>
+<div class="flex items-center justify-between text-on-surface-variant font-body-sm text-[12px] px-1">
+<span>Depth of neutral axis: <strong class="text-on-surface font-mono">xu = (0.87 fy Ast) / (0.36 fck b)</strong></span>
+<span>Lever Arm Depth: <strong class="text-on-surface font-mono">0.42 xu from top</strong></span>
+</div>
+</div>
+</div>
+<!-- Content Area 2: Visual Callout High-Impact Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-md">
+<!-- Card A: Remember 📌 -->
+<div class="p-space-md rounded-xl bg-surface-container-low shadow-sm flex flex-col gap-2 relative overflow-hidden">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[16px]">push_pin</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Core Postulate</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-snug">
+              Maximum strain in concrete at outer compression fiber is taken as <strong class="font-semibold text-primary">0.0035 in bending</strong>, irrespective of concrete grade.
+            </p>
+<span class="font-label-sm text-[11px] text-on-surface-variant pt-1">Refer IS 456:2000 Cl. 38.1(b)</span>
+</div>
+<!-- Card B: Common Mistake ⚠ -->
+<div class="p-space-md rounded-xl bg-error-container/30 shadow-sm flex flex-col gap-2 relative overflow-hidden">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-error-container flex items-center justify-center text-on-error-container">
+<span class="material-symbols-outlined text-[16px]">error</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-error">Common Trap In Exams</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface leading-snug">
+              Do not confuse characteristic strength <strong class="font-mono">fck</strong> (5% tolerance) with design strength <strong class="font-mono text-error">0.45 fck</strong> in stress block calculations. 0.67 is structural reduction!
+            </p>
+<span class="font-label-sm text-[11px] text-on-surface-variant pt-1">Frequently asked in APSC 2018, 2020</span>
+</div>
+<!-- Card C: Frequently Tested ⭐ -->
+<div class="p-space-md rounded-xl bg-surface-container-high shadow-sm flex flex-col gap-2 relative overflow-hidden">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-surface-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined text-[16px]">star</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-on-surface">Frequently Tested Ratios</span>
+</div>
+<div class="flex flex-col gap-1 text-on-surface font-body-sm text-body-sm">
+<div class="flex justify-between py-0.5">
+<span>Fe 250 (Mild Steel):</span>
+<span class="font-mono font-bold text-primary">xu,max / d = 0.53</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span>Fe 415 (HYSD):</span>
+<span class="font-mono font-bold text-primary">xu,max / d = 0.48</span>
+</div>
+<div class="flex justify-between py-0.5">
+<span>Fe 500 (TMT):</span>
+<span class="font-mono font-bold text-primary">xu,max / d = 0.46</span>
+</div>
+</div>
+</div>
+<!-- Card D: Numerical Concept 🔢 -->
+<div class="p-space-md rounded-xl bg-tertiary-fixed/30 shadow-sm flex flex-col gap-2 relative overflow-hidden">
+<div class="flex items-center gap-2">
+<div class="w-7 h-7 rounded-lg bg-tertiary-fixed flex items-center justify-center text-on-tertiary-fixed">
+<span class="material-symbols-outlined text-[16px]">calculate</span>
+</div>
+<span class="font-label-md text-label-md font-semibold text-tertiary">Balanced Moment Capacity</span>
+</div>
+<div class="font-headline-sm text-[17px] text-on-surface font-mono py-1">
+              Mu,lim = Q · fck · b · d²
+            </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              Where Q = 0.148 for Fe 250, 0.138 for Fe 415, and 0.133 for Fe 500. Master these coefficients to skip 90-second manual derivation during paper.
+            </p>
+</div>
+</div>
+<!-- Sticky Interaction & Study Action Dock -->
+<div class="sticky bottom-4 z-30 p-space-sm bg-surface-container-lowest/95 backdrop-blur-md rounded-xl shadow-xl flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-on-primary font-label-md text-label-md hover:bg-primary-container transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[18px]">ads_click</span>
+<span>Practice 20 MCQs on Limit State</span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-surface-container hover:bg-surface-container-high text-primary font-label-md text-label-md transition-colors">
+<span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+<span>Ask AI Tutor</span>
+</button>
+</div>
+<button class="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-surface-container text-on-surface font-label-md text-label-md hover:bg-tertiary-fixed hover:text-on-tertiary-fixed transition-colors" id="markCompleteBtn" onclick="toggleCompletion()">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+<span id="completeLabel">Mark Topic Completed</span>
+</button>
+</div>
+</main>
+</div>
+</div>
+<script>
+    function toggleCompletion() {
+      const label = document.getElementById('completeLabel');
+      const btn = document.getElementById('markCompleteBtn');
+      if (label.innerText.includes('Completed')) {
+        label.innerText = 'Mastered & Verified ✓';
+        btn.classList.remove('bg-surface-container', 'text-on-surface');
+        btn.classList.add('bg-tertiary-container', 'text-on-tertiary');
+      } else {
+        label.innerText = 'Mark Topic Completed';
+        btn.classList.remove('bg-tertiary-container', 'text-on-tertiary');
+        btn.classList.add('bg-surface-container', 'text-on-surface');
+      }
+    }
+  </script>
+</div></main></div></body></html>

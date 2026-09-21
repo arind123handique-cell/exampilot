@@ -1,0 +1,587 @@
+================================================================================
+EXAMPILOT AI — COMPLETE PROJECT DOCUMENTATION
+================================================================================
+
+Version: 1.0.0
+Last Updated: September 2026
+Technology: React 18 + TypeScript + Vite + Tailwind CSS v3 + Firebase
+
+--------------------------------------------------------------------------------
+!! SCOPE CORRECTION (audit, September 2026) — READ BEFORE TRUSTING THIS FILE
+--------------------------------------------------------------------------------
+Sections 4 and 10 below describe a 10-module product (Syllabus Explorer, Knowledge
+Hub, MCQ Practice, Study Plan, AI Tutor, Progress Analytics, PYQ Archive, Onboarding).
+Those modules ARE NOT SHIPPED. They were unreachable dead code and have been moved to
+archive/unused-modules/ — see archive/unused-modules/README.md.
+
+The app that actually runs is:
+  - src/pages/StudentPortal.tsx      (default route and every route except /admin)
+  - src/pages/AdminPortalPage.tsx    (/admin)
+  - src/pages/AiIngestionStudioPage.tsx (rendered inside the admin studio)
+
+Treat sections 4/10 as design intent, not as implemented behaviour. The content
+engine, types and data sections remain accurate.
+
+================================================================================
+1. PROJECT OVERVIEW
+================================================================================
+
+ExamPilot AI is a universal AI-powered examination preparation and mock-test
+platform. It works for ANY examination — UPSC, APSC, SSC, GATE, State PSCs,
+Teaching exams, Law, Management, Engineering, Science, Commerce, and any custom
+exam.
+
+Core Vision:
+  EXAM → OFFICIAL SYLLABUS → SUBJECTS/BRANCHES → DOMAINS → TOPICS →
+  SUBTOPICS → KNOWLEDGE → THEORIES/LAWS/FORMULAS/FACTS → QUESTIONS →
+  MOCK TESTS → PERFORMANCE → ADAPTIVE LEARNING
+
+Positioning: AI-first differentiation (not catalog breadth).
+  - Understands YOU: diagnostic + adaptive engine modeling per-subtopic mastery
+  - Explains, doesn't just answer: syllabus-grounded tutor with citations
+  - Gets out of the way: sub-second, offline-capable, keyboard/thumb-native
+
+================================================================================
+2. TECH STACK
+================================================================================
+
+Frontend:
+  - React 18.3.1 (with Hooks, Context API, forwardRef)
+  - TypeScript 5.7.3 (strict mode)
+  - Vite 6.2.0 (fast dev server, code splitting)
+  - Tailwind CSS 3.4.17 (semantic token system)
+  - Framer Motion 13.4.0 (animations)
+  - Lucide React 0.477.0 (icons)
+  - Canvas Confetti 1.9.4 (celebration effects)
+  - Lottie React 3.1.2 (JSON animations)
+
+Backend/AI:
+  - Firebase 11.4.0 (Auth, Firestore, Storage)
+  - Gemini AI (Google Generative Language API) — for tutor & question generation
+  - Demo mode: works fully without any API keys
+
+Development:
+  - Node.js (v18+)
+  - npm (v9+)
+  - Playwright 1.63.0 (browser testing)
+
+================================================================================
+3. HOW TO RUN
+================================================================================
+
+Install dependencies:
+  npm install
+
+Development server (with hot reload):
+  npm run dev
+  → http://localhost:3000
+
+Production build:
+  npm run build
+  → dist/ folder
+
+Preview production build:
+  npm run preview
+
+Run tests (no API key needed):
+  npm test
+  → Validates: knowledge modules, numerical engine, AI validation pipeline
+
+Content audits:
+  npm run audit:coverage   — syllabus coverage against exam blueprint
+  npm run audit:content    — question-kind mix, solution depth, provenance, duplicates
+
+================================================================================
+4. FEATURED MODULES (10 Pages) — DESIGN INTENT ONLY, SEE SCOPE CORRECTION ABOVE
+================================================================================
+
+4.1 Onboarding (src/pages/OnboardingPage.tsx)
+  - Exam selection from universal registry (7+ exams)
+  - Target year selection (2025-2027)
+  - Daily study commitment (2-8 hours)
+  - Preparation level (beginner/intermediate/advanced)
+  - Animated hero with floating stars, typing effect, feature cards
+
+4.2 Study Plan (src/pages/StudyPlanPage.tsx)
+  - Adaptive study roadmap with weekly plans
+  - Learning → Practice → Revision → Mock Tests allocation
+  - Progress rings, day cards with 3D flip animation
+  - Complete button with confetti + checkmark pop
+
+4.3 Syllabus Explorer (src/pages/SyllabusExplorerPage.tsx)
+  - Hierarchical syllabus tree (Exam → Paper → Subject → Domain → Topic → Subtopic)
+  - Animated slide-in topic items
+  - Progress bars with shimmer animation
+  - Knowledge modules with steps, callouts, comparison grids
+
+4.4 MCQ Practice (src/pages/McqPracticePage.tsx)
+  - Timed question engine with instant explanations
+  - Animated timer with color changes (green → yellow → red)
+  - Option buttons with hover bounce, selected checkmark pop
+  - Correct: green glow + confetti; Wrong: red shake + X mark
+  - Question palette with animated dots
+  - Flag for Review with wiggle animation
+
+4.5 Mock Test (src/pages/MockTestPage.tsx)
+  - Full-length simulated exams under timed conditions
+  - Animated countdown timer with digit scale animation
+  - Time's Up! modal with confetti explosion
+  - Smooth question transitions (slide in/out)
+  - Score reveal with counting animation + confetti if > 60%
+  - Weak area analysis cards with bouncy entrance
+  - Blueprint view, Adaptive Mock, Mastery calculator
+  - AI Remediation plan (theory → medium → hard → mini-test → retest)
+
+4.6 PYQ Archive (src/pages/PyqArchivePage.tsx)
+  - Previous year questions with metadata
+  - Vintage cartoon style cards with filter chips
+  - Staggered slide-in animations when filtering
+  - Animated download buttons
+
+4.7 AI Tutor (src/pages/AiTutorPage.tsx)
+  - Syllabus-aware interactive AI co-pilot
+  - Chat with animated avatar (bouncing SVG character)
+  - Message slide-in animations (user left, AI right)
+  - Typing indicator (animated three dots)
+  - Formula display styled as cartoon chalkboard
+  - Confidence meter with gradient animation
+  - Suggested drill cards with "Start Drill" confetti
+
+4.8 AI Ingestion Studio (src/pages/AiIngestionStudioPage.tsx)
+  - Question Factory: AI-generated questions from topics
+  - Animated loading spinner (rotating question mark)
+  - Progress bar with gradient + shimmer
+  - Generated questions with pop-in animation
+  - Difficulty badges with animated pulse
+  - Validate button with checkmark animation
+
+4.9 Progress Analytics (src/pages/ProgressAnalyticsPage.tsx)
+  - Animated stat tiles with counting numbers
+  - Subject mastery bars with gradient fill
+  - Weak spot triage with card-interactive hover
+  - Adaptive learning progress tracker
+  - AI remediation path display
+  - Study plan integration
+  - Gamification dashboard (achievements, XP, streak)
+
+4.10 Knowledge Hub (src/pages/KnowledgeHubPage.tsx)
+  - Search and browse knowledge modules
+  - Topic-based practice with deep links
+  - AI tutor integration per topic
+
+================================================================================
+5. UNIVERSAL EXAM SUPPORT
+================================================================================
+
+The app supports ANY examination through src/services/universalTaxonomy.ts:
+
+Seeded Exams (7):
+  1. APSC Assistant Engineer (Civil) — apsc-ae-civil
+  2. UPSC Civil Services Examination — upsc-cse
+  3. GATE Civil Engineering — gate-ce
+  4. GATE General Studies — gate-gs
+  5. GATE Computer Science — gate-cs
+  6. SSC Combined Graduate Level — ssc-cgl
+  7. SSC Chemistry — ssc-ch
+
+Exam Registry: Dynamic tree structure (not hardcoded list)
+  - getExamHierarchy(examId) — get full exam tree
+  - expandTopics(subjectName) — discover all topics
+  - buildExamNodes() — build all exam nodes
+  - getSupportedExamIds() — list all supported exams
+  - getExamEntry(examId) — get single exam details
+
+Exam Hierarchy (per PROMP.txt §4):
+  EXAM → PAPER → SUBJECT → DOMAIN → TOPIC → SUBTOPIC → CONCEPT
+
+Question Types Supported (per PROMP.txt §19):
+  Standard MCQ, Multiple Statements, Assertion/Reason, Statement I/II,
+  Match the Following, Correct/Incorrect, Chronology, Classification,
+  Conceptual, Numerical, Scenario, Case Based, Data Interpretation,
+  Formula Based, Application Based, Comparison, Cause/Effect,
+  Diagram Interpretation, Code/Rule Based
+
+================================================================================
+6. KNOWLEDGE ENGINEERING
+================================================================================
+
+6.1 Knowledge Entity Model (per PROMP.txt §11)
+  - 28 entity types: Concept, Definition, Theory, Principle, Law, Theorem,
+    Formula, Equation, Rule, Process, Method, Event, Person, Date, Place,
+    Classification, Property, Characteristic, Application, Example,
+    Exception, Assumption, Limitation, Cause, Effect, Relationship, Fact,
+    Terminology
+
+6.2 Knowledge Graph (per PROMP.txt §12)
+  9 relationship types: prerequisite_of, depends_on, related_to, part_of,
+  explains, applied_in, contrasts_with, derived_from, tested_by
+
+6.3 Research Engine (per PROMP.txt §8)
+  - Tier 1/2/3 source classification
+  - Source traceability with metadata (title, URL, publisher, type, verified)
+  - Anti-hallucination validation (6 statuses: verified, supported, inferred,
+    unverified, conflicting, needs_review)
+
+6.4 Question Engine (per PROMP.txt §16-24)
+  - Deterministic numerical recipes (18+): answers computed in code
+  - AI question generation with comprehensive validation
+  - Distractor engine: plausible wrong options from error patterns
+  - 7-dimension question validation: factual accuracy, answer correctness,
+    unique answer, logical consistency, numerical validation, ambiguity check
+  - Duplicate detection: exact, semantic, near-duplicate
+  - PYQ storage with full metadata
+
+6.5 Numerical Validation (per PROMP.txt §21)
+  - Generate data → Solve independently → Recalculate → Check dimensions →
+    Check units → Check assumptions → Check physical reasonableness →
+    Generate realistic distractors → Store solution steps
+
+================================================================================
+7. MOCK TEST ENGINE
+================================================================================
+
+Per PROMP.txt §25-38:
+
+Exam Blueprint: question count, duration, negative marking, difficulty
+  distribution, subject distribution, topic distribution, question type
+  distribution
+
+Mock Test Types: Full Mock, Subject Test, Domain Test, Topic Test,
+  Chapter Test, Previous Paper Simulation, Daily Test, Revision Test,
+  Weak Area Test, Adaptive Test, Custom Test
+
+Adaptive Mock Engine: considers mastery, recent accuracy, difficulty, topic,
+  question type, response time, previous errors
+  - Strong medium performance → hard question
+  - Hard question incorrect → targeted medium question
+  - Correct → related hard question
+
+AI Remediation Flow: MOCK → WEAKNESS → THEORY → MEDIUM → HARD → RETEST → MASTERY
+
+Study Plan: allocates learning/practice/revision/mock hours across available days
+
+Timer: 02:00:00 countdown with 10min, 5min, 1min warnings; auto-submit at zero;
+  autosave answers; browser refresh protection
+
+================================================================================
+8. DESIGN SYSTEM
+================================================================================
+
+Two Theme Layers:
+  1. Semantic Token Layer (src/index.css)
+     - bg-canvas, bg-card, bg-raised, bg-subtle, bg-subtle-strong
+     - border-line, border-line-strong
+     - text-ink, text-ink-soft, text-muted, text-muted-faint
+     - text-primary, text-success, text-warning, text-danger, text-info
+     - All as RGB triplets for alpha composition
+
+  2. Cartoon Theme Layer (src/styles/cartoon-theme.css)
+     - Bright cartoon colors: coral #FF6B6B, turquoise #4ECDC4, yellow #FFE66D,
+       mint #95E1D3, pink #F38181, purple #AA96DA, sky #A8D8EA, peach #FFAAA5
+     - Bouncy animations: bounce, float, wiggle, pulse-glow, slide-up,
+       fade-in-up, shake, spin-slow, blob-float
+     - Cartoon card style: 24px radius, 4px border, offset shadow
+     - Cartoon button style: 16px radius, thick border, gradient backgrounds
+     - Cartoon badge style: pill shape, thick border, animated pulse
+     - Animated background: floating blobs + rising particles
+
+Accessibility:
+  - Skip link, focus-visible outlines, keyboard navigation
+  - Focus traps in modals, palettes, drawers
+  - ARIA labels, roles, live regions
+  - Respects prefers-reduced-motion
+
+================================================================================
+9. ANIMATED UI COMPONENTS
+================================================================================
+
+Core Animated Components:
+  - AnimatedBackground.tsx — floating blobs + rising particles (cartoon colors)
+  - OnboardingHero.tsx — animated hero with SVG character, floating stars,
+    typing effect, feature cards with hover bounce
+  - Timer.tsx — animated countdown with color changes, shake, confetti
+  - Counter.tsx — animated number counter with easing and formatting
+  - Gamification.tsx — achievement badges, XP bar, streak counter, level-up
+  - ChartCard.tsx — animated SVG bar/pie/line charts with entrance animations
+
+UI Components (with cartoon style):
+  - Card.tsx — bouncy hover lift, accent borders, cartoon shadow
+  - Button.tsx — gradient backgrounds, scale hover, confetti on click
+  - Badge.tsx — pill shape, thick border, animated pulse for "new"
+  - StatTile.tsx — compact metric card with progress bar
+  - ProgressRing.tsx — animated ring with dot indicator
+  - Skeleton.tsx — loading placeholder
+  - EmptyState.tsx — illustrated empty state
+  - ThemeToggle.tsx — light/dark/system toggle
+
+================================================================================
+10. PROJECT STRUCTURE
+================================================================================
+
+src/
+├── main.tsx                      — Entry point (ThemeProvider, ToastProvider, ErrorBoundary)
+├── App.tsx                       — Main router with AnimatedBackground
+├── App.router.tsx                — Router logic
+├── App.simple.tsx                — Simple app variant
+├── index.css                     — Semantic tokens + cartoon theme imports
+├── vite-env.d.ts                 — Vite type declarations
+├── types/
+│   └── index.ts                  — All TypeScript types and interfaces
+├── data/
+│   ├── mockData.ts               — Exam configs, syllabus topics, mock tests, PYQs
+│   ├── civilQuestions.ts         — Civil Engineering MCQ bank
+│   ├── generalStudiesQuestions.ts— General Studies MCQ bank
+│   ├── numericalQuestions.ts     — Numerical question bank
+│   ├── foundationCivilModules.ts — Foundation civil modules
+│   ├── infrastructureCivilModules.ts — Infrastructure civil modules
+│   └── topicKnowledge.ts         — Knowledge modules with steps and examples
+├── services/
+│   ├── geminiService.ts          — Gemini AI integration (tutor, generation)
+│   ├── aiIngestionService.ts     — AI content ingestion pipeline
+│   ├── aiKnowledgeStore.ts       — AI learned modules/questions storage
+│   ├── mcqFactoryService.ts      — Question factory (numerical + AI generation)
+│   ├── curriculumBlueprint.ts    — Exam blueprint + coverage analytics
+│   ├── universalTaxonomy.ts      — Universal exam hierarchy and discovery
+│   ├── knowledgeEngine.ts        — Knowledge entities, graph, audit
+│   ├── researchEngine.ts         — Source traceability, anti-hallucination
+│   └── firestore.ts              — Firebase/Firestore integration
+├── pages/
+│   ├── OnboardingPage.tsx        — Exam selection and setup
+│   ├── StudyPlanPage.tsx         — Adaptive study roadmap
+│   ├── SyllabusExplorerPage.tsx  — Hierarchical syllabus tree
+│   ├── McqPracticePage.tsx       — MCQ practice engine
+│   ├── MockTestPage.tsx          — Full mock test simulation
+│   ├── PyqArchivePage.tsx        — Previous year questions archive
+│   ├── AiTutorPage.tsx           — AI-powered tutor chat
+│   ├── AiIngestionStudioPage.tsx — Question factory/ingestion
+│   ├── ProgressAnalyticsPage.tsx — Dashboard, analytics, gamification
+│   └── KnowledgeHubPage.tsx      — Knowledge search and browse
+├── components/
+│   ├── AnimatedBackground.tsx    — Floating blobs + particles
+│   ├── ErrorBoundary.tsx         — Error catching with recovery
+│   ├── ui/                       — UI component library
+│   │   ├── Card.tsx              — Animated card
+│   │   ├── Button.tsx            — Animated button with confetti
+│   │   ├── Badge.tsx             — Animated badge
+│   │   ├── StatTile.tsx          — Metric tile
+│   │   ├── ProgressRing.tsx      — Animated progress ring
+│   │   ├── Skeleton.tsx          — Loading placeholder
+│   │   ├── EmptyState.tsx        — Empty state illustration
+│   │   ├── ShareButton.tsx       — Share/copy button
+│   │   └── ThemeToggle.tsx       — Theme switcher
+│   ├── animated/                 — Animated feature components
+│   │   ├── AnimatedBackground.tsx
+│   │   ├── OnboardingHero.tsx    — Animated hero section
+│   │   ├── Timer.tsx             — Animated countdown timer
+│   │   ├── Counter.tsx           — Animated number counter
+│   │   ├── Gamification.tsx      — Achievements, XP, badges
+│   │   └── ChartCard.tsx         — Animated SVG charts
+│   ├── auth/                     — Auth components
+│   ├── factory/                  — Question factory panel
+│   └── layout/                   — Layout components
+├── context/
+│   ├── AuthContext.tsx           — Authentication state
+│   ├── ToastContext.tsx          — Toast notification system
+│   └── ThemeContext.tsx          — Theme state (light/dark)
+├── hooks/
+│   ├── useRouter.ts              — URL routing with deep links
+│   └── useFocusTrap.ts           — Focus trap for modals
+├── utils/
+│   ├── cn.ts                     — Class name utility
+│   └── provenance.ts             — Source provenance tracking
+├── styles/
+│   └── cartoon-theme.css         — Cartoon design system
+└── firebase/
+    └── config.ts                 — Firebase config with demo fallback
+
+scripts/
+├── validate-knowledge-modules.mjs  — Module structural validation
+├── test-numerical-engine.mjs       — Numerical engine tests
+├── test-ai-validation.mjs          — AI validation pipeline tests
+├── audit-content-coverage.mjs      — Content audit
+├── coverage-report.mjs             — Coverage report
+├── browser-audit.mjs               — Browser audit (Playwright)
+├── browser-audit-deep.mjs          — Deep browser audit
+├── test-offline-mock.mjs           — Offline mock generation test
+├── test-fake-key.mjs               — Invalid key fallback test
+└── test-numerical-engine.mjs       — Numerical engine health check
+
+================================================================================
+11. AI MODEL ROUTING
+================================================================================
+
+Per PROMP.txt §48:
+  - Fast/cheap model: classification, tagging, basic extraction
+  - Strong reasoning model: hard question generation, numerical reasoning,
+    validation, difficult explanations
+  - Research model: web research, source synthesis
+  - Embedding model: semantic search, duplicate detection, knowledge retrieval
+
+Gemini Model Rotation (in geminiService.ts):
+  gemini-3.8-flash → gemini-3.6 → gemini-2.5 (caches winner in localStorage)
+
+RAG Pipeline (per PROMP.txt §49):
+  USER QUESTION → QUERY UNDERSTANDING → RETRIEVE RELEVANT KNOWLEDGE →
+  RETRIEVE SOURCES → LLM → ANSWER
+
+================================================================================
+12. CLI COMMANDS (PROMP.txt §46)
+================================================================================
+
+Exam: exam analyze, exam list, exam show
+Syllabus: syllabus extract, syllabus audit
+Taxonomy: taxonomy build, expand, audit, search
+Knowledge: knowledge discover, research, build, expand, search, graph, audit
+Sources: sources verify
+Questions: questions generate, validate, deduplicate, audit, stats
+Mock: mock blueprint, generate, validate, preview, publish, analyze, coverage
+Study: study plan, progress analyze
+
+================================================================================
+13. KEY METRICS
+================================================================================
+
+Current Content State:
+  - Civil question bank: 142 (100 conceptual + 42 numerical)
+  - General Studies bank: 100
+  - Blueprint subjects: 18
+  - Theory modules: 25 (18 civil, 7 GS)
+  - Theory steps: 62 (with options)
+  - Inline practice questions: 235
+  - Deterministic numerical recipes: 18 across 13 subjects
+  - Coverage of target bank: 29.5% of 482-item weighted target
+  - AI drafting: 6/6 items accepted, 0 rejected (live verified)
+  - Verbatim PYQ claims: 0 (all items MODELLED or AI_GENERATED)
+
+Build Performance:
+  - Development build: ~3s
+  - Production build: ~3s
+  - Production JS total: ~2.2MB (gzip: ~680KB with code splitting)
+  - Code splitting: 12+ chunks (index, practice, data-questions, knowledge,
+    firebase, syllabus, factory, motion, icons, confetti)
+
+Test Results:
+  - Knowledge module validation: 25 modules (18 civil, 7 GS), all sound
+  - Numerical engine: 144 problems across 6 seeds, 0 failures
+  - AI validation pipeline: all seeded defects rejected/repaired
+
+Browser Audit (Playwright):
+  - 0 bugs found across all 10 pages
+  - All 10 tabs render correctly
+  - Deep links work
+  - Back/forward navigation works
+  - Theme toggle works
+  - Mobile responsive (360px)
+  - A11y landmarks present
+  - Design tokens correct
+
+================================================================================
+14. GAMIFICATION SYSTEM
+================================================================================
+
+Achievement Badges (8):
+  - First Question, Study Streak (3/7/30 days), High Scorer (80%),
+    Mock Champion, Perfect Score, Dedicated Learner (100 questions)
+
+XP System:
+  - questionsSolved × 10 + studyStreak × 5 + accuracyRate × 2
+  - Level = floor(xp/100) + 1
+  - XP to next level = level² × 100
+
+Features:
+  - Animated XP bar with gradient fill
+  - Streak counter with fire animation
+  - Achievement badges with shine on unlock
+  - Level-up celebration with confetti + "LEVEL UP!" animation
+  - Subject mastery bars with animated width
+
+================================================================================
+15. ACCESSIBILITY FEATURES
+================================================================================
+
+- Skip link (AppLayout.tsx)
+- Main content with role="main", aria-label, aria-live="polite"
+- Timer with role="timer" aria-live="polite"
+- Flag button with aria-pressed
+- Modals with role="dialog" aria-modal
+- Inputs with aria-label
+- Buttons with descriptive labels
+- Focus traps in AuthModal, MockTestPage, McqPracticePage, CommandPalette
+- Keyboard navigation with ⌘K/Ctrl+K
+- Respects prefers-reduced-motion
+
+================================================================================
+16. OFFLINE CAPABILITY
+================================================================================
+
+- Demo mode works without Firebase or Gemini keys
+- Numerical questions generated from deterministic recipes (no API needed)
+- Offline mock generation fallback when AI is unavailable
+- All core functionality available without network
+- Knowledge modules stored in localStorage
+
+================================================================================
+17. ANTI-HALLUCINATION SYSTEM
+================================================================================
+
+Verification statuses:
+  - VERIFIED — Confirmed from official sources
+  - SUPPORTED — Backed by reference material
+  - INFERRED — Logically derived but not explicitly stated
+  - UNVERIFIED — Cannot confirm from sources
+  - CONFLICTING — Sources disagree
+  - NEEDS_REVIEW — Failed validation checks
+
+Never fabricates: URLs, sources, citations, facts, statistics, formulas,
+laws, exam rules, question answers
+
+================================================================================
+18. FILE: PROMP.txt
+================================================================================
+
+The PROMP.txt file at project root contains the complete product specification
+(2473 lines, 54 sections) covering:
+  - Autonomous development loop (11 steps)
+  - Product vision and user journey
+  - Universal exam hierarchy
+  - Knowledge discovery and research engine
+  - Question engine (types, difficulty, validation, deduplication)
+  - Mock test engine (blueprint, types, adaptive, submission)
+  - AI performance analysis and adaptive learning
+  - Database entities (27 normalized tables)
+  - CLI commands (28 commands)
+  - AI agent orchestration (17 agents)
+  - AI model routing and RAG pipeline
+  - Anti-hallucination and copyright
+  - UI/UX specifications
+
+================================================================================
+19. RUNNING IN BROWSER
+================================================================================
+
+Dev server:
+  http://localhost:3000 (or next available port)
+
+Production preview:
+  http://localhost:4173 (after npm run build, then npm run preview)
+
+Demo mode (no keys needed):
+  - All 10 modules work
+  - Numerical questions generate instantly
+  - AI features fall back to offline recipes
+  - Firestore sync disabled gracefully
+
+================================================================================
+20. DESIGN TOKENS SOURCE OF TRUTH
+================================================================================
+
+Primary: src/index.css (RGB channel triplets for alpha composition)
+Tailwind: tailwind.config.js (semantic tokens as Tailwind colors)
+Design: DESIGN_SYSTEM.md (tokens, palette, typography, spacing)
+Cartoon: src/styles/cartoon-theme.css (bouncy, colorful, gamified style)
+Content Engine: CONTENT_ENGINE.md (coverage, validation, quality gates)
+Roadmap: ROADMAP.md (product strategy and phase planning)
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

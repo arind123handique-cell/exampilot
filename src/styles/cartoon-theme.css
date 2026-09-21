@@ -1,0 +1,347 @@
+/* ============================================================================
+   Cartoon Theme — Fun, bouncy, gamified exam-prep platform
+   ========================================================================== */
+
+/* ---------- Cartoon Color Palette ---------- */
+:root {
+  --cartoon-coral: #FF6B6B;
+  --cartoon-turquoise: #4ECDC4;
+  --cartoon-yellow: #FFE66D;
+  --cartoon-mint: #95E1D3;
+  --cartoon-pink: #F38181;
+  --cartoon-purple: #AA96DA;
+  --cartoon-sky: #A8D8EA;
+  --cartoon-peach: #FFAAA5;
+}
+
+[data-theme='cartoon'],
+:root[data-theme='cartoon'] {
+  --cartoon-coral: #FF6B6B;
+  --cartoon-turquoise: #4ECDC4;
+  --cartoon-yellow: #FFE66D;
+  --cartoon-mint: #95E1D3;
+  --cartoon-pink: #F38181;
+  --cartoon-purple: #AA96DA;
+  --cartoon-sky: #A8D8EA;
+  --cartoon-peach: #FFAAA5;
+}
+
+/* ---------- Bouncy Keyframe Animations ---------- */
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-12px); }
+  50% { transform: translateY(-6px); }
+  70% { transform: translateY(-2px); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-20px) rotate(3deg); }
+  50% { transform: translateY(-8px) rotate(-2deg); }
+  75% { transform: translateY(-16px) rotate(1deg); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(5deg); }
+  40% { transform: rotate(-5deg); }
+  60% { transform: rotate(3deg); }
+  80% { transform: rotate(-2deg); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px var(--cartoon-turquoise), 0 0 12px rgba(78, 205, 196, 0.3); }
+  50% { box-shadow: 0 0 8px var(--cartoon-turquoise), 0 0 24px rgba(78, 205, 196, 0.6); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(24px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in-up {
+  0% { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes blob-float {
+  0%, 100% { transform: translate(0px, 0px) scale(1); }
+  25% { transform: translate(30px, -40px) scale(1.05); }
+  50% { transform: translate(-20px, -20px) scale(0.95); }
+  75% { transform: translate(20px, 30px) scale(1.02); }
+}
+
+@keyframes shimmer-cartoon {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ---------- Floating Blob Background ---------- */
+.cartoon-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cartoon-blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--cartoon-coral);
+  animation: blob-float 12s ease-in-out infinite;
+}
+
+.cartoon-blob-2 {
+  width: 350px;
+  height: 350px;
+  background: var(--cartoon-turquoise);
+  animation: blob-float 14s ease-in-out infinite reverse;
+}
+
+.cartoon-blob-3 {
+  width: 300px;
+  height: 300px;
+  background: var(--cartoon-yellow);
+  animation: blob-float 10s ease-in-out infinite 2s;
+}
+
+.cartoon-blob-4 {
+  width: 250px;
+  height: 250px;
+  background: var(--cartoon-purple);
+  animation: blob-float 16s ease-in-out infinite 4s;
+}
+
+/* ---------- Particle Dots ---------- */
+.cartoon-particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.5;
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(1); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.3; }
+  100% { transform: translateY(-100vh) scale(0.3); opacity: 0; }
+}
+
+/* ---------- Cartoon Card Style ---------- */
+.card-cartoon {
+  border-radius: 24px;
+  border: 4px solid var(--cartoon-turquoise);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-cartoon:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.18);
+}
+
+.card-cartoon-accent-coral { border-color: var(--cartoon-coral); }
+.card-cartoon-accent-turquoise { border-color: var(--cartoon-turquoise); }
+.card-cartoon-accent-yellow { border-color: var(--cartoon-yellow); }
+.card-cartoon-accent-pink { border-color: var(--cartoon-pink); }
+.card-cartoon-accent-purple { border-color: var(--cartoon-purple); }
+.card-cartoon-accent-sky { border-color: var(--cartoon-sky); }
+.card-cartoon-accent-mint { border-color: var(--cartoon-mint); }
+.card-cartoon-accent-peach { border-color: var(--cartoon-peach); }
+
+/* ---------- Cartoon Button Style ---------- */
+.btn-cartoon {
+  border-radius: 16px;
+  border: 3px solid transparent;
+  font-weight: 800;
+  padding: 12px 28px;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.btn-cartoon:hover {
+  transform: scale(1.05);
+}
+
+.btn-cartoon:active {
+  transform: scale(0.95);
+}
+
+.btn-cartoon--bounce:hover {
+  animation: bounce 0.5s ease;
+}
+
+.btn-cartoon--primary {
+  background: linear-gradient(135deg, var(--cartoon-coral), var(--cartoon-pink));
+  color: white;
+  border-color: var(--cartoon-coral);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cartoon--primary:hover {
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.25);
+}
+
+.btn-cartoon--secondary {
+  background: linear-gradient(135deg, var(--cartoon-turquoise), var(--cartoon-mint));
+  color: white;
+  border-color: var(--cartoon-turquoise);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.15);
+}
+
+.btn-cartoon--secondary:hover {
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.2);
+}
+
+.btn-cartoon--outline {
+  background: white;
+  color: var(--cartoon-purple);
+  border-color: var(--cartoon-purple);
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.btn-cartoon--outline:hover {
+  background: var(--cartoon-purple);
+  color: white;
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.15);
+}
+
+.btn-cartoon--ghost {
+  background: transparent;
+  color: var(--cartoon-turquoise);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.btn-cartoon--ghost:hover {
+  background: rgba(78, 205, 196, 0.1);
+  box-shadow: none;
+}
+
+/* ---------- Cartoon Badge Style ---------- */
+.badge-cartoon {
+  border-radius: 999px;
+  border: 3px solid;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-cartoon--new {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.badge-cartoon--coral { background: #FFF0F0; border-color: var(--cartoon-coral); color: var(--cartoon-coral); }
+.badge-cartoon--turquoise { background: #F0FFFE; border-color: var(--cartoon-turquoise); color: var(--cartoon-turquoise); }
+.badge-cartoon--yellow { background: #FFFFF0; border-color: var(--cartoon-yellow); color: #B8960B; }
+.badge-cartoon--pink { background: #FFF0F3; border-color: var(--cartoon-pink); color: var(--cartoon-pink); }
+.badge-cartoon--purple { background: #F5F0FF; border-color: var(--cartoon-purple); color: var(--cartoon-purple); }
+.badge-cartoon--sky { background: #F0F8FF; border-color: var(--cartoon-sky); color: #2A7AA8; }
+.badge-cartoon--mint { background: #F0FFFB; border-color: var(--cartoon-mint); color: #0A8A6F; }
+.badge-cartoon--peach { background: #FFF5F0; border-color: var(--cartoon-peach); color: #D4735A; }
+
+/* ---------- Cartoon Progress Bar ---------- */
+.progress-cartoon-bar {
+  height: 16px;
+  border-radius: 999px;
+  background: var(--cartoon-yellow);
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.progress-cartoon-bar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--cartoon-turquoise), var(--cartoon-mint), var(--cartoon-yellow));
+  background-size: 200% 100%;
+  animation: shimmer-cartoon 2s linear infinite;
+  position: relative;
+}
+
+.progress-cartoon-bar__fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+  animation: shimmer-cartoon 2s linear infinite;
+}
+
+/* ---------- Cartoon Progress Ring ---------- */
+.progress-ring-cartoon circle.progress-ring-ring {
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.progress-ring-cartoon .progress-ring-dot {
+  animation: pulse-glow 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* ---------- Typography Tweaks ---------- */
+.font-cartoon-title {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.font-cartoon-body {
+  font-weight: 600;
+}
+
+/* ---------- Stat Tile Cartoon Style ---------- */
+.stat-tile-cartoon {
+  border-radius: 20px;
+  border: 3px solid;
+  box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.12);
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.stat-tile-cartoon:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.16);
+}
+
+/* ---------- Reduced Motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .cartoon-blob,
+  .cartoon-particle {
+    animation: none !important;
+  }
+  .card-cartoon,
+  .btn-cartoon,
+  .badge-cartoon,
+  .stat-tile-cartoon {
+    transition: none !important;
+    animation: none !important;
+  }
+  .progress-cartoon-bar__fill,
+  .progress-cartoon-bar__fill::after,
+  .progress-ring-dot {
+    animation: none !important;
+  }
+}
