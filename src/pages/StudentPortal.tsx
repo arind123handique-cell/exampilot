@@ -686,18 +686,17 @@ export const StudentPortal: React.FC = () => {
           </div>
 
           <Card flush className="p-6 sm:p-7 space-y-4 shadow-xl border-line-strong rounded-3xl bg-card/95 backdrop-blur">
-            {/* Self-diagnosing deployment notice — a silent failure here previously
-                looked like "Google login is broken". */}
+{/* Self-diagnosing deployment notice — a silent failure here previously
+                 looked like "Google login is broken". */}
             {!isFirebaseConfigured && (
-              <div className="flex items-start gap-2 rounded-xl border border-warning/50 bg-subtle p-3 text-xs text-muted">
-                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
+              <div className="flex items-start gap-2 rounded-xl border border-success/50 bg-subtle/50 p-3 text-xs text-muted">
+                <ShieldCheck className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-ink">Cloud sign-in is not configured</p>
+                  <p className="font-semibold text-ink">Running in Offline Mode</p>
                   <p>
-                    This build has no Firebase configuration, so Google and email sign-in cannot
-                    work. Add <code>VITE_FIREBASE_API_KEY</code> and the other{' '}
-                    <code>VITE_FIREBASE_*</code> variables in your host's environment settings and
-                    redeploy — Vite inlines them at build time.
+                    Firebase is not configured for this deployment, but you can
+                    still use all exam features. Sign in with email/password or
+                    continue as a guest — your progress is saved locally.
                   </p>
                 </div>
               </div>
