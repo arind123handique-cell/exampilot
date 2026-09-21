@@ -995,10 +995,13 @@ export const StudentPortal: React.FC = () => {
               <div className="space-y-6">
                 <QuestionStemFormatter stem={currentQ.stem} />
 
-                {/* Options A, B, C, D — exam mode: show selection only, never correctness */}
                 <div className="space-y-2.5 max-w-2xl">
                   {currentQ.options.map((opt) => {
                     const isSelected = selectedAnswers[currentQ.id] === opt.id;
+                    const isCorrectOption = opt.id === currentQ.correctOption;
+                    const hasRevealedAnswer = Boolean(selectedAnswers[currentQ.id]);
+                    const showCorrectMark = hasRevealedAnswer && isCorrectOption;
+                    const showIncorrectMark = hasRevealedAnswer && isSelected && !isCorrectOption;
 
                     return (
                       <button
@@ -1006,27 +1009,40 @@ export const StudentPortal: React.FC = () => {
                         onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: opt.id }))}
                         aria-pressed={isSelected}
                         className={`w-full p-4 rounded-xl border-2 text-left text-xs sm:text-sm font-medium transition flex items-center gap-3 ${
-                          isSelected
-                            ? 'border-primary bg-primary-fixed/30 text-ink font-semibold ring-2 ring-primary/30'
-                            : 'border-line hover:border-line-strong bg-card text-ink'
+                          showCorrectMark
+                            ? 'border-success-border bg-success-surface text-success-text font-semibold'
+                            : showIncorrectMark
+                              ? 'border-danger-border bg-danger-surface text-danger-text line-through font-semibold'
+                              : isSelected
+                                ? 'border-primary bg-primary-fixed/30 text-ink font-semibold ring-2 ring-primary/30'
+                                : 'border-line hover:border-line-strong bg-card text-ink'
                         }`}
                       >
-                        <span className={`w-7 h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 ${isSelected ? 'bg-primary text-white' : 'bg-subtle text-muted'}`}>
+                        <span className={`w-7 h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 ${isSelected || showCorrectMark ? 'bg-primary text-white' : 'bg-subtle text-muted'}`}>
                           {opt.id}
                         </span>
                         <span className="flex-1">{opt.text}</span>
-                        {isSelected && (
-                          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
-                        )}
+                        {showCorrectMark && <Check className="w-5 h-5 text-success-text flex-shrink-0" />}
+                        {showIncorrectMark && <XCircle className="w-5 h-5 text-danger-text flex-shrink-0" />}
                       </button>
                     );
                   })}
                 </div>
 
-                <p className="max-w-2xl text-[11px] text-muted flex items-start gap-1.5" role="note">
-                  <Lock className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
-                  <span>Exam mode — correct answers and solutions are revealed only after you submit, under Mock Test Review.</span>
-                </p>
+                {selectedAnswers[currentQ.id] && (
+                  <div className="max-w-2xl space-y-2 rounded-xl border border-success-border bg-success-surface p-3.5 text-xs text-ink">
+                    <div className="flex items-center gap-2 font-semibold text-success-text">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Answer revealed</span>
+                    </div>
+                    <div>
+                      <strong>Correct answer:</strong> {currentQ.correctOption}
+                    </div>
+                    <div>
+                      <strong>Explanation:</strong> {currentQ.explanation}
+                    </div>
+                  </div>
+                )}
 
               </div>
             )}
