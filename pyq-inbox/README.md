@@ -47,7 +47,8 @@ Everything after the script name is passed straight through:
 | `import-pyq.bat --group topic` | Derive sub-heads from topic (default is `auto`) |
 | `import-pyq.bat --exam "APSC AE Civil" --year 2025` | Override the metadata guessed from the filename |
 | `import-pyq.bat --from-json out\paper.json` | Import a hand-corrected JSON instead of re-OCRing |
-| `import-pyq.bat --firebase serviceAccount.json` | Also mirror into Firestore |
+| `import-pyq.bat --supabase` | Also mirror into Supabase (reads SUPABASE_URL/SUPABASE_ANON_KEY from .env) |
+| `import-pyq.bat --no-database` | Skip the database sync even if credentials are available |
 
 ## API key
 
@@ -67,12 +68,21 @@ A mis-OCR'd answer key is worse than no answer key. The run prints the sub-head 
 rejected-question count so you can sanity-check it, then you publish with `--push`. If a paper
 comes out wrong, fix `out/<slug>.json` and run `--from-json`, or delete that JSON and re-run.
 
-## Firestore (optional)
+## Supabase (optional)
 
 Repository files are the source of truth and need no credentials. To also mirror into the
-`questions`, `published_papers` and `custom_mock_tests` collections, download a Firebase
-**service account** key into this folder as `serviceAccount.json` and pass `--firebase`.
+`questions`, `published_papers` and `custom_mock_tests` tables, pass `--supabase` — the URL and
+anon key are read from `SUPABASE_URL` / `SUPABASE_ANON_KEY` (or their `VITE_` variants) in the
+repository-root `.env`:
 
-> `serviceAccount.json` is git-ignored. Never commit it.
+```
+SUPABASE_URL=https://beahwfkpgplnccrszjvl.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOi...
+```
 
-Requires `pip install google-auth requests`.
+The sync is stdlib-only (no extra pip installs) and fails the run if any table rejects a write,
+so a schema mismatch can never silently drop a paper.
+
+> The `published_papers` and `custom_mock_tests` tables must exist before the first sync — run
+> `supabase/migrations/20260921_init_papers.sql` in the Supabase SQL Editor. The `questions`
+> table is created by `supabase/migrations/20260921_init_questions.sql`.

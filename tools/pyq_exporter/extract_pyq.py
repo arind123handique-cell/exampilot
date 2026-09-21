@@ -20,10 +20,11 @@ What it does
    from their extracted subject/topic (see --group) and builds a MockTest whose
    `sections` are those sub-heads.
 5. Writes:
-     pyq-inbox/out/<slug>.json     raw + validated extraction (the source of truth)
-     src/data/pyq/generated.ts     the app's question bank, regenerated from out/
- 6. Syncs validated papers to Firestore when a service account is available.
- 7. Commits the result. Pushing requires an explicit --push.
+      pyq-inbox/out/<slug>.json     raw + validated extraction (the source of truth)
+      src/data/pyq/generated.ts     the app's question bank, regenerated from out/
+  6. Syncs validated papers to Supabase when `--supabase` is passed (or SUPABASE_URL/
+     SUPABASE_ANON_KEY are set).
+  7. Commits the result. Pushing requires an explicit --push.
 
 
 The git push is deliberately opt-in: a mis-OCR'd answer key should never be
@@ -34,9 +35,10 @@ Examples
     extract_pyq.py --inspect                       # diagnose text vs scanned, no API calls
     extract_pyq.py                                 # import everything in the inbox
     extract_pyq.py --push                          # ...and publish
-    extract_pyq.py --rebuild                       # regenerate generated.ts only
-    extract_pyq.py --from-json pyq-inbox/out/x.json # import an already-extracted paper
-    extract_pyq.py --group topic                   # group sub-heads by topic instead of auto
+extract_pyq.py --rebuild                       # regenerate generated.ts only
+     extract_pyq.py --rebuild --supabase            # ...and mirror into Supabase
+     extract_pyq.py --from-json pyq-inbox/out/x.json # import an already-extracted paper
+     extract_pyq.py --group topic                   # group sub-heads by topic instead of auto
 """
 
 from __future__ import annotations
@@ -634,104 +636,102 @@ export const GENERATED_PYQ_MOCK_TESTS = {json.dumps(mocks, indent=2, ensure_asci
     return papers, mocks
 
 
-# ── Firestore (optional) ─────────────────────────────────────────────────────
+# ── Supabase (optional) ──────────────────────────────────────────────────────
+#
+# The app's question bank lives in Supabase (see supabase/migrations). This
+# mirrors validated papers into the same three collections the admin portal
+# writes to: `questions`, `published_papers`, `custom_mock_tests`.
+#
+# Uses the PostgREST endpoint directly — no external deps beyond the standard
+# library — so the exporter runs anywhere Python is installed.
+
+SUPABASE_TABLES = ("questions", "published_papers", "custom_mock_tests")
 
 
-def to_firestore_value(value):
-    """Converts a Python value to a Firestore REST typed value."""
-    if value is None:
-        return {"nullValue": None}
-    if isinstance(value, bool):
-        return {"booleanValue": value}
-    if isinstance(value, int):
-        return {"integerValue": str(value)}
-    if isinstance(value, float):
-        return {"doubleValue": value}
-    if isinstance(value, str):
-        return {"stringValue": value}
-    if isinstance(value, list):
-        return {"arrayValue": {"values": [to_firestore_value(v) for v in value]}}
-    if isinstance(value, dict):
-        return {"mapValue": {"fields": {k: to_firestore_value(v) for k, v in value.items() if v is not None}}}
-    return {"stringValue": str(value)}
+def _supabase_env() -> tuple[str, str]:
+    """Returns (url, anon_key) resolved from .env / environment / repo defaults."""
+    env = load_env(REPO_ROOT / ".env")
+    env.update(load_env(DEFAULT_INBOX / ".env"))
+    url = (
+        os.environ.get("SUPABASE_URL")
+        or os.environ.get("VITE_SUPABASE_URL")
+        or env.get("SUPABASE_URL")
+        or env.get("VITE_SUPABASE_URL")
+        or ""
+    ).strip()
+    key = (
+        os.environ.get("SUPABASE_ANON_KEY")
+        or os.environ.get("VITE_SUPABASE_ANON_KEY")
+        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+        or env.get("SUPABASE_ANON_KEY")
+        or env.get("VITE_SUPABASE_ANON_KEY")
+        or env.get("SUPABASE_SERVICE_ROLE_KEY")
+        or ""
+    ).strip()
+    return url, key
 
 
-def firestore_sync(papers: list, mocks: list, service_account_path: str | None, inbox: Path | None = None) -> bool:
-    """Mirror validated papers into Firestore catalogs; return True on success."""
-    if not service_account_path:
-        log("  Firestore sync skipped (no service account). Repo files are the source of truth.")
+def supabase_sync(papers: list, mocks: list, url: str, key: str) -> bool:
+    """Mirror validated papers into the Supabase question bank; return True on success."""
+    if not url or not key:
+        log("  Supabase sync skipped (no URL/key). Repo files are the source of truth.")
         return True
 
-    account_file = Path(service_account_path)
-    if not account_file.is_absolute() and not account_file.is_file():
-        resolved = (inbox or DEFAULT_INBOX) / service_account_path
-        if resolved.is_file():
-            account_file = resolved
-    if not account_file.is_file():
-        warn(f"service account not found at {account_file}")
-        return False
+    from schema_map import paper_to_row, mock_to_row, question_to_row
 
-    try:
-        import requests
-        from google.auth.transport.requests import Request as GoogleRequest
-        from google.oauth2 import service_account
-    except ImportError:
-        warn("google-auth and requests are required for Firestore sync: pip install google-auth requests")
-        return False
-
-    try:
-        credentials = service_account.Credentials.from_service_account_file(
-            str(account_file), scopes=["https://www.googleapis.com/auth/datastore"]
-        )
-        credentials.refresh(GoogleRequest())
-        project_id = json.loads(account_file.read_text(encoding="utf-8"))["project_id"]
-    except Exception as exc:
-        warn(f"could not authenticate with the service account: {exc}")
-        return False
-
-    base = f"https://firestore.googleapis.com/v1/projects/{project_id}/databases/(default)/documents"
-    headers = {"Authorization": f"Bearer {credentials.token}", "Content-Type": "application/json"}
-    written = 0
-    failures = 0
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "apikey": key,
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates,return=minimal",
+    }
     published_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     published_by = os.environ.get("PYQ_PUBLISHED_BY", "pyq-exporter")
+    failures = 0
 
-    def put(collection: str, doc_id: str, payload: dict) -> bool:
-        url = f"{base}/{collection}/{doc_id}"
-        body = json.dumps({"fields": {k: to_firestore_value(v) for k, v in payload.items() if v is not None}})
-        try:
-            response = requests.patch(url, headers=headers, data=body, timeout=30)
-            if response.status_code >= 400:
-                warn(f"{collection}/{doc_id}: HTTP {response.status_code} {response.text[:160]}")
-                return False
+    def upsert(table: str, rows: list) -> bool:
+        if not rows:
             return True
+        req = urllib.request.Request(
+            f"{url}/rest/v1/{table}",
+            data=json.dumps(rows, ensure_ascii=False).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                return resp.status < 400
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:200]
+            warn(f"{table}: HTTP {exc.code} {body}")
+            return False
         except Exception as exc:
-            warn(f"{collection}/{doc_id}: {exc}")
+            warn(f"{table}: {exc}")
             return False
 
     for paper, mock in zip(papers, mocks):
-        paper_payload = {
+        paper_payload = paper_to_row({
             **paper,
             "publishedAt": published_at,
             "publishedBy": published_by,
             "source": "pyq-exporter",
-        }
-        mock_payload = {
+        })
+        mock_payload = mock_to_row({
             **mock,
             "publishedAt": published_at,
             "publishedBy": published_by,
             "source": "pyq-exporter",
-        }
-        ok = put("published_papers", paper["id"], paper_payload)
-        ok = put("custom_mock_tests", mock["id"], mock_payload) and ok
-        for question in paper["questions"]:
-            ok = put("questions", question["id"], question) and ok
+        })
+        question_rows = [question_to_row(q) for q in paper["questions"]]
+        ok = upsert("published_papers", [paper_payload])
+        ok = upsert("custom_mock_tests", [mock_payload]) and ok
+        ok = upsert("questions", question_rows) and ok
         if ok:
-            written += 1
+            log(f"  mirrored {paper['id']} ({len(question_rows)} questions)")
         else:
             failures += 1
 
-    log(f"  Firestore sync: {written} paper(s) mirrored, {failures} failed")
+    log(f"  Supabase sync: {len(papers) - failures} paper(s) mirrored, {failures} failed")
     return failures == 0
 
 
@@ -819,8 +819,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-pages", type=int, help="only read the first N pages (debugging)")
     parser.add_argument("--push", action="store_true", help="git push after committing (off by default)")
     parser.add_argument("--no-commit", action="store_true", help="write files but do not commit")
-    parser.add_argument("--firebase", "--database", nargs="?", const="", help="path to a service account JSON for the Firestore sync")
-    parser.add_argument("--no-database", action="store_true", help="skip Firestore sync even if a service account is available")
+    parser.add_argument("--firebase", "--database", nargs="?", const="", help="DEPRECATED — use --supabase; path to a service account JSON for Firestore sync")
+    parser.add_argument("--no-database", action="store_true", help="skip the database sync even if credentials are available")
+    parser.add_argument("--supabase", nargs="?", const="", help="sync validated papers to Supabase (default: read SUPABASE_URL/SUPABASE_ANON_KEY from env)")
     parser.add_argument("--rebuild", action="store_true", help="regenerate src/data/pyq/generated.ts from pyq-inbox/out only")
     parser.add_argument("--from-json", help="import an already-extracted JSON instead of calling Gemini")
     parser.add_argument("--dry-run", action="store_true", help="parse and report, but write/commit nothing")
@@ -877,12 +878,16 @@ def main() -> int:
         log("Rebuilding src/data/pyq/generated.ts from pyq-inbox/out …")
         papers, mocks = rebuild_generated_ts(inbox, dry_run=args.dry_run)
         if not args.dry_run and not args.no_database:
-            service_account = args.firebase
-            if service_account == "":
-                service_account = os.environ.get("FIREBASE_SERVICE_ACCOUNT") or str(inbox / "serviceAccount.json")
-            if service_account:
-                log("\nSyncing to Firestore …")
-                firestore_sync(papers, mocks, service_account, inbox)
+            url, key = _supabase_env()
+            if args.supabase == "":
+                url = url or os.environ.get("SUPABASE_URL", "")
+                key = key or os.environ.get("SUPABASE_ANON_KEY", "")
+            if args.supabase:
+                url, key = args.supabase, key
+            if url and key:
+                log("\nSyncing to Supabase …")
+                if not supabase_sync(papers, mocks, url, key):
+                    die("Supabase sync failed — aborting")
         return 0
 
     pdfs = find_pdfs(inbox)
@@ -1011,17 +1016,20 @@ def main() -> int:
         log("\nDry run complete — nothing written.")
         return 0
 
-    # ── Optional Firestore mirror ──
+    # ── Optional Supabase mirror ──
     if args.no_database:
-        service_account = None
+        url, key = "", ""
     else:
-        service_account = args.firebase
-        if service_account == "":
-            service_account = os.environ.get("FIREBASE_SERVICE_ACCOUNT") or str(inbox / "serviceAccount.json")
-    if service_account:
-        log("\nSyncing to Firestore …")
-        if not firestore_sync(papers, mocks, service_account, inbox):
-            die("Firestore sync failed — aborting")
+        url, key = _supabase_env()
+        if args.supabase == "":
+            url = url or os.environ.get("SUPABASE_URL", "")
+            key = key or os.environ.get("SUPABASE_ANON_KEY", "")
+        if args.supabase:
+            url, key = args.supabase, key
+    if url and key:
+        log("\nSyncing to Supabase …")
+        if not supabase_sync(papers, mocks, url, key):
+            die("Supabase sync failed — aborting")
 
     # ── Commit / push ──
     if not args.no_commit:

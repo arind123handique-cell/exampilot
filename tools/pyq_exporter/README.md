@@ -23,7 +23,7 @@ PDF ──▶ PyMuPDF text layer?
         pyq-inbox/out/<slug>.json      (source of truth, per paper)
         src/data/pyq/generated.ts      (rebuilt from out/ every run)
                                     ▼
-                    optional Firestore mirror → git commit → optional push
+                    optional Supabase mirror → git commit → optional push
 ```
 
 ## Design decisions
@@ -57,19 +57,21 @@ retired or overloaded model (404/429/503) falls through to the next candidate ra
 failing the run. That hard-coded-model trap is documented in `geminiService.ts` — worth keeping
 the two lists in step.
 
-## Firestore mirror
+## Supabase mirror
 
-`--firebase <serviceAccount.json>` writes `questions`, `published_papers` and
-`custom_mock_tests` via the Firestore REST API, converting Python values to Firestore typed
-values. A service account bypasses security rules, which matters because `firestore.rules` now
-requires an `admin` custom claim for browser writes. Needs `pip install google-auth requests`;
-without them the sync is skipped with a message and the repo files still work.
+`--supabase` writes `questions`, `published_papers` and `custom_mock_tests` via the PostgREST
+endpoint, using the anon key from `SUPABASE_URL` / `SUPABASE_ANON_KEY` (or their `VITE_`
+variants) in the repository-root `.env`. The `questions` table already exists in this project
+(`supabase/migrations/20260921_init_questions.sql`); `published_papers` and `custom_mock_tests`
+are created by `supabase/migrations/20260921_init_papers.sql`. The exporter maps its camelCase
+objects to the snake_case columns (see `schema_map.py`) so the same validated payload feeds both
+the generated TypeScript and the database. The sync is stdlib-only and fails the run if any
+table rejects a write, so a schema mismatch can never silently drop a paper.
 
 ## Requirements
 
 - Python 3.9+ with `pymupdf` (`pip install pymupdf`) — `pypdf`, `pdfplumber`, `PIL` are
   present on this machine but unused; PyMuPDF is the one hard dependency.
-- Optional: `google-auth`, `requests` for the Firestore mirror.
 - Network access for the Gemini calls.
 
 ## Debugging
