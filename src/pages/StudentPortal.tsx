@@ -108,11 +108,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   const [name, setName] = useState('');
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [showPaletteMobile, setShowPaletteMobile] = useState(false);
+  const [paletteFilter, setPaletteFilter] = useState<'all' | 'unattempted' | 'flagged' | 'answered'>('all');
 
-  // Mascot Companion Character State
-  const [mascotChar, setMascotChar] = useState<MascotCharacter>(() => {
-    return (localStorage.getItem('exampilot_mascot') as MascotCharacter) || 'bear';
-  });
+  // Mascot Companion Character State — Pip the Owl is ExamPilot's fixed permanent mascot
+  const mascotChar: MascotCharacter = 'owl';
 
   // Available Mock Tests (combined local static and admin published)
   const [availableMocks, setAvailableMocks] = useState<MockTest[]>(() => getAllCombinedMockTests(MOCK_TESTS));
@@ -632,10 +631,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           {/* Animated Mascot Welcome Banner */}
           <div className="flex justify-center">
             <CartoonMascot
-              character={mascotChar}
+              character="owl"
               state="welcoming"
               size="md"
-              onCharacterChange={(c) => setMascotChar(c)}
             />
           </div>
 
@@ -648,7 +646,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               Student Examination Portal
             </h1>
             <p className="text-xs text-muted">
-              Choose your mascot buddy, sign in with Google or credentials to take your unique mock test!
+              Pip the Owl is ready to guide you! Sign in with Google or your credentials to access your mock tests.
             </p>
           </div>
 
@@ -805,13 +803,76 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     const currentQ = allQuestions[currentIndex]?.question;
     const currentSecName = allQuestions[currentIndex]?.sectionName;
 
+    const answeredCount = Object.values(selectedAnswers).filter(Boolean).length;
+    const flaggedCount = Object.values(flagged).filter(Boolean).length;
+    const unattemptedCount = allQuestions.length - answeredCount;
+
+    // Filter questions in palette if user selects filter
+    const visibleQuestions = allQuestions.map(({ question: q }, idx) => {
+      const isAnswered = Boolean(selectedAnswers[q.id]);
+      const isFlagged = Boolean(flagged[q.id]);
+      return { q, idx, isAnswered, isFlagged };
+    }).filter(({ isAnswered, isFlagged }) => {
+      if (paletteFilter === 'answered') return isAnswered;
+      if (paletteFilter === 'flagged') return isFlagged;
+      if (paletteFilter === 'unattempted') return !isAnswered;
+      return true;
+    });
+
     // Shared by the desktop sidebar and the mobile drawer, so the two can never drift.
     const paletteContent = (
-      <>
-        <div className="grid grid-cols-5 gap-1.5">
-          {allQuestions.map(({ question: q }, idx) => {
-            const isAnswered = Boolean(selectedAnswers[q.id]);
-            const isFlagged = Boolean(flagged[q.id]);
+      <div className="space-y-3">
+        {/* Quick Filter Bar for Palette on Mobile & iPad */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[11px] font-semibold scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setPaletteFilter('all')}
+            className={`px-2.5 py-1 rounded-lg border transition whitespace-nowrap ${
+              paletteFilter === 'all'
+                ? 'bg-primary text-white border-primary shadow-2xs font-bold'
+                : 'bg-subtle text-muted border-line hover:text-ink'
+            }`}
+          >
+            All ({allQuestions.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaletteFilter('unattempted')}
+            className={`px-2.5 py-1 rounded-lg border transition whitespace-nowrap ${
+              paletteFilter === 'unattempted'
+                ? 'bg-primary text-white border-primary shadow-2xs font-bold'
+                : 'bg-subtle text-muted border-line hover:text-ink'
+            }`}
+          >
+            Unattempted ({unattemptedCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaletteFilter('flagged')}
+            className={`px-2.5 py-1 rounded-lg border transition whitespace-nowrap ${
+              paletteFilter === 'flagged'
+                ? 'bg-amber-500 text-white border-amber-500 shadow-2xs font-bold'
+                : 'bg-subtle text-muted border-line hover:text-ink'
+            }`}
+          >
+            Flagged ({flaggedCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setPaletteFilter('answered')}
+            className={`px-2.5 py-1 rounded-lg border transition whitespace-nowrap ${
+              paletteFilter === 'answered'
+                ? 'bg-primary-fixed text-primary border-primary-fixed-dim shadow-2xs font-bold'
+                : 'bg-subtle text-muted border-line hover:text-ink'
+            }`}
+          >
+            Answered ({answeredCount})
+          </button>
+        </div>
+
+        {/* Responsive Question Numbers Grid: 5 cols on phone portrait, 6 on wider phone, 8-10 on iPad, 5 on desktop sidebar */}
+        <div className="grid grid-cols-5 xs:grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-5 gap-1.5 sm:gap-2">
+          {visibleQuestions.map(({ q, idx, isAnswered, isFlagged }) => {
             const isCurrent = idx === currentIndex;
 
             // Exam mode: the palette must not leak correctness either.
@@ -833,7 +894,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                 }}
                 aria-current={isCurrent ? 'true' : undefined}
                 aria-label={`Go to question ${idx + 1}${isFlagged ? ', flagged for review' : ''}${isAnswered ? ', answered' : ', not answered'}`}
-                className={`h-9 rounded-lg border text-xs font-mono transition flex items-center justify-center ${colorClass}`}
+                className={`h-9 sm:h-10 rounded-lg border text-xs font-mono font-bold transition flex items-center justify-center ${colorClass}`}
               >
                 {idx + 1}
               </button>
@@ -841,21 +902,21 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           })}
         </div>
 
-        <div className="pt-4 border-t border-line text-[11px] space-y-1.5 text-muted">
+        <div className="pt-3 border-t border-line text-[11px] space-y-1.5 text-muted">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded bg-primary-fixed border border-primary-fixed-dim" />
-            <span>Answered ({Object.values(selectedAnswers).filter(Boolean).length})</span>
+            <span>Answered ({answeredCount})</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded bg-amber-500/15 border border-amber-500/30" />
-            <span>Flagged for Review ({Object.values(flagged).filter(Boolean).length})</span>
+            <span>Flagged for Review ({flaggedCount})</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 rounded bg-subtle border border-line" />
-            <span>Unattempted ({allQuestions.length - Object.values(selectedAnswers).filter(Boolean).length})</span>
+            <span>Unattempted ({unattemptedCount})</span>
           </div>
         </div>
-      </>
+      </div>
     );
     const formatTime = (secs: number) => {
       const h = Math.floor(secs / 3600);
@@ -868,26 +929,26 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     return (
       <div className="h-screen w-screen flex flex-col bg-canvas text-ink overflow-hidden">
         {/* CBT Top Bar */}
-        <header className="h-14 border-b border-line bg-card flex items-center justify-between px-4 sm:px-6 flex-shrink-0 z-20">
-          <div className="flex items-center gap-3">
-            <span className="font-display font-bold text-sm text-ink truncate max-w-xs sm:max-w-md">
+        <header className="h-14 border-b border-line bg-card flex items-center justify-between px-2.5 sm:px-6 flex-shrink-0 z-20">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <span className="font-display font-bold text-xs sm:text-sm text-ink truncate max-w-[130px] xs:max-w-[200px] sm:max-w-xs md:max-w-md">
               {activeMock.title}
             </span>
-            <span className="hidden sm:inline px-2 py-0.5 rounded bg-subtle text-muted text-[11px] font-medium">
+            <span className="hidden md:inline px-2 py-0.5 rounded bg-subtle text-muted text-[11px] font-medium flex-shrink-0">
               {allQuestions.length} Questions · {activeMock.totalMarks} Marks
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Question palette — the sidebar is hidden on small screens */}
+          <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+            {/* Question palette — sidebar toggle for mobile & tablet */}
             <button
               type="button"
               onClick={() => setShowPaletteMobile(true)}
               aria-label="Open question palette"
-              className="lg:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-line text-xs text-muted hover:text-ink transition"
+              className="lg:hidden flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-xl border border-line text-xs text-muted hover:text-ink transition"
             >
               <Layers className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Palette</span>
+              <span className="font-mono text-[11px] font-bold text-primary">{answeredCount}/{allQuestions.length}</span>
             </button>
 
             {/* Cancel Test Option */}
@@ -895,11 +956,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               size="sm"
               variant="outline"
               onClick={() => setShowConfirmCancel(true)}
-              className="border-danger/40 text-danger-text hover:bg-danger-surface transition"
+              className="border-danger/40 text-danger-text hover:bg-danger-surface transition px-2 sm:px-2.5 text-xs"
               icon={<X className="w-3.5 h-3.5" />}
             >
-              <span className="hidden sm:inline">Cancel Test</span>
-              <span className="sm:hidden">Cancel</span>
+              <span className="hidden sm:inline">Cancel</span>
             </Button>
 
             {/* Timer */}
@@ -907,7 +967,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               role="timer"
               aria-live="polite"
               aria-label={`Time remaining ${formatTime(timeLeft)}`}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-xl border text-xs font-mono font-bold ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-xl border text-xs font-mono font-bold ${
                 timeLeft < 300 ? 'bg-danger-surface border-danger-border text-danger-text animate-pulse' : 'bg-subtle border-line text-ink'
               }`}
             >
@@ -918,234 +978,241 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
             <Button
               size="sm"
               onClick={() => setShowConfirmSubmit(true)}
-              className="bg-primary text-white shadow-sm font-semibold"
+              className="bg-primary text-white shadow-sm font-semibold text-xs sm:text-sm px-2.5 sm:px-3.5"
             >
-              Submit Test
+              <span className="hidden xs:inline">Submit Test</span>
+              <span className="xs:hidden">Submit</span>
             </Button>
           </div>
         </header>
 
         {/* Exam Body */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Question area */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
-            <div className="flex items-center justify-between text-xs text-muted pb-2 border-b border-line">
-              <span className="font-bold text-primary">
-                Question {currentIndex + 1} of {allQuestions.length}
-              </span>
-              <span>{currentSecName}</span>
-              <span className="font-mono text-ink font-semibold">
-                +{activeMock.totalMarks / allQuestions.length} / -{activeMock.negativeMarksPerIncorrect}
-              </span>
-            </div>
+          {/* Main Column: Question area and persistent sticky bottom navigation bar */}
+          <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {/* Scrollable Question area */}
+            <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 space-y-5">
+              <div className="flex items-center justify-between text-[11px] sm:text-xs text-muted pb-2 border-b border-line gap-2 flex-wrap">
+                <span className="font-bold text-primary">
+                  Question {currentIndex + 1} of {allQuestions.length}
+                </span>
+                <span className="truncate max-w-[160px] sm:max-w-none">{currentSecName}</span>
+                <span className="font-mono text-ink font-semibold flex-shrink-0">
+                  +{Number((activeMock.totalMarks / allQuestions.length).toFixed(2))} / -{activeMock.negativeMarksPerIncorrect}
+                </span>
+              </div>
 
-            {currentQ && (
-              <div className="space-y-6">
-                <QuestionStemFormatter stem={currentQ.stem} />
+              {currentQ && (
+                <div className="space-y-5 sm:space-y-6">
+                  <QuestionStemFormatter stem={currentQ.stem} />
 
-                {/* Options A, B, C, D — interactive instant feedback on choice */}
-                <div className="space-y-2.5 max-w-2xl">
-                  {currentQ.options.map((opt) => {
+                  {/* Options A, B, C, D — touch-friendly tap targets and instant feedback */}
+                  <div className="space-y-2.5 max-w-2xl">
+                    {currentQ.options.map((opt) => {
+                      const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
+                      const userChoice = selectedAnswers[currentQ.id];
+                      const hasAnswered = Boolean(userChoice);
+                      const isThisSelected = normalize(userChoice) === normalize(opt.id);
+                      const isThisCorrect = normalize(opt.id) === normalize(currentQ.correctOption);
+
+                      let optStyle = 'border-line hover:border-line-strong bg-card text-ink';
+                      if (hasAnswered) {
+                        if (isThisCorrect) {
+                          optStyle = 'border-success bg-success-surface text-success-text font-bold ring-2 ring-success/30';
+                        } else if (isThisSelected && !isThisCorrect) {
+                          optStyle = 'border-danger bg-danger-surface text-danger-text line-through font-semibold ring-2 ring-danger/30';
+                        } else {
+                          optStyle = 'border-line bg-card/60 text-muted opacity-70';
+                        }
+                      }
+
+                      return (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: opt.id }))}
+                          aria-pressed={isThisSelected}
+                          className={`w-full p-3 sm:p-4 rounded-xl border-2 text-left text-xs sm:text-sm transition flex items-start gap-2.5 sm:gap-3 min-h-[48px] cursor-pointer ${optStyle}`}
+                        >
+                          <span className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 mt-0.5 ${
+                            hasAnswered && isThisCorrect
+                              ? 'bg-success text-white'
+                              : hasAnswered && isThisSelected && !isThisCorrect
+                              ? 'bg-danger text-white'
+                              : isThisSelected
+                              ? 'bg-primary text-white'
+                              : 'bg-subtle text-muted'
+                          }`}>
+                            {opt.id}
+                          </span>
+                          <span className="flex-1 min-w-0 break-words leading-relaxed">{opt.text}</span>
+
+                          {hasAnswered && isThisCorrect && (
+                            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-success-text bg-success-surface px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-success-border flex-shrink-0 self-center">
+                              <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-success-text flex-shrink-0" />
+                              <span>Correct</span>
+                            </span>
+                          )}
+                          {hasAnswered && isThisSelected && !isThisCorrect && (
+                            <span className="flex items-center gap-1 text-[11px] sm:text-xs font-bold text-danger-text bg-danger-surface px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-danger-border flex-shrink-0 self-center">
+                              <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-danger-text flex-shrink-0" />
+                              <span>Your Choice</span>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Instant Answer & Detailed Explanation Panel */}
+                  {selectedAnswers[currentQ.id] && (() => {
                     const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
                     const userChoice = selectedAnswers[currentQ.id];
-                    const hasAnswered = Boolean(userChoice);
-                    const isThisSelected = normalize(userChoice) === normalize(opt.id);
-                    const isThisCorrect = normalize(opt.id) === normalize(currentQ.correctOption);
-
-                    let optStyle = 'border-line hover:border-line-strong bg-card text-ink';
-                    if (hasAnswered) {
-                      if (isThisCorrect) {
-                        optStyle = 'border-success bg-success-surface text-success-text font-bold ring-2 ring-success/30';
-                      } else if (isThisSelected && !isThisCorrect) {
-                        optStyle = 'border-danger bg-danger-surface text-danger-text line-through font-semibold ring-2 ring-danger/30';
-                      } else {
-                        optStyle = 'border-line bg-card/60 text-muted opacity-70';
-                      }
-                    }
+                    const isUserCorrect = normalize(userChoice) === normalize(currentQ.correctOption);
+                    const correctOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(currentQ.correctOption));
+                    const userOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(userChoice));
+                    const marksForThisQ = Number((activeMock.totalMarks / allQuestions.length).toFixed(2));
 
                     return (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: opt.id }))}
-                        aria-pressed={isThisSelected}
-                        className={`w-full p-4 rounded-xl border-2 text-left text-xs sm:text-sm transition flex items-center gap-3 ${optStyle}`}
-                      >
-                        <span className={`w-7 h-7 rounded-lg font-mono font-bold flex items-center justify-center text-xs flex-shrink-0 ${
-                          hasAnswered && isThisCorrect
-                            ? 'bg-success text-white'
-                            : hasAnswered && isThisSelected && !isThisCorrect
-                            ? 'bg-danger text-white'
-                            : isThisSelected
-                            ? 'bg-primary text-white'
-                            : 'bg-subtle text-muted'
-                        }`}>
-                          {opt.id}
-                        </span>
-                        <span className="flex-1">{opt.text}</span>
+                      <div className={`max-w-2xl space-y-3.5 sm:space-y-4 rounded-2xl border-2 p-3.5 sm:p-5 transition-all shadow-md animate-fadeIn ${
+                        isUserCorrect
+                          ? 'bg-success-surface/80 border-success-border text-ink'
+                          : 'bg-danger-surface/40 border-danger-border text-ink'
+                      }`}>
+                        {/* Result Status Header */}
+                        <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-line">
+                          <div className="flex items-center gap-2">
+                            {isUserCorrect ? (
+                              <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-success text-white font-bold text-xs shadow-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> Correct (+{marksForThisQ} Marks)
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-danger text-white font-bold text-xs shadow-xs">
+                                <XCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" /> Incorrect (-{activeMock.negativeMarksPerIncorrect} Penalty)
+                              </span>
+                            )}
+                          </div>
 
-                        {hasAnswered && isThisCorrect && (
-                          <span className="flex items-center gap-1 text-xs font-bold text-success-text bg-success-surface px-2.5 py-1 rounded-lg border border-success-border">
-                            <Check className="w-4 h-4 text-success-text flex-shrink-0" />
-                            <span>Correct</span>
-                          </span>
-                        )}
-                        {hasAnswered && isThisSelected && !isThisCorrect && (
-                          <span className="flex items-center gap-1 text-xs font-bold text-danger-text bg-danger-surface px-2.5 py-1 rounded-lg border border-danger-border">
-                            <XCircle className="w-4 h-4 text-danger-text flex-shrink-0" />
-                            <span>Your Choice</span>
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Instant Answer & Detailed Explanation Panel */}
-                {selectedAnswers[currentQ.id] && (() => {
-                  const normalize = (val?: string | null) => (val ? String(val).trim().toUpperCase() : '');
-                  const userChoice = selectedAnswers[currentQ.id];
-                  const isUserCorrect = normalize(userChoice) === normalize(currentQ.correctOption);
-                  const correctOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(currentQ.correctOption));
-                  const userOptObj = currentQ.options.find((o) => normalize(o.id) === normalize(userChoice));
-                  const marksForThisQ = Number((activeMock.totalMarks / allQuestions.length).toFixed(2));
-
-                  return (
-                    <div className={`max-w-2xl space-y-4 rounded-2xl border-2 p-5 transition-all shadow-md animate-fadeIn ${
-                      isUserCorrect
-                        ? 'bg-success-surface/80 border-success-border text-ink'
-                        : 'bg-danger-surface/40 border-danger-border text-ink'
-                    }`}>
-                      {/* Result Status Header */}
-                      <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-line">
-                        <div className="flex items-center gap-2">
-                          {isUserCorrect ? (
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-success text-white font-bold text-xs shadow-xs">
-                              <CheckCircle2 className="w-4 h-4" /> Correct Answer (+{marksForThisQ} Marks)
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-danger text-white font-bold text-xs shadow-xs">
-                              <XCircle className="w-4 h-4" /> Incorrect (-{activeMock.negativeMarksPerIncorrect} Penalty)
-                            </span>
-                          )}
-                        </div>
-
-                        <span className="text-[11px] font-semibold text-muted">
-                          Topic: <span className="text-ink font-bold">{currentQ.topic || currentQ.subject}</span>
-                        </span>
-                      </div>
-
-                      {/* Correct vs Selected Summary */}
-                      <div className="p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs">
-                        <div className="flex items-start gap-2">
-                          <span className="font-bold text-success-text flex-shrink-0 min-w-[110px]">Correct Option:</span>
-                          <span className="font-bold text-ink">
-                            Option {currentQ.correctOption} — {correctOptObj?.text || ''}
+                          <span className="text-[11px] font-semibold text-muted">
+                            Topic: <span className="text-ink font-bold">{currentQ.topic || currentQ.subject}</span>
                           </span>
                         </div>
-                        {!isUserCorrect && (
+
+                        {/* Correct vs Selected Summary */}
+                        <div className="p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs">
                           <div className="flex items-start gap-2">
-                            <span className="font-bold text-danger-text flex-shrink-0 min-w-[110px]">Your Answer:</span>
-                            <span className="text-muted line-through font-medium">
-                              Option {userChoice} — {userOptObj?.text || ''}
+                            <span className="font-bold text-success-text flex-shrink-0 min-w-[95px] sm:min-w-[110px]">Correct Option:</span>
+                            <span className="font-bold text-ink flex-1 min-w-0 break-words">
+                              Option {currentQ.correctOption} — {correctOptObj?.text || ''}
                             </span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Mascot Reaction */}
-                      <div className="py-1 flex items-center justify-between">
-                        <CartoonMascot
-                          character={mascotChar}
-                          state={isUserCorrect ? 'celebrating' : 'cheer_up'}
-                          size="sm"
-                          onCharacterChange={(c) => setMascotChar(c)}
-                        />
-                        <span className="text-[11px] text-muted italic">
-                          {isUserCorrect ? 'Great job! Keep the momentum going.' : "Don't worry, review the explanation below to master this concept."}
-                        </span>
-                      </div>
-
-                      {/* Formula Context (if available) */}
-                      {currentQ.formulaContext && (
-                        <div className="p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
-                          <span className="font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">Formula / Law:</span>
-                          <span className="flex-1">{currentQ.formulaContext}</span>
-                          {currentQ.answerUnit && (
-                            <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[11px] text-indigo-700 dark:text-indigo-300">
-                              Unit: {currentQ.answerUnit}
-                            </span>
+                          {!isUserCorrect && (
+                            <div className="flex items-start gap-2">
+                              <span className="font-bold text-danger-text flex-shrink-0 min-w-[95px] sm:min-w-[110px]">Your Answer:</span>
+                              <span className="text-muted line-through font-medium flex-1 min-w-0 break-words">
+                                Option {userChoice} — {userOptObj?.text || ''}
+                              </span>
+                            </div>
                           )}
                         </div>
-                      )}
 
-                      {/* Step-by-Step Solution (if available) */}
-                      {currentQ.solutionSteps && currentQ.solutionSteps.length > 0 && (
-                        <div className="space-y-2 pt-1">
-                          <div className="text-[11px] font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
-                            <span>Step-by-Step Working:</span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {currentQ.solutionSteps.map((step, sIdx) => (
-                              <div key={sIdx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface border border-line text-xs text-ink">
-                                <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
-                                  {sIdx + 1}
-                                </span>
-                                <span className="leading-relaxed font-mono">{step}</span>
-                              </div>
-                            ))}
-                          </div>
+                        {/* Mascot Reaction with Pip */}
+                        <div className="py-1 flex items-center justify-between gap-2 flex-wrap">
+                          <CartoonMascot
+                            character="owl"
+                            state={isUserCorrect ? 'celebrating' : 'cheer_up'}
+                            size="sm"
+                          />
+                          <span className="text-[11px] text-muted italic flex-1 min-w-0">
+                            {isUserCorrect ? 'Great job! Keep the momentum going.' : "Don't worry, review the explanation below to master this concept."}
+                          </span>
                         </div>
-                      )}
 
-                      {/* Full Official Solution Explanation */}
-                      <div className="pt-2 border-t border-line text-xs sm:text-sm text-ink leading-relaxed">
-                        <div className="font-bold text-primary mb-1.5 flex items-center gap-1.5 text-xs uppercase tracking-wider">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Official Solution &amp; Explanation:</span>
+                        {/* Formula Context (if available) */}
+                        {currentQ.formulaContext && (
+                          <div className="p-3 sm:p-3.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 text-xs font-mono text-indigo-800 dark:text-indigo-200 flex items-center gap-2 overflow-x-auto">
+                            <span className="font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">Formula / Law:</span>
+                            <span className="flex-1 whitespace-nowrap sm:whitespace-normal">{currentQ.formulaContext}</span>
+                            {currentQ.answerUnit && (
+                              <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900 rounded font-bold text-[10px] sm:text-[11px] text-indigo-700 dark:text-indigo-300 flex-shrink-0">
+                                Unit: {currentQ.answerUnit}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Step-by-Step Solution (if available) */}
+                        {currentQ.solutionSteps && currentQ.solutionSteps.length > 0 && (
+                          <div className="space-y-2 pt-1">
+                            <div className="text-[11px] font-bold uppercase tracking-wider text-muted flex items-center gap-1.5">
+                              <span>Step-by-Step Working:</span>
+                            </div>
+                            <div className="space-y-1.5">
+                              {currentQ.solutionSteps.map((step, sIdx) => (
+                                <div key={sIdx} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface border border-line text-xs text-ink">
+                                  <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    {sIdx + 1}
+                                  </span>
+                                  <span className="leading-relaxed font-mono">{step}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Full Official Solution Explanation */}
+                        <div className="pt-2 border-t border-line text-xs sm:text-sm text-ink leading-relaxed">
+                          <div className="font-bold text-primary mb-1.5 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            <span>Official Solution &amp; Explanation:</span>
+                          </div>
+                          <p className="whitespace-pre-line text-ink bg-surface p-3 sm:p-3.5 rounded-xl border border-line text-xs sm:text-sm leading-relaxed">
+                            {currentQ.explanation || 'Official answer verified per state examination key and standard engineering references.'}
+                          </p>
                         </div>
-                        <p className="whitespace-pre-line text-ink bg-surface p-3.5 rounded-xl border border-line text-xs sm:text-sm leading-relaxed">
-                          {currentQ.explanation || 'Official answer verified per state examination key and standard engineering references.'}
-                        </p>
                       </div>
-                    </div>
-                  );
-                })()}
+                    );
+                  })()}
+                </div>
+              )}
+            </main>
 
-              </div>
-            )}
-
-            {/* Bottom Actions */}
-            <div className="pt-6 border-t border-line flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-2">
+            {/* Persistent Sticky Bottom Action Bar for Mobile, iPad, and Desktop */}
+            <footer className="border-t border-line bg-card/95 backdrop-blur-md px-3 sm:px-6 py-2.5 flex items-center justify-between gap-2 shadow-md flex-shrink-0 z-10">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setFlagged((prev) => ({ ...prev, [currentQ.id]: !prev[currentQ.id] }))}
+                  className="text-xs"
                   icon={<Flag className={`w-3.5 h-3.5 ${flagged[currentQ.id] ? 'fill-warning text-warning' : ''}`} />}
                 >
-                  {flagged[currentQ.id] ? 'Flagged for Review' : 'Mark for Review'}
+                  <span className="hidden sm:inline">{flagged[currentQ.id] ? 'Flagged for Review' : 'Mark for Review'}</span>
+                  <span className="sm:hidden">{flagged[currentQ.id] ? 'Flagged' : 'Flag'}</span>
                 </Button>
                 {selectedAnswers[currentQ.id] && (
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setSelectedAnswers((prev) => ({ ...prev, [currentQ.id]: null }))}
+                    className="text-xs text-muted hover:text-danger-text"
                   >
-                    Clear Response
+                    Clear
                   </Button>
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Button
                   size="sm"
                   variant="outline"
                   disabled={currentIndex === 0}
                   onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                   icon={<ArrowLeft className="w-3.5 h-3.5" />}
+                  className="text-xs"
                 >
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
+                  <span className="sm:hidden">Prev</span>
                 </Button>
                 <Button
                   size="sm"
@@ -1156,17 +1223,22 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                       setShowConfirmSubmit(true);
                     }
                   }}
-                  className="bg-primary text-white"
+                  className="bg-primary text-white text-xs font-bold shadow-sm"
                   iconRight={<ArrowRight className="w-3.5 h-3.5" />}
                 >
-                  {currentIndex === allQuestions.length - 1 ? 'Review & Submit' : 'Save & Next'}
+                  {currentIndex === allQuestions.length - 1 ? 'Review & Submit' : (
+                    <>
+                      <span className="hidden sm:inline">Save &amp; Next</span>
+                      <span className="sm:hidden">Next</span>
+                    </>
+                  )}
                 </Button>
               </div>
-            </div>
-          </main>
+            </footer>
+          </div>
 
           {/* Right: Question Palette Sidebar (desktop) */}
-          <aside className="w-72 border-l border-line bg-card p-4 overflow-y-auto hidden lg:flex flex-col justify-between">
+          <aside className="w-72 border-l border-line bg-card p-4 overflow-y-auto hidden lg:flex flex-col justify-between flex-shrink-0">
             <div className="space-y-4">
               <h3 className="font-semibold text-xs text-ink uppercase tracking-wider">
                 Question Palette ({allQuestions.length})
@@ -1176,7 +1248,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           </aside>
         </div>
 
-        {/* Mobile question palette drawer */}
+        {/* Mobile & iPad question palette drawer */}
         {showPaletteMobile && (
           <div
             role="dialog"
@@ -1188,13 +1260,18 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               type="button"
               aria-label="Close question palette"
               onClick={() => setShowPaletteMobile(false)}
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black/60 backdrop-blur-xs"
             />
-            <div className="absolute inset-x-0 bottom-0 max-h-[70vh] space-y-4 overflow-y-auto rounded-t-3xl border-t border-line bg-card p-4 pb-8 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-xs text-ink uppercase tracking-wider">
-                  Question Palette ({allQuestions.length})
-                </h3>
+            <div className="absolute inset-x-0 bottom-0 max-h-[85vh] sm:max-h-[75vh] space-y-3.5 overflow-y-auto rounded-t-3xl border-t border-line bg-card p-4 pb-8 shadow-2xl animate-slideUp">
+              <div className="flex items-center justify-between pb-2 border-b border-line">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-xs text-ink uppercase tracking-wider">
+                    Question Palette ({allQuestions.length})
+                  </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-primary-fixed text-primary text-[10px] font-bold">
+                    {answeredCount} Answered
+                  </span>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowPaletteMobile(false)}
@@ -1205,7 +1282,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                 </button>
               </div>
               {paletteContent}
-              <Button size="sm" className="w-full" onClick={() => setShowPaletteMobile(false)}>
+              <Button size="sm" className="w-full mt-2" onClick={() => setShowPaletteMobile(false)}>
                 Back to question
               </Button>
             </div>
@@ -1311,26 +1388,28 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   return (
     <div className="min-h-screen w-screen flex flex-col bg-canvas text-ink overflow-x-hidden">
       {/* ── Top Bar ── */}
-      <header className="h-14 border-b border-line bg-card/90 backdrop-blur px-4 sm:px-8 flex items-center justify-between flex-shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm shadow-primary/30">
+      <header className="h-14 border-b border-line bg-card/90 backdrop-blur px-3 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-20 sticky top-0">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-sm font-bold text-white shadow-sm shadow-primary/30 flex-shrink-0">
             EP
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="font-display text-sm font-bold tracking-tight text-ink">
                 ExamPilot
               </span>
-              <span className="rounded bg-primary-fixed border border-primary-fixed-dim text-primary px-1.5 py-0.2 text-[10px] font-bold">
+              <span className="rounded bg-primary-fixed border border-primary-fixed-dim text-primary px-1.5 py-0.2 text-[10px] font-bold hidden sm:inline">
                 Student Portal
               </span>
             </div>
-            <p className="text-[10px] text-muted">{currentUser.email || currentUser.displayName || 'Student'}</p>
+            <p className="text-[10px] text-muted hidden sm:block truncate max-w-[150px] md:max-w-xs">
+              {currentUser.email || currentUser.displayName || 'Student'}
+            </p>
           </div>
         </div>
 
-        {/* Center Tabs: Mock Tests vs Mock Test Review ONLY */}
-        <div className="flex items-center rounded-xl border border-line bg-surface p-0.5 text-xs font-semibold">
+        {/* Center Tabs: Visible on iPad & Desktop (md:flex), hidden on mobile phones (md:hidden) */}
+        <div className="hidden md:flex items-center rounded-xl border border-line bg-surface p-0.5 text-xs font-semibold">
           <button
             onClick={() => { setStudentTab('tests'); setReviewingRecord(null); }}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition ${
@@ -1346,7 +1425,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           <button
             onClick={() => setStudentTab('review')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition ${
-              (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile'
+              (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics'
                 ? 'bg-primary text-white shadow-2xs font-bold'
                 : 'text-muted hover:text-ink'
             }`}
@@ -1386,7 +1465,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         </div>
 
         {/* Right controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <a
             href="/admin"
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-line hover:border-primary hover:text-primary text-xs font-semibold text-muted transition shadow-2xs"
@@ -1407,15 +1486,71 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         </div>
       </header>
 
+      {/* ── Mobile Phone Sticky Bottom Navigation Bar (md:hidden) ── */}
+      <nav aria-label="Mobile Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-card/95 backdrop-blur-md border-t border-line py-1.5 px-3 flex items-center justify-around shadow-lg safe-bottom">
+        <button
+          onClick={() => { setStudentTab('tests'); setReviewingRecord(null); }}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            studentTab === 'tests' && !reviewingRecord
+              ? 'text-primary font-bold'
+              : 'text-muted hover:text-ink'
+          }`}
+        >
+          <BookOpen className={`w-5 h-5 ${studentTab === 'tests' && !reviewingRecord ? 'text-primary' : 'text-muted'}`} />
+          <span className="text-[10px] mt-0.5">Tests</span>
+        </button>
+
+        <button
+          onClick={() => setStudentTab('review')}
+          className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics'
+              ? 'text-primary font-bold'
+              : 'text-muted hover:text-ink'
+          }`}
+        >
+          <Award className={`w-5 h-5 ${(studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics' ? 'text-primary' : 'text-muted'}`} />
+          <span className="text-[10px] mt-0.5">Review</span>
+          {pastRecords.length > 0 && (
+            <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
+              {pastRecords.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          onClick={() => { setStudentTab('profile'); setReviewingRecord(null); }}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            studentTab === 'profile' && !reviewingRecord
+              ? 'text-primary font-bold'
+              : 'text-muted hover:text-ink'
+          }`}
+        >
+          <UserIcon className={`w-5 h-5 ${studentTab === 'profile' && !reviewingRecord ? 'text-primary' : 'text-muted'}`} />
+          <span className="text-[10px] mt-0.5">Profile</span>
+        </button>
+
+        <button
+          onClick={() => { setStudentTab('analytics'); setReviewingRecord(null); }}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            studentTab === 'analytics' && !reviewingRecord
+              ? 'text-primary font-bold'
+              : 'text-muted hover:text-ink'
+          }`}
+        >
+          <BarChart2 className={`w-5 h-5 ${studentTab === 'analytics' && !reviewingRecord ? 'text-primary' : 'text-muted'}`} />
+          <span className="text-[10px] mt-0.5">Analytics</span>
+        </button>
+      </nav>
+
       {/* ── Main Student Content ── */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6">
+      <main className="flex-1 overflow-y-auto p-3 sm:p-6 lg:p-8 max-w-6xl mx-auto w-full space-y-6 pb-24 md:pb-8">
         {/* ── TAB 1: AVAILABLE MOCK TESTS ── */}
         {studentTab === 'tests' && !reviewingRecord && (
           <div className="space-y-6 animate-fadeIn">
-            <Card flush className="p-6 bg-gradient-to-r from-indigo-500/15 via-pink-500/10 to-amber-500/15 border-indigo-500/25 rounded-3xl shadow-sm">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1.5 max-w-xl">
-                  <div className="flex items-center gap-2 flex-wrap">
+            <Card flush className="p-4 sm:p-6 bg-gradient-to-r from-indigo-500/15 via-pink-500/10 to-amber-500/15 border-indigo-500/25 rounded-3xl shadow-sm">
+              <div className="flex flex-col-reverse sm:flex-row items-center sm:items-start md:items-center justify-between gap-4">
+                <div className="space-y-1.5 max-w-xl text-center sm:text-left">
+                  <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
                     <span className="px-3 py-1 rounded-full bg-indigo-600 text-white font-bold text-xs shadow-xs">
                       ⭐ Student Examination Lounge
                     </span>
@@ -1427,16 +1562,15 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                     Welcome back, {currentUser.displayName || 'Champion'}! 🚀
                   </h2>
                   <p className="text-xs text-muted leading-relaxed">
-                    Select an assigned examination paper below to start your timed CBT test. Each attempt features uniquely shuffled questions and randomized options! Click your mascot companion to switch buddies.
+                    Select an assigned examination paper below to start your timed CBT test. Each attempt features uniquely shuffled questions and randomized options! Pip the Owl is your exam study buddy — tap Pip for encouragement!
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <CartoonMascot
-                    character={mascotChar}
+                    character="owl"
                     state="idle"
                     size="md"
-                    onCharacterChange={(c) => setMascotChar(c)}
                   />
                 </div>
               </div>
@@ -1653,11 +1787,11 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                               </h3>
 
                               {/* Filter Bar */}
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none flex-nowrap shrink-0 max-w-full">
                                 <button
                                   type="button"
                                   onClick={() => setReviewFilter('appeared')}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                                     reviewFilter === 'appeared'
                                       ? 'bg-primary text-white shadow-xs'
                                       : 'bg-subtle text-muted hover:text-ink border border-line'
@@ -1670,7 +1804,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                 <button
                                   type="button"
                                   onClick={() => setReviewFilter('incorrect')}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                                     reviewFilter === 'incorrect'
                                       ? 'bg-danger text-white shadow-xs'
                                       : 'bg-subtle text-muted hover:text-ink border border-line'
@@ -1683,7 +1817,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                 <button
                                   type="button"
                                   onClick={() => setReviewFilter('correct')}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                                     reviewFilter === 'correct'
                                       ? 'bg-success text-white shadow-xs'
                                       : 'bg-subtle text-muted hover:text-ink border border-line'
@@ -1696,7 +1830,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                 <button
                                   type="button"
                                   onClick={() => setReviewFilter('all')}
-                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap flex-shrink-0 ${
                                     reviewFilter === 'all'
                                       ? 'bg-ink text-white dark:bg-card dark:text-ink shadow-xs'
                                       : 'bg-subtle text-muted hover:text-ink border border-line'
@@ -1852,8 +1986,8 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                           }
 
                                           return (
-                                            <div key={opt.id} className={`p-3.5 rounded-xl border flex items-center gap-2.5 transition-all ${optClass}`}>
-                                              <span className={`w-6 h-6 rounded-lg font-mono font-bold text-center leading-6 text-xs flex-shrink-0 ${
+                                            <div key={opt.id} className={`p-3 sm:p-3.5 rounded-xl border flex items-start gap-2.5 transition-all ${optClass}`}>
+                                              <span className={`w-6 h-6 rounded-lg font-mono font-bold text-center leading-6 text-xs flex-shrink-0 mt-0.5 ${
                                                 isThisChosen && isThisCorrect
                                                   ? 'bg-success text-white'
                                                   : isThisChosen && !isThisCorrect
@@ -1864,23 +1998,23 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                                               }`}>
                                                 {opt.id}
                                               </span>
-                                              <span className="flex-1">{opt.text}</span>
+                                              <span className="flex-1 min-w-0 break-words leading-relaxed">{opt.text}</span>
 
                                               {isThisChosen && isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-success px-2 py-0.5 rounded-lg shadow-2xs">
-                                                  <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-success px-2 py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
+                                                  <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                                                   <span>Your Choice &amp; Key</span>
                                                 </span>
                                               )}
                                               {isThisChosen && !isThisCorrect && (
-                                                <span className="flex items-center gap-1 text-[11px] font-bold text-white bg-danger px-2 py-0.5 rounded-lg shadow-2xs">
-                                                  <XCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-white bg-danger px-2 py-0.5 rounded-lg shadow-2xs flex-shrink-0 self-center">
+                                                  <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                                                   <span>Your Choice</span>
                                                 </span>
                                               )}
                                               {isThisCorrect && !isThisChosen && (
-                                                <span className="flex items-center gap-1 text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded-lg border border-success-border">
-                                                  <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                                                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-success-text bg-success-surface px-2 py-0.5 rounded-lg border border-success-border flex-shrink-0 self-center">
+                                                  <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
                                                   <span>Official Key</span>
                                                 </span>
                                               )}

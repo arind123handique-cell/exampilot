@@ -339,8 +339,8 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
         </div>
 
         {/* Tabular Comparison Grid */}
-        <div className="overflow-hidden rounded-xl border border-line bg-card shadow-xs">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto rounded-xl border border-line bg-card shadow-xs">
+          <table className="w-full text-left border-collapse min-w-[280px]">
             <thead>
               <tr className="border-b border-line bg-subtle text-muted uppercase font-bold text-[10px] sm:text-[11px] tracking-wider">
                 <th className="py-2.5 px-3 sm:px-4 w-1/2 border-r border-line">
@@ -410,8 +410,8 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
           </p>
         )}
 
-        <div className="overflow-hidden rounded-xl border border-line bg-card shadow-xs">
-          <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto rounded-xl border border-line bg-card shadow-xs">
+          <table className="w-full text-left border-collapse min-w-[280px]">
             <thead>
               <tr className="border-b border-line bg-subtle text-muted uppercase font-bold text-[10px] sm:text-[11px] tracking-wider">
                 {mdTable.headers.map((h, i) => (

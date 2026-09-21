@@ -59,34 +59,27 @@ export const CartoonMascot: React.FC<CartoonMascotProps> = ({
   interactive = true,
   onCharacterChange
 }) => {
-  const [activeChar, setActiveChar] = useState<MascotCharacter>(character);
+  // Pip the Owl is ExamPilot's fixed, permanent cartoon mascot companion
+  const [activeChar] = useState<MascotCharacter>('owl');
   const [quoteIdx, setQuoteIdx] = useState(0);
-
-  // Sync prop changes
-  React.useEffect(() => {
-    setActiveChar(character);
-  }, [character]);
-
-  const cycleCharacter = () => {
-    if (!interactive) return;
-    const chars: MascotCharacter[] = ['owl', 'fox', 'bunny'];
-    const nextIdx = (chars.indexOf(activeChar) + 1) % chars.length;
-    const nextChar = chars[nextIdx];
-    setActiveChar(nextChar);
-    onCharacterChange?.(nextChar);
-  };
 
   const cycleMessage = () => {
     setQuoteIdx((prev) => (prev + 1) % 3);
   };
 
+  const handlePipClick = () => {
+    if (!interactive) return;
+    cycleMessage();
+    onCharacterChange?.('owl');
+  };
+
   const message = customMessage || MASCOT_MESSAGES[state][quoteIdx % MASCOT_MESSAGES[state].length];
 
-  // Size scale map
+  // Mobile & iPad optimized size scale map
   const sizeMap = {
-    sm: { svg: 'w-16 h-16', bubble: 'text-[11px] max-w-[180px] p-2' },
-    md: { svg: 'w-24 h-24 sm:w-28 sm:h-28', bubble: 'text-xs max-w-[240px] p-2.5' },
-    lg: { svg: 'w-32 h-32 sm:w-40 sm:h-40', bubble: 'text-sm max-w-[300px] p-3.5' }
+    sm: { svg: 'w-12 h-12 sm:w-14 sm:h-14', bubble: 'text-[11px] max-w-[160px] sm:max-w-[200px] p-2' },
+    md: { svg: 'w-16 h-16 sm:w-22 sm:h-22', bubble: 'text-xs max-w-[190px] sm:max-w-[260px] p-2 sm:p-2.5' },
+    lg: { svg: 'w-22 h-22 sm:w-28 sm:h-28', bubble: 'text-xs sm:text-sm max-w-[220px] sm:max-w-[300px] p-2.5 sm:p-3' }
   };
 
   const currentSize = sizeMap[size];
@@ -108,8 +101,8 @@ export const CartoonMascot: React.FC<CartoonMascotProps> = ({
         className={`relative cursor-pointer select-none ${currentSize.svg} flex-shrink-0`}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.95 }}
-        onClick={cycleCharacter}
-        title="Click to switch mascot buddy!"
+        onClick={handlePipClick}
+        title="Tap Pip for motivation!"
       >
         {/* State Particle Effects */}
         {state === 'celebrating' && (
@@ -412,7 +405,7 @@ export const CartoonMascot: React.FC<CartoonMascotProps> = ({
 
         {/* Mascot Name Badge Tag */}
         <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap px-1.5 py-0.2 rounded-full bg-slate-900/85 dark:bg-slate-100 text-white dark:text-slate-900 text-[9px] font-bold shadow-xs">
-          {activeChar === 'owl' ? 'Pip 🦉' : activeChar === 'fox' ? 'Sparky 🦊' : 'Nova 🐰'}
+          Pip 🦉
         </div>
       </motion.div>
 
@@ -422,13 +415,13 @@ export const CartoonMascot: React.FC<CartoonMascotProps> = ({
           key={message}
           initial={{ opacity: 0, scale: 0.9, x: -6 }}
           animate={{ opacity: 1, scale: 1, x: 0 }}
-          className={`relative rounded-2xl border bg-gradient-to-r ${bubbleTone} shadow-sm backdrop-blur ${currentSize.bubble} cursor-pointer select-none`}
+          className={`relative rounded-2xl border bg-gradient-to-r ${bubbleTone} shadow-sm backdrop-blur ${currentSize.bubble} cursor-pointer select-none flex-1 min-w-0`}
           onClick={cycleMessage}
-          title="Click to hear another cheering thought!"
+          title="Click to hear another cheering thought from Pip!"
         >
           {/* Speech bubble pointer notch */}
           <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] border-r-current opacity-30" />
-          <p className="font-semibold leading-snug">
+          <p className="font-semibold leading-tight sm:leading-snug break-words">
             {message}
           </p>
         </motion.div>
