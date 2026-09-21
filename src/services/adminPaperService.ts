@@ -5,10 +5,15 @@ import { notifyDataSync } from './questionBankSyncService';
 import {
   fetchMockTestsFromSupabase,
   fetchDeletedMockTestIdsFromSupabase,
+  fetchHiddenMockTestIdsFromSupabase,
   saveMockTestToSupabase,
   deleteMockTestFromSupabase,
-  restoreDeletedMockTestsInSupabase
+  restoreDeletedMockTestsInSupabase,
+  toggleMockTestPublishStatus,
+  renameMockTestInSupabase
 } from './supabaseMockTestService';
+
+export { toggleMockTestPublishStatus, renameMockTestInSupabase };
 
 const STORAGE_KEY_PAPERS = 'exampilot_admin_published_papers';
 const STORAGE_KEY_MOCKS = 'exampilot_admin_published_mocks';
@@ -189,6 +194,7 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
 
 const STORAGE_KEY_DELETED_MOCKS = 'exampilot_deleted_mock_ids';
 const STORAGE_KEY_DELETED_PAPERS = 'exampilot_deleted_paper_ids';
+const STORAGE_KEY_HIDDEN_MOCKS = 'exampilot_hidden_mock_ids';
 
 export function getDeletedMockIds(): Set<string> {
   const raw = getLocal<string[]>(STORAGE_KEY_DELETED_MOCKS, []);
@@ -197,6 +203,11 @@ export function getDeletedMockIds(): Set<string> {
 
 export function getDeletedPaperIds(): Set<string> {
   const raw = getLocal<string[]>(STORAGE_KEY_DELETED_PAPERS, []);
+  return new Set(Array.isArray(raw) ? raw : []);
+}
+
+export function getHiddenMockIds(): Set<string> {
+  const raw = getLocal<string[]>(STORAGE_KEY_HIDDEN_MOCKS, []);
   return new Set(Array.isArray(raw) ? raw : []);
 }
 
@@ -320,8 +331,12 @@ export function getAllCombinedPapers(basePapers: PYQPaper[]): PYQPaper[] {
 /**
  * Helper to combine base static mock tests with all dynamically published admin mock tests
  */
-export function getAllCombinedMockTests(baseMocks: MockTest[]): MockTest[] {
+export function getAllCombinedMockTests(
+  baseMocks: MockTest[],
+  options?: { studentsOnly?: boolean }
+): MockTest[] {
   const deletedMockIds = getDeletedMockIds();
+  const hiddenMockIds = getHiddenMockIds();
   const adminMocks = getAdminPublishedMockTests().filter((m) => !deletedMockIds.has(m.id));
   const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []).filter(
     (m) => !deletedMockIds.has(m.id)
@@ -332,18 +347,31 @@ export function getAllCombinedMockTests(baseMocks: MockTest[]): MockTest[] {
   const baseFiltered = (baseMocks || []).filter(
     (m) => !dynamicIds.has(m.id) && !deletedMockIds.has(m.id)
   );
-  return [...allDynamic, ...baseFiltered];
+  let combined = [...allDynamic, ...baseFiltered];
+
+  if (options?.studentsOnly) {
+    combined = combined.filter(
+      (m) => m.isPublishedToStudents !== false && !hiddenMockIds.has(m.id)
+    );
+  }
+
+  return combined;
 }
 
 /**
  * Asynchronously fetch and synchronize mock tests from Supabase PostgreSQL,
- * filtering out any deleted / blacklisted mock tests across all ports and sessions.
+ * filtering out any deleted / blacklisted mock tests across all ports and sessions,
+ * and filtering draft/hidden tests when fetching for students.
  */
-export async function fetchAndSyncMockTests(baseMocks: MockTest[]): Promise<MockTest[]> {
+export async function fetchAndSyncMockTests(
+  baseMocks: MockTest[],
+  options?: { studentsOnly?: boolean }
+): Promise<MockTest[]> {
   try {
-    const [supabaseMocks, deletedIds] = await Promise.all([
-      fetchMockTestsFromSupabase(),
-      fetchDeletedMockTestIdsFromSupabase()
+    const [supabaseMocks, deletedIds, hiddenIds] = await Promise.all([
+      fetchMockTestsFromSupabase(options),
+      fetchDeletedMockTestIdsFromSupabase(),
+      fetchHiddenMockTestIdsFromSupabase()
     ]);
 
     // Local dynamic records
@@ -357,34 +385,52 @@ export async function fetchAndSyncMockTests(baseMocks: MockTest[]): Promise<Mock
     // 1. Supabase tests (authoritative remote state)
     supabaseMocks.forEach((m) => {
       if (!deletedIds.has(m.id)) {
-        mockMap.set(m.id, m);
+        if (hiddenIds.has(m.id)) {
+          m.isPublishedToStudents = false;
+        }
+        if (!options?.studentsOnly || (m.isPublishedToStudents !== false && !hiddenIds.has(m.id))) {
+          mockMap.set(m.id, m);
+        }
       }
     });
 
     // 2. Include any local-only draft tests that aren't blacklisted
     [...localAdminMocks, ...localCustomMocks].forEach((m) => {
       if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
-        mockMap.set(m.id, m);
+        if (hiddenIds.has(m.id)) {
+          m.isPublishedToStudents = false;
+        }
+        if (!options?.studentsOnly || (m.isPublishedToStudents !== false && !hiddenIds.has(m.id))) {
+          mockMap.set(m.id, m);
+        }
       }
     });
 
     // 3. Base tests from code: only include if not in Supabase/local AND not blacklisted
     (baseMocks || []).forEach((m) => {
       if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
-        mockMap.set(m.id, m);
+        if (hiddenIds.has(m.id)) {
+          m.isPublishedToStudents = false;
+        }
+        if (!options?.studentsOnly || (m.isPublishedToStudents !== false && !hiddenIds.has(m.id))) {
+          mockMap.set(m.id, m);
+        }
       }
     });
 
     const combined = Array.from(mockMap.values());
 
-    // Update local cache
-    setLocal(STORAGE_KEY_MOCKS, combined);
+    // Update local cache if not studentsOnly
+    if (!options?.studentsOnly) {
+      setLocal(STORAGE_KEY_MOCKS, combined);
+    }
     setLocal(STORAGE_KEY_DELETED_MOCKS, Array.from(deletedIds));
+    setLocal(STORAGE_KEY_HIDDEN_MOCKS, Array.from(hiddenIds));
 
     return combined;
   } catch (err) {
     console.warn('[ExamPilot] fetchAndSyncMockTests warning, falling back to local:', err);
-    return getAllCombinedMockTests(baseMocks);
+    return getAllCombinedMockTests(baseMocks, options);
   }
 }
 

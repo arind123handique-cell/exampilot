@@ -113,15 +113,15 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   // Mascot Companion Character State — Pip the Owl is ExamPilot's fixed permanent mascot
   const mascotChar: MascotCharacter = 'owl';
 
-  // Available Mock Tests (combined local static and admin published via Supabase)
-  const [availableMocks, setAvailableMocks] = useState<MockTest[]>(() => getAllCombinedMockTests(MOCK_TESTS));
+  // Available Mock Tests (only tests published/pushed to students)
+  const [availableMocks, setAvailableMocks] = useState<MockTest[]>(() => getAllCombinedMockTests(MOCK_TESTS, { studentsOnly: true }));
 
   const refreshMocks = useCallback(async () => {
     try {
-      const synced = await fetchAndSyncMockTests(MOCK_TESTS);
+      const synced = await fetchAndSyncMockTests(MOCK_TESTS, { studentsOnly: true });
       setAvailableMocks(synced);
     } catch {
-      setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
+      setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS, { studentsOnly: true }));
     }
   }, []);
 
@@ -139,6 +139,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       refreshMocks();
     });
     return unsubscribe;
+  }, [refreshMocks]);
+
+  // Listen to window custom events from admin actions in same tab
+  useEffect(() => {
+    const handleUpdateEvent = () => refreshMocks();
+    window.addEventListener('exampilot_papers_updated', handleUpdateEvent);
+    return () => window.removeEventListener('exampilot_papers_updated', handleUpdateEvent);
   }, [refreshMocks]);
 
   // Sync when student tab gains focus (e.g. user toggles between Admin and Student)
@@ -160,7 +167,8 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       if (
         e.key === 'exampilot_admin_published_papers' ||
         e.key === 'exampilot_admin_published_mocks' ||
-        e.key === 'exampilot_deleted_mock_ids'
+        e.key === 'exampilot_deleted_mock_ids' ||
+        e.key === 'exampilot_hidden_mock_ids'
       ) {
         refreshMocks();
       }

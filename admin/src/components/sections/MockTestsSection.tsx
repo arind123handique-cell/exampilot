@@ -4,19 +4,24 @@ import {
   Search,
   Plus,
   Edit2,
+  Edit3,
   Trash2,
   Copy,
   CheckCircle2,
   Clock,
   Eye,
-  Archive,
   RefreshCw,
   Sparkles,
   FileText,
   UploadCloud,
   ChevronRight,
   HelpCircle,
-  AlertTriangle
+  AlertTriangle,
+  Globe,
+  EyeOff,
+  Send,
+  Radio,
+  X
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -30,7 +35,9 @@ import {
   updateAdminPublishedMockTest,
   deleteAdminPublishedPaper,
   publishAdminPaper,
-  fetchAndSyncMockTests
+  fetchAndSyncMockTests,
+  toggleMockTestPublishStatus,
+  renameMockTestInSupabase
 } from '@/services/adminPaperService';
 import { subscribeToMockTestChanges } from '@/services/supabaseMockTestService';
 import { MOCK_TESTS } from '@/data/mockData';
@@ -52,22 +59,18 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [branchFilter, setBranchFilter] = useState<'all' | 'civil' | 'gs'>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft' | 'archived'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'live' | 'hidden'>('all');
 
   // Preview & Editor Modals
   const [previewingTest, setPreviewingTest] = useState<MockTest | null>(null);
   const [editingMockId, setEditingMockId] = useState<string | null>(initialSelectedMockId || null);
   const [isPdfIngestorOpen, setIsPdfIngestorOpen] = useState(false);
 
-  // Archive state tracker
-  const [archivedIds, setArchivedIds] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem('exampilot_archived_mock_ids');
-      return raw ? new Set(JSON.parse(raw)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  // Rename modal state
+  const [renamingTest, setRenamingTest] = useState<MockTest | null>(null);
+  const [newTitle, setNewTitle] = useState('');
+  const [newPaperName, setNewPaperName] = useState('');
+  const [isRenaming, setIsRenaming] = useState(false);
 
   // Delete modal state
   const [testToDelete, setTestToDelete] = useState<MockTest | null>(null);
@@ -94,19 +97,67 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
     return unsubscribe;
   }, []);
 
-  const handleToggleArchive = (testId: string) => {
-    setArchivedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(testId)) {
-        next.delete(testId);
-        toastSuccess('Test Restored', 'Mock test returned to active catalog.');
+  const handleTogglePushToStudents = async (test: MockTest) => {
+    const currentStatus = test.isPublishedToStudents !== false;
+    const nextStatus = !currentStatus;
+
+    // Optimistic UI update
+    setMockTests((prev) =>
+      prev.map((t) => (t.id === test.id ? { ...t, isPublishedToStudents: nextStatus } : t))
+    );
+
+    try {
+      await toggleMockTestPublishStatus(test.id, nextStatus, 'admin');
+      if (nextStatus) {
+        toastSuccess(
+          'Pushed to Students!',
+          `"${test.title}" is now LIVE on the Student Portal.`
+        );
       } else {
-        next.add(testId);
-        toastSuccess('Test Archived', 'Mock test archived from student catalog.');
+        toastSuccess(
+          'Hidden from Students',
+          `"${test.title}" is now HIDDEN/DRAFT. Students cannot access it.`
+        );
       }
-      localStorage.setItem('exampilot_archived_mock_ids', JSON.stringify(Array.from(next)));
-      return next;
-    });
+    } catch (err) {
+      console.warn('Toggle push status error:', err);
+      toastError('Action Failed', 'Could not update student publication status.');
+      loadData();
+    }
+  };
+
+  const handleOpenRename = (test: MockTest) => {
+    setRenamingTest(test);
+    setNewTitle(test.title);
+    setNewPaperName(test.paperName || test.title);
+  };
+
+  const handleSaveRename = async () => {
+    if (!renamingTest || !newTitle.trim()) return;
+    setIsRenaming(true);
+    try {
+      const cleanTitle = newTitle.trim();
+      const cleanPaper = newPaperName.trim() || cleanTitle;
+      const success = await renameMockTestInSupabase(renamingTest.id, cleanTitle, cleanPaper);
+
+      if (success) {
+        setMockTests((prev) =>
+          prev.map((t) =>
+            t.id === renamingTest.id
+              ? { ...t, title: cleanTitle, paperName: cleanPaper }
+              : t
+          )
+        );
+        toastSuccess('Mock Test Renamed', `Updated to "${cleanTitle}".`);
+        setRenamingTest(null);
+      } else {
+        toastError('Rename Failed', 'Could not update test name.');
+      }
+    } catch (err: any) {
+      toastError('Rename Failed', err.message || 'An error occurred.');
+    } finally {
+      setIsRenaming(false);
+    }
   };
 
   const handleDuplicateTest = async (test: MockTest) => {
@@ -183,16 +234,15 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
 
     if (statusFilter !== 'all') {
       result = result.filter((t) => {
-        const isArchived = archivedIds.has(t.id);
-        if (statusFilter === 'archived') return isArchived;
-        if (statusFilter === 'published') return !isArchived && !t.id.includes('draft');
-        if (statusFilter === 'draft') return t.id.includes('draft');
+        const isLive = t.isPublishedToStudents !== false;
+        if (statusFilter === 'live') return isLive;
+        if (statusFilter === 'hidden') return !isLive;
         return true;
       });
     }
 
     return result;
-  }, [mockTests, searchQuery, branchFilter, statusFilter, archivedIds]);
+  }, [mockTests, searchQuery, branchFilter, statusFilter]);
 
   // If editing a mock test's sub-heads and sections
   if (editingMockId) {
@@ -275,7 +325,7 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
             ))}
 
             <span className="text-muted-faint font-semibold uppercase text-[10px] ml-2">Status:</span>
-            {(['all', 'published', 'archived'] as const).map((st) => (
+            {(['all', 'live', 'hidden'] as const).map((st) => (
               <button
                 key={st}
                 onClick={() => setStatusFilter(st)}
@@ -285,7 +335,7 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
                     : 'bg-subtle text-muted hover:text-ink'
                 }`}
               >
-                {st.charAt(0).toUpperCase() + st.slice(1)}
+                {st === 'all' ? 'All Tests' : st === 'live' ? 'Live to Students' : 'Draft / Hidden'}
               </button>
             ))}
           </div>
@@ -312,7 +362,7 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
         ) : (
           filteredTests.map((test) => {
             const totalQ = test.sections.reduce((acc, s) => acc + s.questions.length, 0);
-            const isArchived = archivedIds.has(test.id);
+            const isLive = test.isPublishedToStudents !== false;
 
             return (
               <Card
@@ -325,10 +375,16 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
                     <span className="px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-wider">
                       {test.examId}
                     </span>
-                    {isArchived ? (
-                      <Badge size="sm" tone="neutral">Archived</Badge>
+                    {isLive ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] border border-emerald-500/30">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Live to Students
+                      </span>
                     ) : (
-                      <Badge size="sm" tone="success">Live on CBT</Badge>
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 font-semibold text-[11px] border border-amber-500/30">
+                        <EyeOff className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                        Draft / Hidden
+                      </span>
                     )}
                   </div>
 
@@ -364,7 +420,7 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
 
                 {/* Card Action Controls */}
                 <div className="pt-3 border-t border-line flex items-center justify-between gap-1 flex-wrap">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 flex-wrap">
                     <Button
                       size="sm"
                       variant="outline"
@@ -383,9 +439,42 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
                     >
                       Edit
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleOpenRename(test)}
+                      title="Rename mock test title and paper description"
+                      iconLeft={<Edit3 className="w-3.5 h-3.5 text-primary" />}
+                    >
+                      Rename
+                    </Button>
                   </div>
 
                   <div className="flex items-center gap-1">
+                    {/* Push to Students / Hide Toggle Button */}
+                    {isLive ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleTogglePushToStudents(test)}
+                        className="text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/10 text-xs font-semibold"
+                        title="Hide this mock test from students"
+                        iconLeft={<EyeOff className="w-3.5 h-3.5 text-amber-500" />}
+                      >
+                        Hide
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        onClick={() => handleTogglePushToStudents(test)}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs"
+                        title="Push this mock test live to student portal"
+                        iconLeft={<Send className="w-3.5 h-3.5" />}
+                      >
+                        Push
+                      </Button>
+                    )}
+
                     <button
                       onClick={() => handleDuplicateTest(test)}
                       className="p-1.5 rounded-lg text-muted hover:text-ink hover:bg-subtle transition"
@@ -394,18 +483,9 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => handleToggleArchive(test.id)}
-                      className={`p-1.5 rounded-lg transition ${
-                        isArchived ? 'text-indigo-600 bg-indigo-500/10' : 'text-muted hover:text-ink hover:bg-subtle'
-                      }`}
-                      title={isArchived ? 'Unarchive test' : 'Archive test'}
-                    >
-                      <Archive className="w-3.5 h-3.5" />
-                    </button>
-                    <button
                       onClick={() => setTestToDelete(test)}
                       className="p-1.5 rounded-lg text-muted hover:text-danger-text hover:bg-danger/10 transition"
-                      title="Delete mock test"
+                      title="Delete mock test permanently from catalog and student portal"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -515,6 +595,81 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
         tone="danger"
         isLoading={isDeleting}
       />
+
+      {/* Rename Mock Test Modal */}
+      {renamingTest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-fadeIn">
+          <div className="relative w-full max-w-lg rounded-2xl bg-card border border-line shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-line">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Edit3 className="w-4 h-4" />
+                </div>
+                <h2 className="font-display font-bold text-base text-ink">Rename Mock Test</h2>
+              </div>
+              <button
+                onClick={() => setRenamingTest(null)}
+                className="p-1 rounded-lg text-muted hover:text-ink hover:bg-subtle transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-ink mb-1">
+                  Mock Test Title <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. Civil Engineering Full Mock Exam (Paper 14)"
+                  className="w-full h-10 px-3 rounded-xl border border-line bg-surface text-xs text-ink placeholder:text-muted-faint focus:border-primary focus:outline-none"
+                />
+                <p className="text-[11px] text-muted-faint mt-1">
+                  The primary title shown to students in their exam lounge.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-ink mb-1">
+                  Paper Name / Description
+                </label>
+                <input
+                  type="text"
+                  value={newPaperName}
+                  onChange={(e) => setNewPaperName(e.target.value)}
+                  placeholder="e.g. Paper II — Technical Paper (100 MCQs)"
+                  className="w-full h-10 px-3 rounded-xl border border-line bg-surface text-xs text-ink placeholder:text-muted-faint focus:border-primary focus:outline-none"
+                />
+                <p className="text-[11px] text-muted-faint mt-1">
+                  Subtitle describing exam paper series, code, or syllabus.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-line">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setRenamingTest(null)}
+                disabled={isRenaming}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveRename}
+                disabled={!newTitle.trim() || isRenaming}
+                iconLeft={isRenaming ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              >
+                {isRenaming ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -260,6 +260,7 @@ export interface MockTest {
   totalMarks: number;
   negativeMarksPerIncorrect: number;
   sections: MockSection[];
+  isPublishedToStudents?: boolean;
 }
 
 export interface TestSubmission {
