@@ -282,7 +282,10 @@ export const AdminApp: React.FC = () => {
               )}
 
               {activeSection === 'test-maker' && (
-                <CustomMockTestMakerSection onNavigate={handleNavigate} />
+                <CustomMockTestMakerSection
+                  onNavigate={handleNavigate}
+                  initialPayload={navigationPayload}
+                />
               )}
 
               {activeSection === 'question-bank' && (

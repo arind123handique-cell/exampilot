@@ -13,6 +13,7 @@ import { CIVIL_IES_APSC_QUESTIONS } from './civilIesApscBank';
 import { STATEMENT_BASED_QUESTIONS } from './statementQuestions';
 import { CPM_PERT_QUESTIONS } from './cpmPertQuestions';
 import { EXAMVEDA_SOIL_QUESTIONS } from './soilMechanicsExamvedaBank';
+import { APSC_PHED_AE_CIVIL_2025_QUESTIONS } from './apscPhedAeCivilMock';
 // Papers imported by the PYQ exporter (pyq-inbox/import-pyq.bat). Regenerated on
 // every run; the placeholder exports empty arrays, so this import is always safe.
 import { GENERATED_PYQ_PAPERS, GENERATED_PYQ_MOCK_TESTS } from './pyq/generated';
@@ -31,7 +32,8 @@ export {
   CIVIL_IES_APSC_QUESTIONS,
   STATEMENT_BASED_QUESTIONS,
   CPM_PERT_QUESTIONS,
-  EXAMVEDA_SOIL_QUESTIONS
+  EXAMVEDA_SOIL_QUESTIONS,
+  APSC_PHED_AE_CIVIL_2025_QUESTIONS
 };
 
 /**
@@ -47,7 +49,8 @@ export const CIVIL_ENGINEERING_QUESTIONS: MCQQuestion[] = [
   ...CPM_PERT_QUESTIONS,
   ...EXAMVEDA_SOIL_QUESTIONS,
   ...AE_WRD_2025_QUESTIONS,
-  ...UTO_2025_QUESTIONS
+  ...UTO_2025_QUESTIONS,
+  ...APSC_PHED_AE_CIVIL_2025_QUESTIONS
 ];
 
 export const ALL_QUESTIONS: MCQQuestion[] = [
@@ -473,7 +476,70 @@ export const MOCK_TEST_IES_CIVIL: MockTest = {
   ]
 };
 
+// Official APSC AE Civil (PHED) Paper-II Mock Exam (Advt. 31/2025)
+export const MOCK_TEST_APSC_PHED_AE_CIVIL_2025: MockTest = {
+  id: 'mock-apsc-phed-ae-civil-2025',
+  title: 'APSC AE (Civil) PHED Paper-II Official Mock Exam (Advt. 31/2025)',
+  examId: 'apsc-phed-ae-civil-2025',
+  paperName: 'PAPER-II CIVIL ENGINEERING — Bachelor Degree Standard (100 MCQs)',
+  durationMinutes: 120,
+  totalMarks: 100,
+  negativeMarksPerIncorrect: 0.25,
+  sections: [
+    {
+      id: 'sec-apsc-phed-statics',
+      name: 'Module 1: Statics (Q1-10)',
+      totalQuestions: 10,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(0, 10)
+    },
+    {
+      id: 'sec-apsc-phed-dynamics',
+      name: 'Module 2: Dynamics (Q11-18)',
+      totalQuestions: 8,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(10, 18)
+    },
+    {
+      id: 'sec-apsc-phed-kinematics',
+      name: 'Module 3: Kinematics (Q19-26)',
+      totalQuestions: 8,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(18, 26)
+    },
+    {
+      id: 'sec-apsc-phed-kinetics',
+      name: 'Module 4: Kinetics (Q27-36)',
+      totalQuestions: 10,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(26, 36)
+    },
+    {
+      id: 'sec-apsc-phed-som',
+      name: 'Module 5: Strength of Materials (Q37-56)',
+      totalQuestions: 20,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(36, 56)
+    },
+    {
+      id: 'sec-apsc-phed-soil',
+      name: 'Module 6: Soil Mechanics (Q57-72)',
+      totalQuestions: 16,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(56, 72)
+    },
+    {
+      id: 'sec-apsc-phed-fluids',
+      name: 'Module 7: Fluid Mechanics (Q73-88)',
+      totalQuestions: 16,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(72, 88)
+    },
+    {
+      id: 'sec-apsc-phed-surveying',
+      name: 'Module 8: Surveying (Q89-100)',
+      totalQuestions: 12,
+      questions: APSC_PHED_AE_CIVIL_2025_QUESTIONS.slice(88, 100)
+    }
+  ]
+};
+
 export const MOCK_TESTS: MockTest[] = [
+  // Official Syllabus Mock Tests
+  MOCK_TEST_APSC_PHED_AE_CIVIL_2025,
   // Imported PYQ papers come first so a freshly added paper is prominent.
   ...GENERATED_PYQ_MOCK_TESTS,
   MOCK_TEST_AE_WRD_2025,

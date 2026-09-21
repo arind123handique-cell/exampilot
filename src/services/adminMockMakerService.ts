@@ -15,6 +15,7 @@ import { saveCustomQuestions } from './customQuestionDb';
 import { publishAdminPaper, getAdminPublishedPapers, getAllCombinedMockTests } from './adminPaperService';
 import { getActiveAiProvider, logAiGeneration } from './aiProviderManagement';
 import { generateMockTestQuestions, hasLiveAi } from './geminiService';
+import { getSyllabusBlueprintById } from './syllabusBlueprintService';
 
 export type QuestionSourceMode = 'QUESTION_BANK' | 'AI_GENERATED' | 'HYBRID';
 
@@ -46,6 +47,8 @@ export interface CustomMockMakerConfig {
   randomizeOptions: boolean;
   enableFactualGrounding: boolean;
   groundingSources: string[];
+  syllabusBlueprintId?: string;
+  syllabusModules?: string[];
 }
 
 export interface QuestionQcReport {
@@ -212,9 +215,12 @@ export function queryQuestionBank(
   }
 
   // Subject filter
-  if (config.subject && config.subject !== 'ALL') {
-    const subQuery = config.subject.toLowerCase();
-    filtered = filtered.filter((q) => q.subject && q.subject.toLowerCase().includes(subQuery));
+  if (config.subject && config.subject !== 'ALL' && !config.subject.toLowerCase().includes('all')) {
+    const rawSub = config.subject.replace(/^\d+\.\s*/, '').trim().toLowerCase();
+    filtered = filtered.filter((q) => {
+      const qs = (q.subject || '').toLowerCase();
+      return qs.includes(config.subject!.toLowerCase()) || (rawSub.length > 2 && qs.includes(rawSub));
+    });
   }
 
   // Topic filter
@@ -254,7 +260,7 @@ export function queryQuestionBank(
 
   if (remainingNeeded > 0) {
     const unused = shuffle(filtered.filter((q) => !selectedSet.has(q.id)));
-    selectedSet.add(unused.slice(0, remainingNeeded).map((q) => q.id).join(','));
+    unused.slice(0, remainingNeeded).forEach((q) => selectedSet.add(q.id));
   }
 
   const finalPool = filtered.filter((q) => selectedSet.has(q.id));
@@ -362,6 +368,151 @@ export async function assembleCustomMockQuestions(
 
   const targetCount = config.totalQuestionCount;
 
+  // Multi-Module Syllabus Blueprint Assembler
+  const blueprint = config.syllabusBlueprintId ? getSyllabusBlueprintById(config.syllabusBlueprintId) : undefined;
+  if (blueprint && blueprint.modules && blueprint.modules.length > 0) {
+    const activeModules = (config.syllabusModules && config.syllabusModules.length > 0)
+      ? blueprint.modules.filter((m) => config.syllabusModules!.includes(m.id))
+      : blueprint.modules;
+
+    if (activeModules.length > 0) {
+      onProgress?.(`Calibrating test across ${activeModules.length} official syllabus modules...`);
+      const totalWeight = activeModules.reduce((acc, m) => acc + (m.suggestedWeight || 10), 0);
+      const gatheredQuestions: MCQQuestion[] = [];
+      let totalBankCount = 0;
+      let totalAiCount = 0;
+
+      for (let i = 0; i < activeModules.length; i++) {
+        const mod = activeModules[i];
+        const isLast = i === activeModules.length - 1;
+        const modTargetCount = isLast
+          ? Math.max(1, targetCount - gatheredQuestions.length)
+          : Math.max(1, Math.round(targetCount * ((mod.suggestedWeight || 10) / totalWeight)));
+
+        if (modTargetCount <= 0) continue;
+
+        onProgress?.(`Processing Module ${i + 1}/${activeModules.length}: ${mod.name} (${modTargetCount} MCQs)...`);
+
+        let modBank: MCQQuestion[] = [];
+        let modAi: MCQQuestion[] = [];
+
+        if (config.sourceMode === 'QUESTION_BANK') {
+          modBank = queryQuestionBank(masterPool, {
+            branch: config.branch,
+            subject: mod.name,
+            topics: mod.topics,
+            count: modTargetCount,
+            distribution: config.difficultyDistribution,
+            examLevel: config.examLevel
+          });
+          if (modBank.length < modTargetCount) {
+            const needed = modTargetCount - modBank.length;
+            const seen = new Set(modBank.map((q) => q.id));
+            const subPool = masterPool.filter((q) =>
+              !seen.has(q.id) && (
+                q.subject?.toLowerCase().includes(mod.name.toLowerCase().replace(/^\d+\.\s*/, '')) ||
+                mod.topics.some((t) => (q.topic || '').toLowerCase().includes(t.toLowerCase()))
+              )
+            );
+            modBank.push(...subPool.slice(0, needed));
+          }
+        } else if (config.sourceMode === 'AI_GENERATED') {
+          const modConfig = { ...config, subject: mod.name, selectedTopics: mod.topics };
+          try {
+            const res = await generateAiQuestionsForMaker(modConfig, modTargetCount);
+            modAi = res.questions;
+          } catch (e) {
+            modBank = queryQuestionBank(masterPool, {
+              branch: config.branch,
+              subject: mod.name,
+              topics: mod.topics,
+              count: modTargetCount,
+              distribution: config.difficultyDistribution,
+              examLevel: config.examLevel
+            });
+          }
+        } else {
+          // HYBRID
+          const bankRatio = (config.bankQuestionCount || 1) / Math.max(1, config.totalQuestionCount);
+          const modBankTarget = Math.max(1, Math.round(modTargetCount * bankRatio));
+          const modAiTarget = Math.max(0, modTargetCount - modBankTarget);
+
+          modBank = queryQuestionBank(masterPool, {
+            branch: config.branch,
+            subject: mod.name,
+            topics: mod.topics,
+            count: modBankTarget,
+            distribution: config.difficultyDistribution,
+            examLevel: config.examLevel
+          });
+
+          if (modAiTarget > 0) {
+            const modConfig = { ...config, subject: mod.name, selectedTopics: mod.topics };
+            try {
+              const res = await generateAiQuestionsForMaker(modConfig, modAiTarget);
+              modAi = res.questions;
+            } catch (e) {
+              const needed = modAiTarget;
+              const seen = new Set(modBank.map((q) => q.id));
+              const extra = masterPool.filter((q) => !seen.has(q.id)).slice(0, needed);
+              modBank.push(...extra);
+            }
+          }
+        }
+
+        const modCombined = [...modBank, ...modAi].map((q) => ({
+          ...q,
+          subject: mod.name
+        }));
+
+        totalBankCount += modBank.length;
+        totalAiCount += modAi.length;
+        gatheredQuestions.push(...modCombined);
+      }
+
+      const seenIds = new Set<string>();
+      const seenStems = new Set<string>();
+      const finalQuestions: MCQQuestion[] = [];
+
+      for (const q of gatheredQuestions) {
+        const norm = normalizeForComparison(q.stem);
+        if (!seenIds.has(q.id) && !seenStems.has(norm)) {
+          seenIds.add(q.id);
+          seenStems.add(norm);
+          finalQuestions.push(q);
+        }
+      }
+
+      if (finalQuestions.length < targetCount) {
+        const needed = targetCount - finalQuestions.length;
+        const extra = masterPool.filter((q) => !seenIds.has(q.id)).slice(0, needed);
+        finalQuestions.push(...extra);
+      }
+
+      onProgress?.('Running automated AI Quality Control checks across syllabus modules...');
+      const qcReports: Record<string, QuestionQcReport> = {};
+      let passedCount = 0;
+      finalQuestions.forEach((q) => {
+        const report = evaluateQuestionQc(q, masterPool);
+        qcReports[q.id] = report;
+        if (report.passed) passedCount++;
+      });
+
+      const overallQualityScore = finalQuestions.length > 0
+        ? Math.round((passedCount / finalQuestions.length) * 100)
+        : 100;
+
+      return {
+        questions: finalQuestions.slice(0, targetCount),
+        qcReports,
+        overallQualityScore,
+        bankCount: totalBankCount,
+        aiCount: totalAiCount,
+        sourceMode: config.sourceMode
+      };
+    }
+  }
+
   if (config.sourceMode === 'QUESTION_BANK') {
     onProgress?.('Querying existing question bank...');
     bankQuestions = queryQuestionBank(masterPool, {
@@ -456,16 +607,35 @@ export async function finalizeAndPublishCustomMock(
     await saveCustomQuestions(approvedQuestions, 'admin');
   }
 
-  // 2. Build MockSections (default: single cohesive section or split by topics)
-  const sectionId = `sec-${Date.now()}`;
-  const mockSection: MockSection = {
-    id: sectionId,
-    name: `${config.subject || 'Comprehensive'} Section (${approvedQuestions.length} Questions)`,
-    totalQuestions: approvedQuestions.length,
-    questions: config.randomizeQuestions
-      ? [...approvedQuestions].sort(() => Math.random() - 0.5)
-      : approvedQuestions
-  };
+  // 2. Build MockSections (group by module/subject if multi-subject, else single cohesive section)
+  const subjectGroups = new Map<string, MCQQuestion[]>();
+  approvedQuestions.forEach((q) => {
+    const key = q.subject || config.subject || 'Core Engineering Concepts';
+    if (!subjectGroups.has(key)) subjectGroups.set(key, []);
+    subjectGroups.get(key)!.push(q);
+  });
+
+  let mockSections: MockSection[] = [];
+  if (subjectGroups.size > 1) {
+    mockSections = Array.from(subjectGroups.entries()).map(([subj, qs], idx) => ({
+      id: `sec-${Date.now()}-${idx + 1}`,
+      name: `${subj} (${qs.length} MCQs)`,
+      totalQuestions: qs.length,
+      questions: config.randomizeQuestions ? [...qs].sort(() => Math.random() - 0.5) : qs
+    }));
+  } else {
+    const sectionId = `sec-${Date.now()}`;
+    mockSections = [
+      {
+        id: sectionId,
+        name: `${config.subject || 'Comprehensive'} Section (${approvedQuestions.length} Questions)`,
+        totalQuestions: approvedQuestions.length,
+        questions: config.randomizeQuestions
+          ? [...approvedQuestions].sort(() => Math.random() - 0.5)
+          : approvedQuestions
+      }
+    ];
+  }
 
   const mockTestId = `mock-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
   const newMockTest: MockTest = {
@@ -476,7 +646,7 @@ export async function finalizeAndPublishCustomMock(
     durationMinutes: config.durationMinutes,
     totalMarks: approvedQuestions.length * config.marksPerQuestion,
     negativeMarksPerIncorrect: config.negativeMarksPerQuestion,
-    sections: [mockSection]
+    sections: mockSections
   };
 
   // 3. Build PYQPaper record for cloud & local storage publication

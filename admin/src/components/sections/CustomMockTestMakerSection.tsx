@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Sparkles,
   Database,
@@ -36,6 +36,12 @@ import {
   evaluateQuestionQc,
   getMasterQuestionPool
 } from '@/services/adminMockMakerService';
+import {
+  getAllSyllabusBlueprints,
+  getSyllabusBlueprintById,
+  SyllabusBlueprint,
+  SyllabusModule
+} from '@/services/syllabusBlueprintService';
 import { CIVIL_SUBJECTS, UNIVERSAL_EXAMS } from '@/services/universalTaxonomy';
 import { MCQQuestion, MockTest } from '@/types';
 import { useToast } from '@/context/ToastContext';
@@ -43,12 +49,14 @@ import { AdminSectionId } from '../AdminSidebar';
 
 interface CustomMockTestMakerSectionProps {
   onNavigate: (section: AdminSectionId, payload?: any) => void;
+  initialPayload?: any;
 }
 
 const PRESET_COUNTS = [10, 15, 25, 50, 100] as const;
 
 export const CustomMockTestMakerSection: React.FC<CustomMockTestMakerSectionProps> = ({
-  onNavigate
+  onNavigate,
+  initialPayload
 }) => {
   const { success: toastSuccess, error: toastError } = useToast();
 
@@ -123,6 +131,117 @@ export const CustomMockTestMakerSection: React.FC<CustomMockTestMakerSectionProp
       }));
       toastSuccess('Topic Added', `"${newTopic}" added to selected topics.`);
     }
+  };
+
+  // Blueprints State
+  const [blueprints, setBlueprints] = useState<SyllabusBlueprint[]>(() => getAllSyllabusBlueprints());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setBlueprints(getAllSyllabusBlueprints());
+    };
+    window.addEventListener('exampilot_syllabi_updated', handleUpdate);
+    return () => window.removeEventListener('exampilot_syllabi_updated', handleUpdate);
+  }, []);
+
+  const activeBlueprint = useMemo(() => {
+    if (!config.syllabusBlueprintId) return null;
+    return blueprints.find((b) => b.id === config.syllabusBlueprintId) || null;
+  }, [config.syllabusBlueprintId, blueprints]);
+
+  const applySyllabusBlueprint = (bp: SyllabusBlueprint) => {
+    const allTopics = bp.modules.flatMap((m) => m.topics);
+    setConfig((prev) => ({
+      ...prev,
+      testTitle: `${bp.title} — Official CBT Mock Exam`,
+      examId: bp.id,
+      branch: bp.branch,
+      subject: `All ${bp.modules.length} Syllabus Modules`,
+      selectedTopics: allTopics,
+      durationMinutes: bp.durationMinutes,
+      totalQuestionCount: bp.totalQuestions,
+      marksPerQuestion: Number((bp.fullMarks / bp.totalQuestions).toFixed(2)),
+      negativeMarksPerQuestion: bp.negativeMarksPerIncorrect,
+      syllabusBlueprintId: bp.id,
+      syllabusModules: bp.modules.map((m) => m.id),
+      bankQuestionCount: Math.round(bp.totalQuestions * 0.6),
+      aiQuestionCount: Math.round(bp.totalQuestions * 0.4),
+      examLevel: 'State_PSC'
+    }));
+  };
+
+  const clearSyllabusBlueprint = () => {
+    setConfig((prev) => ({
+      ...prev,
+      testTitle: 'APSC AE Civil Engineering Full Mock Exam',
+      examId: 'apsc-ae-civil',
+      branch: 'civil',
+      subject: 'Strength of Materials',
+      selectedTopics: ['Stress & Strain', 'Shear Force & Bending Moment'],
+      durationMinutes: 60,
+      totalQuestionCount: 25,
+      marksPerQuestion: 2,
+      negativeMarksPerQuestion: 0.5,
+      syllabusBlueprintId: undefined,
+      syllabusModules: undefined,
+      bankQuestionCount: 15,
+      aiQuestionCount: 10
+    }));
+  };
+
+  // Synchronize payload or default official syllabus
+  useEffect(() => {
+    const targetId = initialPayload?.syllabusId || 'apsc-phed-ae-civil-2025';
+    const bp = getSyllabusBlueprintById(targetId);
+    if (bp) {
+      applySyllabusBlueprint(bp);
+    }
+  }, [initialPayload]);
+
+  const handleToggleModule = (moduleId: string) => {
+    if (!activeBlueprint) return;
+    const mod = activeBlueprint.modules.find((m) => m.id === moduleId);
+    if (!mod) return;
+
+    const currentModules = config.syllabusModules || activeBlueprint.modules.map((m) => m.id);
+    const isSelected = currentModules.includes(moduleId);
+    let updatedModules: string[];
+    let updatedTopics: string[];
+
+    if (isSelected) {
+      updatedModules = currentModules.filter((id) => id !== moduleId);
+      const modTopicsSet = new Set(mod.topics);
+      updatedTopics = config.selectedTopics.filter((t) => !modTopicsSet.has(t));
+    } else {
+      updatedModules = [...currentModules, moduleId];
+      const newTopics = mod.topics.filter((t) => !config.selectedTopics.includes(t));
+      updatedTopics = [...config.selectedTopics, ...newTopics];
+    }
+
+    setConfig((prev) => ({
+      ...prev,
+      syllabusModules: updatedModules,
+      selectedTopics: updatedTopics
+    }));
+  };
+
+  const handleSelectAllModules = () => {
+    if (!activeBlueprint) return;
+    const allModuleIds = activeBlueprint.modules.map((m) => m.id);
+    const allTopics = activeBlueprint.modules.flatMap((m) => m.topics);
+    setConfig((prev) => ({
+      ...prev,
+      syllabusModules: allModuleIds,
+      selectedTopics: allTopics
+    }));
+  };
+
+  const handleDeselectAllModules = () => {
+    setConfig((prev) => ({
+      ...prev,
+      syllabusModules: [],
+      selectedTopics: []
+    }));
   };
 
   const handleToggleTopic = (topic: string) => {
@@ -311,6 +430,68 @@ export const CustomMockTestMakerSection: React.FC<CustomMockTestMakerSectionProp
             </p>
           </div>
 
+          {/* Syllabus Blueprint Preset Selector */}
+          <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  <span className="font-bold text-xs text-ink">Official Examination Syllabus Blueprint</span>
+                  <Badge variant="primary" className="text-[10px]">CBT Ingestion Ready</Badge>
+                </div>
+                <p className="text-[11px] text-muted">
+                  Select an official exam blueprint to auto-calibrate modules, marks, timing (-0.25 negative), and question counts.
+                </p>
+              </div>
+              <select
+                value={config.syllabusBlueprintId || 'none'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === 'none') {
+                    clearSyllabusBlueprint();
+                  } else {
+                    const bp = blueprints.find((b) => b.id === val);
+                    if (bp) applySyllabusBlueprint(bp);
+                  }
+                }}
+                className="h-9 px-3 rounded-xl border border-primary/30 bg-surface text-xs font-semibold text-primary focus:outline-none"
+              >
+                <option value="none">-- Custom Ad-Hoc Test (Single Subject) --</option>
+                {blueprints.map((bp) => (
+                  <option key={bp.id} value={bp.id}>
+                    {bp.isOfficial ? '★ ' : ''}{bp.title} ({bp.totalQuestions} MCQs · {bp.durationMinutes}m)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {activeBlueprint && (
+              <div className="p-3.5 rounded-xl bg-surface/90 border border-line flex items-center justify-between flex-wrap gap-3 text-xs">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-ink">{activeBlueprint.paper}</span>
+                    <Badge variant="secondary" className="text-[10px] uppercase font-bold">{activeBlueprint.standard}</Badge>
+                  </div>
+                  <div className="text-[11px] text-muted flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-ink">{activeBlueprint.examAgency}</span>
+                    <span>•</span>
+                    <span>{activeBlueprint.advertNo || 'Official Standard'}</span>
+                    <span>•</span>
+                    <span className="text-primary font-semibold">{activeBlueprint.modules.length} Core Modules Calibrated</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="subtle" className="font-mono text-[11px] px-2.5 py-1">
+                    {activeBlueprint.totalQuestions} MCQs | {activeBlueprint.durationMinutes} min
+                  </Badge>
+                  <Badge variant="outline" className="font-mono text-[11px] text-danger border-danger/30 px-2.5 py-1">
+                    -{activeBlueprint.negativeMarksPerIncorrect} Neg
+                  </Badge>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Test Title */}
             <div className="space-y-1.5 md:col-span-2">
@@ -364,6 +545,11 @@ export const CustomMockTestMakerSection: React.FC<CustomMockTestMakerSectionProp
                 onChange={(e) => setConfig({ ...config, subject: e.target.value, selectedTopics: [] })}
                 className="w-full h-10 px-3.5 rounded-xl border border-line bg-surface text-xs text-ink"
               >
+                {activeBlueprint && (
+                  <option value={`All ${activeBlueprint.modules.length} Syllabus Modules`}>
+                    All {activeBlueprint.modules.length} Syllabus Modules (Balanced Distribution)
+                  </option>
+                )}
                 {CIVIL_SUBJECTS.map((s) => (
                   <option key={s.id} value={s.name}>
                     {s.name}
@@ -623,91 +809,191 @@ export const CustomMockTestMakerSection: React.FC<CustomMockTestMakerSectionProp
             </div>
           </div>
 
-          {/* Topic Hierarchy Browser */}
-          <div className="space-y-3 pt-2 border-t border-line">
-            <div className="flex items-center justify-between">
-              <div>
-                <label className="text-xs font-semibold text-ink">
-                  Select Topics from {config.subject} Hierarchy
-                </label>
-                <p className="text-[11px] text-muted">Click to toggle topics included in question generation.</p>
+          {/* Syllabus Modules or Single-Subject Topic Browser */}
+          {activeBlueprint ? (
+            <div className="space-y-4 pt-2 border-t border-line">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs font-bold text-ink">
+                      Official Syllabus Modules ({activeBlueprint.modules.length} Modules)
+                    </label>
+                    <Badge variant="primary" className="text-[10px]">
+                      {(config.syllabusModules || []).length} of {activeBlueprint.modules.length} Selected
+                    </Badge>
+                  </div>
+                  <p className="text-[11px] text-muted">
+                    Toggle individual modules or topics. The question assembler distributes MCQs based on official weightings.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button size="sm" variant="outline" onClick={handleSelectAllModules}>
+                    Select All Modules
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleDeselectAllModules}>
+                    Clear All
+                  </Button>
+                </div>
               </div>
-              <span className="text-xs font-mono font-bold text-primary">
-                {config.selectedTopics.length} selected
-              </span>
-            </div>
 
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-muted" />
-                <input
-                  type="text"
-                  value={topicSearch}
-                  onChange={(e) => setTopicSearch(e.target.value)}
-                  placeholder="Filter syllabus topics..."
-                  className="w-full h-8 pl-8 pr-3 rounded-lg border border-line bg-surface text-xs text-ink placeholder:text-muted-faint"
-                />
-              </div>
+              {/* Module Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {activeBlueprint.modules.map((mod) => {
+                  const isModSelected = (config.syllabusModules || []).includes(mod.id);
+                  const selectedInMod = mod.topics.filter((t) => config.selectedTopics.includes(t));
+                  const weight = mod.suggestedWeight || Math.round(activeBlueprint.totalQuestions / activeBlueprint.modules.length);
 
-              {/* Add Custom Topic Input */}
-              <div className="flex items-center gap-1">
-                <input
-                  type="text"
-                  value={config.customTopicInput || ''}
-                  onChange={(e) => setConfig({ ...config, customTopicInput: e.target.value })}
-                  placeholder="Or enter new custom topic..."
-                  className="h-8 px-3 rounded-lg border border-line bg-surface text-xs text-ink placeholder:text-muted-faint w-48"
-                />
-                <Button size="sm" variant="outline" onClick={handleAddCustomTopic} iconLeft={<Plus className="w-3.5 h-3.5" />}>
-                  Add
-                </Button>
-              </div>
-            </div>
-
-            {/* Topic Chips */}
-            <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border border-line bg-surface">
-              {filteredTaxonomyTopics.length === 0 && config.selectedTopics.length === 0 ? (
-                <div className="text-xs text-muted py-2 px-3">No topics listed for this subject. Enter a custom topic above.</div>
-              ) : (
-                filteredTaxonomyTopics.map((topic) => {
-                  const isSelected = config.selectedTopics.includes(topic);
                   return (
-                    <button
-                      key={topic}
-                      type="button"
-                      onClick={() => handleToggleTopic(topic)}
-                      className={`px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 ${
-                        isSelected
-                          ? 'bg-primary text-white font-semibold shadow-2xs'
-                          : 'bg-subtle text-muted hover:text-ink hover:bg-subtle/80'
+                    <div
+                      key={mod.id}
+                      className={`p-3.5 rounded-2xl border transition space-y-2.5 ${
+                        isModSelected
+                          ? 'border-primary/40 bg-card shadow-xs'
+                          : 'border-line bg-surface/50 opacity-60'
                       }`}
                     >
-                      {isSelected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-                      <span>{topic}</span>
-                    </button>
+                      <div className="flex items-start justify-between gap-2">
+                        <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={isModSelected}
+                            onChange={() => handleToggleModule(mod.id)}
+                            className="w-4 h-4 mt-0.5 rounded accent-primary cursor-pointer"
+                          />
+                          <div>
+                            <div className="text-xs font-bold text-ink flex items-center gap-1.5">
+                              <span>{mod.name}</span>
+                            </div>
+                            {mod.description && (
+                              <p className="text-[10px] text-muted mt-0.5 leading-snug line-clamp-1">
+                                {mod.description}
+                              </p>
+                            )}
+                          </div>
+                        </label>
+                        <Badge variant={isModSelected ? 'primary' : 'subtle'} className="text-[10px] font-mono shrink-0">
+                          {weight} MCQs ({Math.round((weight / activeBlueprint.totalQuestions) * 100)}%)
+                        </Badge>
+                      </div>
+
+                      {/* Module Topics List */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {mod.topics.map((t) => {
+                          const isTopicActive = config.selectedTopics.includes(t);
+                          return (
+                            <button
+                              key={t}
+                              type="button"
+                              onClick={() => handleToggleTopic(t)}
+                              className={`px-2 py-0.5 rounded-md text-[10px] transition text-left flex items-center gap-1 ${
+                                isTopicActive
+                                  ? 'bg-primary/15 text-primary font-medium border border-primary/20'
+                                  : 'bg-subtle text-muted hover:text-ink'
+                              }`}
+                            >
+                              {isTopicActive ? <Check className="w-2.5 h-2.5" /> : <Plus className="w-2.5 h-2.5" />}
+                              <span className="truncate max-w-[240px]">{t}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[10px] text-muted-faint pt-1 border-t border-line/60">
+                        <span>{selectedInMod.length} of {mod.topics.length} topics active</span>
+                        <span>Weight: {weight} / {activeBlueprint.totalQuestions}</span>
+                      </div>
+                    </div>
                   );
-                })
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Topic Hierarchy Browser for Generic Subject */
+            <div className="space-y-3 pt-2 border-t border-line">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-semibold text-ink">
+                    Select Topics from {config.subject} Hierarchy
+                  </label>
+                  <p className="text-[11px] text-muted">Click to toggle topics included in question generation.</p>
+                </div>
+                <span className="text-xs font-mono font-bold text-primary">
+                  {config.selectedTopics.length} selected
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-muted" />
+                  <input
+                    type="text"
+                    value={topicSearch}
+                    onChange={(e) => setTopicSearch(e.target.value)}
+                    placeholder="Filter syllabus topics..."
+                    className="w-full h-8 pl-8 pr-3 rounded-lg border border-line bg-surface text-xs text-ink placeholder:text-muted-faint"
+                  />
+                </div>
+
+                {/* Add Custom Topic Input */}
+                <div className="flex items-center gap-1">
+                  <input
+                    type="text"
+                    value={config.customTopicInput || ''}
+                    onChange={(e) => setConfig({ ...config, customTopicInput: e.target.value })}
+                    placeholder="Or enter new custom topic..."
+                    className="h-8 px-3 rounded-lg border border-line bg-surface text-xs text-ink placeholder:text-muted-faint w-48"
+                  />
+                  <Button size="sm" variant="outline" onClick={handleAddCustomTopic} iconLeft={<Plus className="w-3.5 h-3.5" />}>
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              {/* Topic Chips */}
+              <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto p-2 rounded-xl border border-line bg-surface">
+                {filteredTaxonomyTopics.length === 0 && config.selectedTopics.length === 0 ? (
+                  <div className="text-xs text-muted py-2 px-3">No topics listed for this subject. Enter a custom topic above.</div>
+                ) : (
+                  filteredTaxonomyTopics.map((topic) => {
+                    const isSelected = config.selectedTopics.includes(topic);
+                    return (
+                      <button
+                        key={topic}
+                        type="button"
+                        onClick={() => handleToggleTopic(topic)}
+                        className={`px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-primary text-white font-semibold shadow-2xs'
+                            : 'bg-subtle text-muted hover:text-ink hover:bg-subtle/80'
+                        }`}
+                      >
+                        {isSelected ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                        <span>{topic}</span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Selected Topics List */}
+              {config.selectedTopics.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
+                  <span className="text-[10px] uppercase font-bold text-muted-faint mr-1">Active Targets:</span>
+                  {config.selectedTopics.map((topic) => (
+                    <span
+                      key={topic}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-medium"
+                    >
+                      <span>{topic}</span>
+                      <button onClick={() => handleToggleTopic(topic)} className="hover:text-danger">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
-
-            {/* Selected Topics List */}
-            {config.selectedTopics.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap pt-1 text-xs">
-                <span className="text-[10px] uppercase font-bold text-muted-faint mr-1">Active Targets:</span>
-                {config.selectedTopics.map((topic) => (
-                  <span
-                    key={topic}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 text-primary text-[11px] font-medium"
-                  >
-                    <span>{topic}</span>
-                    <button onClick={() => handleToggleTopic(topic)} className="hover:text-danger">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
 
           {/* Factual Grounding Setting */}
           <div className="p-3.5 rounded-xl border border-line bg-surface flex items-center justify-between gap-3">

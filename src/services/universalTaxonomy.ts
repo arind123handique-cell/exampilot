@@ -42,6 +42,7 @@ export interface SubTopicNode {
 }
 
 export const UNIVERSAL_EXAMS: ExamEntry[] = [
+  { id: 'apsc-phed-ae-civil-2025', name: 'APSC AE Civil (PHED) — Advt. 31/2025', category: 'State PSC Engineering', color: '#2563EB', totalMarks: 100, durationHours: 2, description: 'Assam Public Service Commission Assistant Engineer (Civil) under Public Health Engineering Department. Paper-II (100 MCQs, 2 Hours).' },
   { id: 'apsc-ae-civil', name: 'APSC Assistant Engineer (Civil)', category: 'State PSC Engineering', color: '#4F46E5', totalMarks: 200, durationHours: 2, description: 'Assam Public Service Commission Assistant Engineer (Civil) under PWD / WRD / PHED.' },
   { id: 'upsc-cse', name: 'UPSC Civil Services Examination', category: 'Central Civil Services', color: '#0284C7', totalMarks: 400, durationHours: 4, description: 'Union Public Service Commission Preliminary Examination (GS Paper I & CSAT).' },
   { id: 'gate-ce', name: 'GATE Civil Engineering', category: 'National Engineering Entrance', color: '#7C3AED', totalMarks: 100, durationHours: 3, description: 'Graduate Aptitude Test in Engineering for M.Tech admissions and PSU recruitments.' },
@@ -733,7 +734,305 @@ export const SSC_CGL_SUBJECTS: SubjectNode[] = [
   }
 ];
 
+export const APSC_PHED_CIVIL_SUBJECTS: SubjectNode[] = [
+  {
+    id: 'sub-phed-statics',
+    name: 'Statics',
+    domains: [
+      {
+        id: 'dom-phed-statics-core',
+        name: 'Force Systems & Equilibrium',
+        topics: [
+          {
+            id: 'tp-force-systems',
+            name: 'Coplanar & Multiplanar Systems',
+            subtopics: [
+              { id: 'st-fbd-eq', name: 'Free Body Diagrams', concepts: ['equilibrium conditions', 'resultant force', 'moment of a force'] },
+              { id: 'st-force-polygons', name: 'Force & Funicular Polygons', concepts: ['force polygon', 'funicular polygon', 'graphic statics'] }
+            ],
+            weight: 2
+          },
+          {
+            id: 'tp-virtual-suspension',
+            name: 'Centroid & Virtual Work',
+            subtopics: [
+              { id: 'st-centroid-moi', name: 'Centroid & Second Moment', concepts: ['centroid of plane figure', 'moment of inertia', 'parallel axis theorem'] },
+              { id: 'st-virtual-work', name: 'Virtual Work & Suspension', concepts: ['principle of virtual work', 'suspension systems', 'catenary cables'] }
+            ],
+            weight: 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-dynamics',
+    name: 'Dynamics',
+    domains: [
+      {
+        id: 'dom-phed-dynamics-units',
+        name: 'Units & Dimensions',
+        topics: [
+          {
+            id: 'tp-units-dimensions',
+            name: 'Units, Dimensions & Systems',
+            subtopics: [
+              { id: 'st-systems-units', name: 'Gravitational & Absolute Systems', concepts: ['MKS system', 'SI units', 'dimensional homogeneity'] }
+            ],
+            weight: 1.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-kinematics',
+    name: 'Kinematics',
+    domains: [
+      {
+        id: 'dom-phed-kinematics-motion',
+        name: 'Motion Analysis',
+        topics: [
+          {
+            id: 'tp-motion-kinematics',
+            name: 'Rectilinear & Curvilinear Motion',
+            subtopics: [
+              { id: 'st-curvilinear-motion', name: 'Curvilinear & Relative Motion', concepts: ['rectilinear motion', 'tangential acceleration', 'relative velocity'] },
+              { id: 'st-inst-centre', name: 'Instantaneous Centre', concepts: ['instantaneous centre of rotation', 'rigid body kinematics'] }
+            ],
+            weight: 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-kinetics',
+    name: 'Kinetics',
+    domains: [
+      {
+        id: 'dom-phed-kinetics-motion',
+        name: 'Equations of Motion & Energy',
+        topics: [
+          {
+            id: 'tp-mass-moi-shm',
+            name: 'Mass MOI & Simple Harmonic Motion',
+            subtopics: [
+              { id: 'st-mass-moi', name: 'Mass Moment of Inertia', concepts: ['radius of gyration', 'rotational inertia of standard solids'] },
+              { id: 'st-shm', name: 'Simple Harmonic Motion', concepts: ['natural frequency', 'time period', 'amplitude'] }
+            ],
+            weight: 2
+          },
+          {
+            id: 'tp-momentum-rotation',
+            name: 'Momentum, Impulse & Rigid Body Rotation',
+            subtopics: [
+              { id: 'st-momentum-impulse', name: 'Momentum & Impulse', concepts: ['linear momentum', 'angular momentum', 'impulse-momentum theorem'] },
+              { id: 'st-fixed-axis', name: 'Fixed Axis Rotation', concepts: ['torque-angular acceleration', 'equations of motion of rigid body'] }
+            ],
+            weight: 2
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-som',
+    name: 'Strength of Materials',
+    domains: [
+      {
+        id: 'dom-phed-som-stress',
+        name: 'Stress-Strain & Failure Theories',
+        topics: [
+          {
+            id: 'tp-elastic-constants-joints',
+            name: 'Elastic Constants & Fastened Joints',
+            subtopics: [
+              { id: 'st-elastic-const', name: 'Elastic Constants (E, G, K, μ)', concepts: ['homogeneous isotropic media', 'Hooke law', 'volumetric strain'] },
+              { id: 'st-joints', name: 'Riveted & Welded Joints', concepts: ['efficiency of joints', 'welded throat thickness', 'rivet value'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-compound-failure',
+            name: 'Compound Stresses & Failure Theories',
+            subtopics: [
+              { id: 'st-principal-stresses', name: 'Principal Stresses & Strains', concepts: ['Mohr circle', 'principal planes', 'maximum shear stress'] },
+              { id: 'st-failure-theories', name: 'Simple Failure Theories', concepts: ['Rankine maximum principal stress', 'Tresca maximum shear', 'Von Mises distortion energy'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      },
+      {
+        id: 'dom-phed-som-beams',
+        name: 'Beams, Columns, Arches & Torsion',
+        topics: [
+          {
+            id: 'tp-sfd-bmd-bending',
+            name: 'SFD, BMD & Bending Stresses',
+            subtopics: [
+              { id: 'st-sfd-bmd-diag', name: 'SFD & BMD Diagrams', concepts: ['point of contraflexure', 'bending moment', 'shear force'] },
+              { id: 'st-pure-bending', name: 'Theory of Bending & Shear Distribution', concepts: ['flexure formula', 'section modulus', 'shear stress in I-sections'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-deflection-columns-torsion',
+            name: 'Deflections, Columns, Arches & Torsion',
+            subtopics: [
+              { id: 'st-beam-deflection', name: 'Beam Deflection', concepts: ['Macaulay method', 'moment-area theorems', 'conjugate beam'] },
+              { id: 'st-columns-middle-fourth', name: 'Columns & Middle-Fourth Rule', concepts: ['Euler buckling load', 'slenderness ratio', 'middle-fourth rule'] },
+              { id: 'st-arches-torsion', name: 'Three-Pinned Arches & Torsion', concepts: ['three-pinned arch analysis', 'torsion formula', 'strain energy'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-soil',
+    name: 'Soil Mechanics',
+    domains: [
+      {
+        id: 'dom-phed-soil-properties',
+        name: 'Soil Properties, Seepage & Shear Strength',
+        topics: [
+          {
+            id: 'tp-soil-classification-flow',
+            name: 'Index Properties, Compaction & Flow Nets',
+            subtopics: [
+              { id: 'st-soil-properties', name: 'Phase Relationships & Void Ratio', concepts: ['water content', 'porosity', 'soil classification'] },
+              { id: 'st-compaction-seepage', name: 'Compaction & Flow Nets', concepts: ['Proctor test', 'permeability', 'flow net construction'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-shear-earth-pressure',
+            name: 'Shear Strength & Earth Pressure',
+            subtopics: [
+              { id: 'st-shear-tests', name: 'Shear Strength Parameters', concepts: ['triaxial test', 'direct shear test', 'unconfined compression'] },
+              { id: 'st-earth-pressure-rankine', name: 'Rankine & Coulomb Earth Pressure', concepts: ['active earth pressure', 'passive earth pressure', 'slope stability'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      },
+      {
+        id: 'dom-phed-consolidation-foundations',
+        name: 'Consolidation & Foundations',
+        topics: [
+          {
+            id: 'tp-consolidation-settlement',
+            name: 'Consolidation & Stress Distribution',
+            subtopics: [
+              { id: 'st-terzaghi-cons', name: 'Terzaghi 1D Consolidation', concepts: ['rate of settlement', 'ultimate settlement', 'coefficient of consolidation'] },
+              { id: 'st-stress-dist', name: 'Effective Stress & Stabilization', concepts: ['effective stress principle', 'soil stabilization'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-bearing-capacity-piles',
+            name: 'Bearing Capacity, Piles & Sheet Piles',
+            subtopics: [
+              { id: 'st-shallow-bearing', name: 'Bearing Capacity of Footings', concepts: ['Terzaghi bearing capacity', 'water table effect', 'settlement criteria'] },
+              { id: 'st-deep-foundations', name: 'Piles, Wells & Sheet Piles', concepts: ['pile load capacity', 'well foundation', 'sheet piles'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-fluids',
+    name: 'Fluid Mechanics',
+    domains: [
+      {
+        id: 'dom-phed-fluid-statics-dynamics',
+        name: 'Fluid Statics & Dynamics',
+        topics: [
+          {
+            id: 'tp-fluid-statics-buoyancy',
+            name: 'Fluid Properties, Statics & Buoyancy',
+            subtopics: [
+              { id: 'st-pressure-hydrostatic', name: 'Hydrostatic Forces', concepts: ['pressure on plane/curved surfaces', 'centre of pressure'] },
+              { id: 'st-buoyancy-stability', name: 'Buoyancy & Floating Stability', concepts: ['metacentric height', 'floating body stability'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-fluid-kinematics-bernoulli',
+            name: 'Flow Equations & Bernoulli Theorem',
+            subtopics: [
+              { id: 'st-continuity-momentum', name: 'Continuity & Momentum Equations', concepts: ['continuity equation', 'Euler equation', 'momentum principle'] },
+              { id: 'st-bernoulli-measurement', name: 'Bernoulli Theorem & Flow Measurement', concepts: ['Bernoulli equation', 'Venturi meter', 'cavitation', 'vortices'] }
+            ],
+            weight: 2.5
+          }
+        ]
+      },
+      {
+        id: 'dom-phed-pipe-open-channel',
+        name: 'Pipe Flow, Dimensional Analysis & Open Channels',
+        topics: [
+          {
+            id: 'tp-dim-analysis-viscous',
+            name: 'Dimensional Analysis & Viscous Pipe Flow',
+            subtopics: [
+              { id: 'st-buckingham-pi', name: 'Buckingham Pi & Similitude', concepts: ['non-dimensional numbers', 'model laws', 'similitude'] },
+              { id: 'st-pipe-losses', name: 'Pipe Friction & Minor Losses', concepts: ['Darcy-Weisbach friction', 'boundary layer drag', 'HGL and TEL'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-open-channel-hydraulics',
+            name: 'Open Channel Flow & Hydraulic Jump',
+            subtopics: [
+              { id: 'st-specific-energy', name: 'Specific Energy & Critical Depth', concepts: ['Manning formula', 'specific energy curve', 'critical depth'] },
+              { id: 'st-gvf-hydraulic-jump', name: 'GVF Profiles & Standing Wave Flume', concepts: ['gradually varied flow', 'hydraulic jump', 'surges and waves'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sub-phed-surveying',
+    name: 'Surveying',
+    domains: [
+      {
+        id: 'dom-phed-surveying-core',
+        name: 'Instruments, Traversing & Leveling',
+        topics: [
+          {
+            id: 'tp-principles-errors-levelling',
+            name: 'Principles, Errors, Compass & Leveling',
+            subtopics: [
+              { id: 'st-survey-principles', name: 'General Principles & Observations', concepts: ['sign conventions', 'errors & adjustments', 'chain survey corrections'] },
+              { id: 'st-compass-levelling', name: 'Compass & Leveling Operations', concepts: ['local attraction correction', 'curvature & refraction', 'reduced levels'] }
+            ],
+            weight: 2.5
+          },
+          {
+            id: 'tp-theodolite-plane-table',
+            name: 'Theodolite, Plane Table & Curves',
+            subtopics: [
+              { id: 'st-theodolite-traverse', name: 'Theodolite Traversing & Tacheometry', concepts: ['horizontal & vertical angles', 'traverse computation', 'tacheometric constants'] },
+              { id: 'st-plane-table-curves', name: 'Plane Table, Contours & Curves', concepts: ['two-point & three-point problems', 'contour characteristics', 'setting out curves & excavation lines'] }
+            ],
+            weight: 3
+          }
+        ]
+      }
+    ]
+  }
+];
+
 const HIERARCHY_MAP: Record<string, SubjectNode[]> = {
+  'apsc-phed-ae-civil-2025': APSC_PHED_CIVIL_SUBJECTS,
   'apsc-ae-civil': CIVIL_SUBJECTS,
   'upsc-cse': UPSC_CSE_SUBJECTS,
   'gate-ce': CIVIL_SUBJECTS.filter((s) => s.id !== 'sub-gs'),
