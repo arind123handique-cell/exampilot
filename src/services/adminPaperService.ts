@@ -195,10 +195,13 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
 const STORAGE_KEY_DELETED_MOCKS = 'exampilot_deleted_mock_ids';
 const STORAGE_KEY_DELETED_PAPERS = 'exampilot_deleted_paper_ids';
 const STORAGE_KEY_HIDDEN_MOCKS = 'exampilot_hidden_mock_ids';
+export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil'];
 
 export function getDeletedMockIds(): Set<string> {
   const raw = getLocal<string[]>(STORAGE_KEY_DELETED_MOCKS, []);
-  return new Set(Array.isArray(raw) ? raw : []);
+  const set = new Set(Array.isArray(raw) ? raw : []);
+  PERMANENT_BLACKLISTED_MOCK_IDS.forEach((id) => set.add(id));
+  return set;
 }
 
 export function getDeletedPaperIds(): Set<string> {
@@ -337,15 +340,53 @@ export function getAllCombinedMockTests(
 ): MockTest[] {
   const deletedMockIds = getDeletedMockIds();
   const hiddenMockIds = getHiddenMockIds();
-  const adminMocks = getAdminPublishedMockTests().filter((m) => !deletedMockIds.has(m.id));
+
+  // Actively purge any legacy blacklisted tests from local storage caches
+  try {
+    const rawPapers = getLocal<PublishedPaperRecord[]>(STORAGE_KEY_PAPERS, []);
+    const cleanPapers = rawPapers.filter(
+      (r) =>
+        !deletedMockIds.has(r.id) &&
+        !deletedMockIds.has(r.mockTest?.id) &&
+        !r.mockTest?.title?.toLowerCase().includes('upsc ese')
+    );
+    if (cleanPapers.length !== rawPapers.length) {
+      setLocal(STORAGE_KEY_PAPERS, cleanPapers);
+    }
+
+    const rawMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []);
+    const cleanMocks = rawMocks.filter(
+      (m) =>
+        !deletedMockIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese')
+    );
+    if (cleanMocks.length !== rawMocks.length) {
+      setLocal(STORAGE_KEY_MOCKS, cleanMocks);
+    }
+  } catch {}
+
+  const adminMocks = getAdminPublishedMockTests().filter(
+    (m) =>
+      !deletedMockIds.has(m.id) &&
+      m.id !== 'mock-ies-civil' &&
+      !m.title?.toLowerCase().includes('upsc ese')
+  );
   const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []).filter(
-    (m) => !deletedMockIds.has(m.id)
+    (m) =>
+      !deletedMockIds.has(m.id) &&
+      m.id !== 'mock-ies-civil' &&
+      !m.title?.toLowerCase().includes('upsc ese')
   );
   const allDynamic = [...adminMocks, ...customMocks];
 
   const dynamicIds = new Set(allDynamic.map((m) => m.id));
   const baseFiltered = (baseMocks || []).filter(
-    (m) => !dynamicIds.has(m.id) && !deletedMockIds.has(m.id)
+    (m) =>
+      !dynamicIds.has(m.id) &&
+      !deletedMockIds.has(m.id) &&
+      m.id !== 'mock-ies-civil' &&
+      !m.title?.toLowerCase().includes('upsc ese')
   );
   let combined = [...allDynamic, ...baseFiltered];
 
@@ -375,16 +416,28 @@ export async function fetchAndSyncMockTests(
     ]);
 
     // Local dynamic records
-    const localAdminMocks = getAdminPublishedMockTests().filter((m) => !deletedIds.has(m.id));
+    const localAdminMocks = getAdminPublishedMockTests().filter(
+      (m) =>
+        !deletedIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese')
+    );
     const localCustomMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []).filter(
-      (m) => !deletedIds.has(m.id)
+      (m) =>
+        !deletedIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese')
     );
 
     const mockMap = new Map<string, MockTest>();
 
     // 1. Supabase tests (authoritative remote state)
     supabaseMocks.forEach((m) => {
-      if (!deletedIds.has(m.id)) {
+      if (
+        !deletedIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese')
+      ) {
         if (hiddenIds.has(m.id)) {
           m.isPublishedToStudents = false;
         }
@@ -396,7 +449,12 @@ export async function fetchAndSyncMockTests(
 
     // 2. Include any local-only draft tests that aren't blacklisted
     [...localAdminMocks, ...localCustomMocks].forEach((m) => {
-      if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
+      if (
+        !deletedIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese') &&
+        !mockMap.has(m.id)
+      ) {
         if (hiddenIds.has(m.id)) {
           m.isPublishedToStudents = false;
         }
@@ -408,7 +466,12 @@ export async function fetchAndSyncMockTests(
 
     // 3. Base tests from code: only include if not in Supabase/local AND not blacklisted
     (baseMocks || []).forEach((m) => {
-      if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
+      if (
+        !deletedIds.has(m.id) &&
+        m.id !== 'mock-ies-civil' &&
+        !m.title?.toLowerCase().includes('upsc ese') &&
+        !mockMap.has(m.id)
+      ) {
         if (hiddenIds.has(m.id)) {
           m.isPublishedToStudents = false;
         }

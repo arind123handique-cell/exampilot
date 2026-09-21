@@ -77,16 +77,23 @@ export function mockTestToRow(
   };
 }
 
+export const PERMANENT_BLACKLISTED_MOCK_IDS = ['mock-ies-civil'];
+
 /**
  * Fetch all blacklisted / deleted mock test IDs from Supabase
  */
 export async function fetchDeletedMockTestIdsFromSupabase(): Promise<Set<string>> {
+  const ensurePermanent = (set: Set<string>) => {
+    PERMANENT_BLACKLISTED_MOCK_IDS.forEach((id) => set.add(id));
+    return set;
+  };
+
   if (!isSupabaseConfigured || !supabase) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY_DELETED_MOCKS);
-      return new Set(raw ? JSON.parse(raw) : []);
+      return ensurePermanent(new Set(raw ? JSON.parse(raw) : []));
     } catch {
-      return new Set();
+      return ensurePermanent(new Set());
     }
   }
 
@@ -96,7 +103,7 @@ export async function fetchDeletedMockTestIdsFromSupabase(): Promise<Set<string>
     if (error) {
       console.warn('[SupabaseMockService] Failed to fetch deleted mock IDs:', error.message);
       const raw = localStorage.getItem(STORAGE_KEY_DELETED_MOCKS);
-      return new Set(raw ? JSON.parse(raw) : []);
+      return ensurePermanent(new Set(raw ? JSON.parse(raw) : []));
     }
 
     const ids = new Set((data || []).map((row: { id: string }) => row.id));
@@ -110,6 +117,8 @@ export async function fetchDeletedMockTestIdsFromSupabase(): Promise<Set<string>
       }
     } catch {}
 
+    ensurePermanent(ids);
+
     // Save unified set back to localStorage
     try {
       localStorage.setItem(STORAGE_KEY_DELETED_MOCKS, JSON.stringify(Array.from(ids)));
@@ -120,9 +129,9 @@ export async function fetchDeletedMockTestIdsFromSupabase(): Promise<Set<string>
     console.warn('[SupabaseMockService] Error fetching deleted mock IDs:', err);
     try {
       const raw = localStorage.getItem(STORAGE_KEY_DELETED_MOCKS);
-      return new Set(raw ? JSON.parse(raw) : []);
+      return ensurePermanent(new Set(raw ? JSON.parse(raw) : []));
     } catch {
-      return new Set();
+      return ensurePermanent(new Set());
     }
   }
 }
@@ -202,7 +211,7 @@ export async function fetchMockTestsFromSupabase(options?: {
 
     const rows: CustomMockTestRow[] = mockRes.data || [];
     let tests = rows
-      .filter((r) => !deletedIds.has(r.id))
+      .filter((r) => !deletedIds.has(r.id) && r.id !== 'mock-ies-civil' && !r.title?.toLowerCase().includes('upsc ese'))
       .map((r) => {
         const item = rowToMockTest(r);
         // If it's in hidden_mock_tests, mark isPublishedToStudents = false

@@ -9,8 +9,14 @@ const resolveEnv = (key: string, fallback: string = ''): string => {
   }
 };
 
-export const SUPABASE_URL = resolveEnv('VITE_SUPABASE_URL', '');
-export const SUPABASE_ANON_KEY = resolveEnv('VITE_SUPABASE_ANON_KEY', '');
+export const SUPABASE_URL = resolveEnv(
+  'VITE_SUPABASE_URL',
+  'https://beahwfkpgplnccrszjvl.supabase.co'
+);
+export const SUPABASE_ANON_KEY = resolveEnv(
+  'VITE_SUPABASE_ANON_KEY',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJlYWh3ZmtwZ3BsbmNjcnN6anZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MzA5MTIsImV4cCI6MjA5NDEwNjkxMn0.LPgaJ86nTuDxPEV4nmD6-9ElnNTlpoQCmyAtq8_v_YM'
+);
 
 export const isSupabaseConfigured = Boolean(
   SUPABASE_URL &&

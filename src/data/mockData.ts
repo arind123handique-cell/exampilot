@@ -460,24 +460,6 @@ export const MOCK_TEST_GS_100: MockTest = {
   ]
 };
 
-// Full UPSC ESE / IES Civil Engineering Advanced Mock Exam
-export const MOCK_TEST_IES_CIVIL: MockTest = {
-  id: 'mock-ies-civil',
-  title: 'UPSC ESE / IES Civil Engineering Technical Mock Exam',
-  examId: 'upsc-ies-civil',
-  paperName: 'Civil Engineering Objective Paper — UPSC ESE / Testbook Pattern',
-  durationMinutes: 120,
-  totalMarks: 200,
-  negativeMarksPerIncorrect: 0.33,
-  sections: [
-    {
-      id: 'sec-ies-advanced',
-      name: 'All Branches: Multi-Statement & High-Yield Analysis',
-      totalQuestions: CIVIL_IES_APSC_QUESTIONS.length,
-      questions: CIVIL_IES_APSC_QUESTIONS
-    }
-  ]
-};
 
 // Official APSC AE (PHED) Paper-I General Studies Mock Exam (Advt. 31/2025)
 export const MOCK_TEST_APSC_PHED_AE_GS_2025: MockTest = {
