@@ -11,6 +11,8 @@ import {
   limit
 } from 'firebase/firestore';
 import { saveSqlDatabaseDump } from './sqlQuestionService';
+import { isSupabaseConfigured } from './supabaseClient';
+import { batchSaveQuestionsToSupabase } from './supabaseQuestionService';
 
 const STORAGE_KEY = 'exampilot_custom_questions_bank';
 
@@ -104,7 +106,14 @@ export async function saveCustomQuestions(
   setLocalQuestions(merged);
   saveSqlDatabaseDump(merged);
 
-  // 3. Batch sync to Cloud Firestore with strict timeout protection
+  // 3. Batch sync to Supabase PostgreSQL if configured
+  if (isSupabaseConfigured) {
+    batchSaveQuestionsToSupabase(sanitized as MCQQuestion[]).catch(err => {
+      console.warn('[CustomQuestionDb] Supabase background sync notice:', err);
+    });
+  }
+
+  // 4. Batch sync to Cloud Firestore with strict timeout protection
   if (isFirebaseConfigured && db) {
     try {
       const batchSyncPromise = (async () => {

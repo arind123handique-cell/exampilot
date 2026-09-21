@@ -4,7 +4,8 @@ import {
   Sparkles, Plus, Trash2, Copy, Save, PlayCircle, Database,
   CheckCircle2, X, AlertCircle, RefreshCw, Layers, CheckSquare,
   BookOpen, HelpCircle, ChevronDown, ChevronUp, Tag, AlertTriangle,
-  Globe, Download, Code2, Table, FileText, Check, Zap, Settings, Bot
+  Globe, Download, Code2, Table, FileText, Check, Zap, Settings, Bot,
+  UploadCloud
 } from 'lucide-react';
 import { MCQQuestion, MCQOption, QuestionKind } from '../../types';
 import {
@@ -31,6 +32,8 @@ import {
 import { hasLiveAi, getSavedGeminiModel } from '../../services/geminiService';
 import { GeminiKeyModal } from '../gemini/GeminiKeyModal';
 import { useToast } from '../../context/ToastContext';
+import { isSupabaseConfigured } from '../../services/supabaseClient';
+import { batchSaveQuestionsToSupabase } from '../../services/supabaseQuestionService';
 
 interface GoogleFormQuestionBuilderProps {
   isOpen: boolean;
@@ -75,7 +78,7 @@ export const GoogleFormQuestionBuilder: React.FC<GoogleFormQuestionBuilderProps>
   userId,
   initialTopic = ''
 }) => {
-  const { success: toastSuccess, error: toastError } = useToast();
+  const { success: toastSuccess, error: toastError, info: toastInfo } = useToast();
 
   // Generator inputs
   const [topicInput, setTopicInput] = useState(initialTopic || 'Soil Mechanics');
@@ -522,6 +525,38 @@ export const GoogleFormQuestionBuilder: React.FC<GoogleFormQuestionBuilderProps>
       setCopiedSql(true);
       setTimeout(() => setCopiedSql(false), 2500);
       toastSuccess('SQL Copied', 'SQL schema & INSERT queries copied to clipboard!');
+    }
+  };
+
+  const [syncingSupabase, setSyncingSupabase] = useState(false);
+
+  const handleSyncToSupabase = async () => {
+    if (savedDbQuestions.length === 0) {
+      toastError('Empty Database', 'No questions to migrate to Supabase.');
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      setShowSqlModal(true);
+      toastInfo(
+        'Supabase Setup',
+        'Supabase credentials not configured in .env yet. You can view, copy, or download the SQL queries below to run directly in Supabase SQL Editor!'
+      );
+      return;
+    }
+
+    setSyncingSupabase(true);
+    try {
+      const res = await batchSaveQuestionsToSupabase(savedDbQuestions);
+      if (res.success) {
+        toastSuccess('Supabase Synced', `Successfully migrated ${res.inserted} questions to Supabase PostgreSQL!`);
+      } else {
+        toastError('Sync Warning', `Migrated ${res.inserted} questions; ${res.failed} items failed.`);
+      }
+    } catch (err: any) {
+      toastError('Supabase Sync Failed', err?.message || 'Failed to sync to Supabase');
+    } finally {
+      setSyncingSupabase(false);
     }
   };
 
@@ -1291,6 +1326,17 @@ export const GoogleFormQuestionBuilder: React.FC<GoogleFormQuestionBuilderProps>
                   title="Download .sql file ready for PostgreSQL, MySQL, SQLite, or Supabase"
                 >
                   <Download className="h-3.5 w-3.5" /> Download .sql Dump
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSyncToSupabase}
+                  disabled={savedDbQuestions.length === 0 || syncingSupabase}
+                  className="flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 text-xs font-bold shadow-xs transition disabled:opacity-50"
+                  title="Directly migrate this SQL database to Supabase PostgreSQL"
+                >
+                  <UploadCloud className={`h-3.5 w-3.5 ${syncingSupabase ? 'animate-bounce' : ''}`} />
+                  {syncingSupabase ? 'Migrating...' : 'Migrate to Supabase'}
                 </button>
               </div>
             </div>
