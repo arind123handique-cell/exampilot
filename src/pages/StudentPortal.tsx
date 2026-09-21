@@ -26,7 +26,8 @@ import {
   Check,
   Award,
   BarChart2,
-  X
+  X,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -100,6 +101,7 @@ export const StudentPortal: React.FC = () => {
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
+    signInAsGuest,
     logout,
     error: authError,
     clearError
@@ -145,6 +147,20 @@ export const StudentPortal: React.FC = () => {
     } catch (err: any) {
       console.warn('Google sign-in error:', err);
       toastError('Google Sign-In Failed', err.message || 'Please use email credentials or retry.');
+    } finally {
+      setIsAuthSubmitting(false);
+    }
+  };
+
+  const handleGuestSignIn = async () => {
+    setIsAuthSubmitting(true);
+    clearError();
+    try {
+      await signInAsGuest();
+      toastSuccess('Guest Session Active', 'Ready to practice in offline mode.');
+    } catch (err: any) {
+      console.warn('Guest sign-in error:', err);
+      toastError('Guest Session Failed', err.message || 'Please try again.');
     } finally {
       setIsAuthSubmitting(false);
     }
@@ -687,7 +703,7 @@ export const StudentPortal: React.FC = () => {
               </div>
             )}
 
-            {/* Google Sign-In / Sign-Up Button */}
+            {/* Google Sign-In Button */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
@@ -713,6 +729,17 @@ export const StudentPortal: React.FC = () => {
                 />
               </svg>
               <span>Continue with Google</span>
+            </button>
+
+            {/* Guest Sign-In Button (works offline when Firebase is not configured) */}
+            <button
+              type="button"
+              onClick={handleGuestSignIn}
+              disabled={isAuthSubmitting}
+              className="w-full h-11 px-4 rounded-2xl bg-subtle hover:bg-subtle-strong border border-line transition font-semibold text-xs text-ink flex items-center justify-center gap-3 shadow-xs active:scale-[0.99]"
+            >
+              <ShieldCheck className="w-4 h-4 flex-shrink-0 text-primary" />
+              <span>Continue as Guest (Offline)</span>
             </button>
 
             {/* Divider */}

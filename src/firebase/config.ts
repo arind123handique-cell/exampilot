@@ -6,14 +6,21 @@ import { getAnalytics, isSupported, Analytics } from 'firebase/analytics';
 // Firebase project credentials — loaded exclusively from environment variables.
 // Copy .env.example → .env and fill in your Firebase Console values.
 // NEVER hardcode credentials here — any value here is visible in the browser bundle.
+// Prefer private `CONFIG_FIREBASE_*` envs injected by CI; fall back to public `VITE_FIREBASE_*` for local dev.
+const resolveEnv = (key: keyof ImportMetaEnv) => {
+  const privateKey = `CONFIG_${String(key)}` as keyof ImportMetaEnv;
+  // Try private config first, then Vite-prefixed public env
+  return String((import.meta as any).env?.[privateKey] ?? (import.meta as any).env?.[key] ?? '').trim();
+};
+
 export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || '',
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || ''
+  apiKey: resolveEnv('VITE_FIREBASE_API_KEY'),
+  authDomain: resolveEnv('VITE_FIREBASE_AUTH_DOMAIN'),
+  projectId: resolveEnv('VITE_FIREBASE_PROJECT_ID'),
+  storageBucket: resolveEnv('VITE_FIREBASE_STORAGE_BUCKET'),
+  messagingSenderId: resolveEnv('VITE_FIREBASE_MESSAGING_SENDER_ID'),
+  appId: resolveEnv('VITE_FIREBASE_APP_ID'),
+  measurementId: resolveEnv('VITE_FIREBASE_MEASUREMENT_ID')
 };
 
 // Validate if user has supplied actual Firebase keys (not empty/placeholder values)
@@ -49,7 +56,7 @@ if (isFirebaseConfigured) {
     console.warn('[ExamPilot] Firebase initialization encountered an error:', error);
   }
 } else {
-  console.info('[ExamPilot] Running in Offline Local Mode — set VITE_FIREBASE_* variables in .env to enable cloud sync.');
+  console.info('[ExamPilot] Running in Offline Local Mode — set CONFIG_FIREBASE_* (preferred) or VITE_FIREBASE_* variables in .env to enable cloud sync.');
 }
 
 export { app, auth, db, analytics };
