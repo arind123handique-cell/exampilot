@@ -1,0 +1,49 @@
+{
+  "meta": {
+    "examName": "SSC CGL",
+    "year": 2023,
+    "paperType": "Paper I",
+    "slug": "ssc-cgl-2023-paper-i",
+    "examId": "ssc-cgl",
+    "group": "auto"
+  },
+  "questions": [
+    {
+      "questionNumber": 1,
+      "stem": "Who was the first Prime Minister of India?",
+      "options": [
+        {"id": "A", "text": "Jawaharlal Nehru"},
+        {"id": "B", "text": "Sardar Patel"},
+        {"id": "C", "text": "Mahatma Gandhi"},
+        {"id": "D", "text": "Rajendra Prasad"}
+      ],
+      "correctOption": "A",
+      "explanation": "Jawaharlal Nehru served as the first Prime Minister of India from 1947 to 1964.",
+      "subject": "General Studies",
+      "topic": "Modern Indian History",
+      "difficulty": "EASY",
+      "questionType": "CONCEPTUAL"
+    },
+    {
+      "questionNumber": 2,
+      "stem": "What is the pH value of pure water at 25 degrees Celsius?",
+      "options": [
+        {"id": "A", "text": "5"},
+        {"id": "B", "text": "6"},
+        {"id": "C", "text": "7"},
+        {"id": "D", "text": "9"}
+      ],
+      "correctOption": "C",
+      "explanation": "Pure water has a pH of 7 at 25 C, which is neutral on the pH scale.",
+      "subject": "General Science",
+      "topic": "Chemistry",
+      "difficulty": "EASY",
+      "questionType": "CONCEPTUAL"
+    }
+  ],
+  "stats": {
+    "kept": 2,
+    "rejected": 0,
+    "subHeads": [{"name": "General Studies", "count": 1}, {"name": "General Science", "count": 1}]
+  }
+}

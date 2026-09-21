@@ -2,6 +2,13 @@ import { PYQPaper, MockTest, MCQQuestion } from '../types';
 import { db, isFirebaseConfigured } from '../firebase/config';
 import { doc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
 import { notifyDataSync } from './questionBankSyncService';
+import {
+  fetchMockTestsFromSupabase,
+  fetchDeletedMockTestIdsFromSupabase,
+  saveMockTestToSupabase,
+  deleteMockTestFromSupabase,
+  restoreDeletedMockTestsInSupabase
+} from './supabaseMockTestService';
 
 const STORAGE_KEY_PAPERS = 'exampilot_admin_published_papers';
 const STORAGE_KEY_MOCKS = 'exampilot_admin_published_mocks';
@@ -80,6 +87,11 @@ export async function publishAdminPaper(
     setLocal(STORAGE_KEY_DELETED_PAPERS, Array.from(deletedPapers));
   }
 
+  // Sync to Supabase PostgreSQL in background
+  saveMockTestToSupabase(mockTest, userId).catch((err) => {
+    console.warn('[ExamPilot] Supabase mock test publish notice:', err);
+  });
+
   // Sync to Cloud Firestore if connected
   if (isFirebaseConfigured && db) {
     try {
@@ -147,6 +159,11 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
     setLocal(STORAGE_KEY_MOCKS, updatedMocks);
   }
 
+  // Sync to Supabase PostgreSQL in background
+  saveMockTestToSupabase(mockTest).catch((err) => {
+    console.warn('[ExamPilot] Supabase mock update notice:', err);
+  });
+
   // Sync to Cloud Firestore if connected
   if (isFirebaseConfigured && db) {
     try {
@@ -186,13 +203,14 @@ export function getDeletedPaperIds(): Set<string> {
 export function restoreDeletedMockTests(): void {
   localStorage.removeItem(STORAGE_KEY_DELETED_MOCKS);
   localStorage.removeItem(STORAGE_KEY_DELETED_PAPERS);
+  restoreDeletedMockTestsInSupabase().catch(() => {});
   notifyDataSync('mocks');
   notifyDataSync('papers');
   window.dispatchEvent(new CustomEvent('exampilot_papers_updated', { detail: { restored: true } }));
 }
 
 /**
- * Delete an admin-published paper or mock test from storage & Firestore
+ * Delete an admin-published paper or mock test from storage, Supabase, & Firestore
  */
 export async function deleteAdminPublishedPaper(paperId: string): Promise<void> {
   if (!paperId) return;
@@ -230,7 +248,21 @@ export async function deleteAdminPublishedPaper(paperId: string): Promise<void> 
   const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []);
   setLocal(STORAGE_KEY_MOCKS, customMocks.filter((m) => m.id !== paperId));
 
-  // 4. Sync deletion to Cloud Firestore non-blocking with timeout so UI never hangs
+  // 4. Sync deletion to Supabase PostgreSQL in background across all tables
+  deleteMockTestFromSupabase(paperId).catch((err) => {
+    console.warn('[ExamPilot] Supabase delete notice:', err);
+  });
+  if (target?.id && target.id !== paperId) {
+    deleteMockTestFromSupabase(target.id).catch(() => {});
+  }
+  if (target?.mockTest?.id && target.mockTest.id !== paperId) {
+    deleteMockTestFromSupabase(target.mockTest.id).catch(() => {});
+  }
+  if (target?.paper?.id && target.paper.id !== paperId) {
+    deleteMockTestFromSupabase(target.paper.id).catch(() => {});
+  }
+
+  // 5. Sync deletion to Cloud Firestore non-blocking with timeout so UI never hangs
   if (isFirebaseConfigured && db) {
     (async () => {
       try {
@@ -258,7 +290,7 @@ export async function deleteAdminPublishedPaper(paperId: string): Promise<void> 
     })();
   }
 
-  // 5. Broadcast real-time deletion across tabs
+  // 6. Broadcast real-time deletion across tabs
   notifyDataSync('papers', { paperId });
   notifyDataSync('mocks', { paperId });
   notifyDataSync('questions');
@@ -302,3 +334,57 @@ export function getAllCombinedMockTests(baseMocks: MockTest[]): MockTest[] {
   );
   return [...allDynamic, ...baseFiltered];
 }
+
+/**
+ * Asynchronously fetch and synchronize mock tests from Supabase PostgreSQL,
+ * filtering out any deleted / blacklisted mock tests across all ports and sessions.
+ */
+export async function fetchAndSyncMockTests(baseMocks: MockTest[]): Promise<MockTest[]> {
+  try {
+    const [supabaseMocks, deletedIds] = await Promise.all([
+      fetchMockTestsFromSupabase(),
+      fetchDeletedMockTestIdsFromSupabase()
+    ]);
+
+    // Local dynamic records
+    const localAdminMocks = getAdminPublishedMockTests().filter((m) => !deletedIds.has(m.id));
+    const localCustomMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []).filter(
+      (m) => !deletedIds.has(m.id)
+    );
+
+    const mockMap = new Map<string, MockTest>();
+
+    // 1. Supabase tests (authoritative remote state)
+    supabaseMocks.forEach((m) => {
+      if (!deletedIds.has(m.id)) {
+        mockMap.set(m.id, m);
+      }
+    });
+
+    // 2. Include any local-only draft tests that aren't blacklisted
+    [...localAdminMocks, ...localCustomMocks].forEach((m) => {
+      if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
+        mockMap.set(m.id, m);
+      }
+    });
+
+    // 3. Base tests from code: only include if not in Supabase/local AND not blacklisted
+    (baseMocks || []).forEach((m) => {
+      if (!deletedIds.has(m.id) && !mockMap.has(m.id)) {
+        mockMap.set(m.id, m);
+      }
+    });
+
+    const combined = Array.from(mockMap.values());
+
+    // Update local cache
+    setLocal(STORAGE_KEY_MOCKS, combined);
+    setLocal(STORAGE_KEY_DELETED_MOCKS, Array.from(deletedIds));
+
+    return combined;
+  } catch (err) {
+    console.warn('[ExamPilot] fetchAndSyncMockTests warning, falling back to local:', err);
+    return getAllCombinedMockTests(baseMocks);
+  }
+}
+

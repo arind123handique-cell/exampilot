@@ -29,8 +29,10 @@ import {
   getAdminPublishedMockTests,
   updateAdminPublishedMockTest,
   deleteAdminPublishedPaper,
-  publishAdminPaper
+  publishAdminPaper,
+  fetchAndSyncMockTests
 } from '@/services/adminPaperService';
+import { subscribeToMockTestChanges } from '@/services/supabaseMockTestService';
 import { MOCK_TESTS } from '@/data/mockData';
 import { MockTest, PYQPaper } from '@/types';
 import { useToast } from '@/context/ToastContext';
@@ -71,14 +73,14 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
   const [testToDelete, setTestToDelete] = useState<MockTest | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const loadData = () => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      const all = getAllCombinedMockTests(MOCK_TESTS);
+      const all = await fetchAndSyncMockTests(MOCK_TESTS);
       setMockTests(all);
     } catch (err) {
       console.error('Failed to load mock tests:', err);
-      toastError('Load Error', 'Failed to retrieve mock test catalog.');
+      setMockTests(getAllCombinedMockTests(MOCK_TESTS));
     } finally {
       setLoading(false);
     }
@@ -86,6 +88,10 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
 
   useEffect(() => {
     loadData();
+    const unsubscribe = subscribeToMockTestChanges(() => {
+      loadData();
+    });
+    return unsubscribe;
   }, []);
 
   const handleToggleArchive = (testId: string) => {
@@ -147,7 +153,7 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
 
     try {
       await deleteAdminPublishedPaper(targetId);
-      loadData();
+      await loadData();
     } catch (err) {
       console.warn('Delete error:', err);
     }

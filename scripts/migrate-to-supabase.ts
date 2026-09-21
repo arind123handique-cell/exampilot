@@ -197,6 +197,53 @@ if (process.argv.includes('--upload') && supabaseUrl && supabaseKey) {
     }
 
     console.log(`\n✓ Upload complete! ${uploadedCount} questions saved to Supabase.`);
+
+    // Upload Mock Tests to custom_mock_tests table
+    console.log(`\nSyncing ${MOCK_TESTS.length} Mock Tests to custom_mock_tests table...`);
+    const mockRows = MOCK_TESTS.map((m) => ({
+      id: m.id,
+      exam_id: m.examId || 'general',
+      title: m.title,
+      paper_name: m.paperName || m.title,
+      duration_minutes: m.durationMinutes || 120,
+      total_marks: m.totalMarks || 100,
+      negative_marks_per_incorrect: m.negativeMarksPerIncorrect || 0.25,
+      sections: m.sections || [],
+      published_at: new Date().toISOString(),
+      published_by: 'admin',
+      source: 'official-blueprint'
+    }));
+
+    const { error: mockErr } = await client.from('custom_mock_tests').upsert(mockRows, { onConflict: 'id' });
+    if (mockErr) {
+      console.warn('  ✗ Failed to sync custom_mock_tests:', mockErr.message);
+    } else {
+      console.log(`  ✓ Synced ${mockRows.length} tests to custom_mock_tests table.`);
+    }
+
+    // Upload Papers to published_papers table
+    console.log(`\nSyncing ${MOCK_TESTS.length} Papers to published_papers table...`);
+    const paperRows = MOCK_TESTS.map((m) => ({
+      id: m.id,
+      exam_id: m.examId || 'general',
+      exam_name: m.title,
+      year: 2025,
+      paper_type: m.paperName || 'Objective CBT Paper',
+      total_questions: (m.sections || []).reduce((acc: number, s: any) => acc + (s.totalQuestions || s.questions?.length || 0), 0),
+      download_available: true,
+      frequency_tags: ['official', 'syllabus-blueprint'],
+      questions: (m.sections || []).flatMap((s: any) => s.questions || []),
+      published_at: new Date().toISOString(),
+      published_by: 'admin',
+      source: 'official-blueprint'
+    }));
+
+    const { error: paperErr } = await client.from('published_papers').upsert(paperRows, { onConflict: 'id' });
+    if (paperErr) {
+      console.warn('  ✗ Failed to sync published_papers:', paperErr.message);
+    } else {
+      console.log(`  ✓ Synced ${paperRows.length} papers to published_papers table.`);
+    }
   }
 
   uploadBatch().catch((err) => {

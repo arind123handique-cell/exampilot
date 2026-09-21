@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
@@ -45,7 +45,12 @@ import {
   MOCK_TEST_GS_100,
   MOCK_TEST_IES_CIVIL
 } from '../data/mockData';
-import { getAllCombinedMockTests, getAdminPublishedMockTests } from '../services/adminPaperService';
+import {
+  getAllCombinedMockTests,
+  getAdminPublishedMockTests,
+  fetchAndSyncMockTests
+} from '../services/adminPaperService';
+import { subscribeToMockTestChanges } from '../services/supabaseMockTestService';
 import { submitMockTest } from '../services/firestore';
 import { isFirebaseConfigured } from '../firebase/config';
 import { MockTest, MCQQuestion, TestSubmission } from '../types';
@@ -114,26 +119,61 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   // Mascot Companion Character State — Pip the Owl is ExamPilot's fixed permanent mascot
   const mascotChar: MascotCharacter = 'owl';
 
-  // Available Mock Tests (combined local static and admin published)
+  // Available Mock Tests (combined local static and admin published via Supabase)
   const [availableMocks, setAvailableMocks] = useState<MockTest[]>(() => getAllCombinedMockTests(MOCK_TESTS));
 
-  const refreshMocks = () => {
-    setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
-  };
+  const refreshMocks = useCallback(async () => {
+    try {
+      const synced = await fetchAndSyncMockTests(MOCK_TESTS);
+      setAvailableMocks(synced);
+    } catch {
+      setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
+    }
+  }, []);
 
   useRealtimeSync(['mocks', 'papers', 'all'], () => {
     refreshMocks();
   });
 
   useEffect(() => {
+    refreshMocks();
+  }, [refreshMocks]);
+
+  // Real-time Supabase subscription across ports & devices
+  useEffect(() => {
+    const unsubscribe = subscribeToMockTestChanges(() => {
+      refreshMocks();
+    });
+    return unsubscribe;
+  }, [refreshMocks]);
+
+  // Sync when student tab gains focus (e.g. user toggles between Admin and Student)
+  useEffect(() => {
+    const handleFocus = () => refreshMocks();
+    window.addEventListener('focus', handleFocus);
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') refreshMocks();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [refreshMocks]);
+
+  useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'exampilot_admin_published_papers') {
+      if (
+        e.key === 'exampilot_admin_published_papers' ||
+        e.key === 'exampilot_admin_published_mocks' ||
+        e.key === 'exampilot_deleted_mock_ids'
+      ) {
         refreshMocks();
       }
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [refreshMocks]);
 
   const handleGoogleSignIn = async () => {
     setIsAuthSubmitting(true);

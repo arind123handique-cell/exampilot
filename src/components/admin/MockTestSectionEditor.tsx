@@ -22,7 +22,8 @@ import { useToast } from '../../context/ToastContext';
 import { MockTest, MockSection, MCQQuestion } from '../../types';
 import {
   getAllCombinedMockTests,
-  updateAdminPublishedMockTest
+  updateAdminPublishedMockTest,
+  fetchAndSyncMockTests
 } from '../../services/adminPaperService';
 import { MOCK_TESTS } from '../../data/mockData';
 import { useRealtimeSync } from '../../services/questionBankSyncService';
@@ -73,10 +74,22 @@ export const MockTestSectionEditor: React.FC<MockTestSectionEditorProps> = ({
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync available mocks in real time
+  const refreshMocks = async () => {
+    try {
+      const updated = await fetchAndSyncMockTests(MOCK_TESTS);
+      setAvailableMocks(updated);
+    } catch {
+      setAvailableMocks(getAllCombinedMockTests(MOCK_TESTS));
+    }
+  };
+
   useRealtimeSync(['mocks', 'papers', 'all'], () => {
-    const updated = getAllCombinedMockTests(MOCK_TESTS);
-    setAvailableMocks(updated);
+    refreshMocks();
   });
+
+  useEffect(() => {
+    refreshMocks();
+  }, []);
 
   // Load selected mock into working state only when activeMockId changes
   useEffect(() => {

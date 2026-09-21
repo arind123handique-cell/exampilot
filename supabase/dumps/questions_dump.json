@@ -34053,5 +34053,71 @@
     "explanation": "The Katha Guru Charita, compiled by Ramcharan Thakur and other disciples, is a classic prose chronicle recording the lives, travels, dialogues, and philosophy of Srimanta Sankardev and Madhavdev.",
     "referenceSource": "APSC Advt 31/2025 GS Syllabus · Unit VIII (Assam Culture)",
     "difficulty": "MEDIUM"
+  },
+  {
+    "id": "pyq-ssc-cgl-2023-paper-i-q001",
+    "questionNumber": 1,
+    "examId": "ssc-cgl",
+    "subject": "General Studies",
+    "topic": "Modern Indian History",
+    "stem": "Who was the first Prime Minister of India?",
+    "options": [
+      {
+        "id": "A",
+        "text": "Jawaharlal Nehru"
+      },
+      {
+        "id": "B",
+        "text": "Sardar Patel"
+      },
+      {
+        "id": "C",
+        "text": "Mahatma Gandhi"
+      },
+      {
+        "id": "D",
+        "text": "Rajendra Prasad"
+      }
+    ],
+    "correctOption": "A",
+    "explanation": "Jawaharlal Nehru served as the first Prime Minister of India from 1947 to 1964.",
+    "difficulty": "EASY",
+    "questionType": "CONCEPTUAL",
+    "sourceType": "PYQ",
+    "pyqYear": 2023,
+    "pyqExam": "SSC CGL"
+  },
+  {
+    "id": "pyq-ssc-cgl-2023-paper-i-q002",
+    "questionNumber": 2,
+    "examId": "ssc-cgl",
+    "subject": "General Science",
+    "topic": "Chemistry",
+    "stem": "What is the pH value of pure water at 25 degrees Celsius?",
+    "options": [
+      {
+        "id": "A",
+        "text": "5"
+      },
+      {
+        "id": "B",
+        "text": "6"
+      },
+      {
+        "id": "C",
+        "text": "7"
+      },
+      {
+        "id": "D",
+        "text": "9"
+      }
+    ],
+    "correctOption": "C",
+    "explanation": "Pure water has a pH of 7 at 25 C, which is neutral on the pH scale.",
+    "difficulty": "EASY",
+    "questionType": "CONCEPTUAL",
+    "sourceType": "PYQ",
+    "pyqYear": 2023,
+    "pyqExam": "SSC CGL"
   }
 ]
