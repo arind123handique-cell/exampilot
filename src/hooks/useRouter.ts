@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActiveTab, ALL_NAV_ITEMS } from '../components/layout/navConfig';
+import { getAdminDomainUrl } from '../config/domainConfig';
 
 export const TAB_TO_PATH: Record<ActiveTab, string> = {
   creator: '/',
@@ -22,11 +23,16 @@ function normalize(pathname: string): string {
 export function parseTabFromLocation(): { tab: ActiveTab; params: URLSearchParams } {
   const pathname = normalize(window.location.pathname);
   const params = new URLSearchParams(window.location.search);
+  if (pathname === '/admin') {
+    window.location.href = getAdminDomainUrl();
+    return { tab: 'creator', params };
+  }
   if (PATH_TO_TAB[pathname]) return { tab: PATH_TO_TAB[pathname], params };
   return { tab: 'creator', params };
 }
 
 export function tabToHref(tab: ActiveTab, params?: Record<string, string>): string {
+  if (tab === 'admin') return getAdminDomainUrl();
   const base = TAB_TO_PATH[tab];
   if (!params || Object.keys(params).length === 0) return base;
   const sp = new URLSearchParams(params);

@@ -1,63 +1,93 @@
-# ExamPilot — Deployment Guide
+# ExamPilot — Deployment & Domain Architecture Guide
 
-## Current Behavior: Offline-First with Firebase Enhancement
+ExamPilot is partitioned into two independent applications for optimal security, fast load times, and clean boundary separation:
+1. **Student Portal** — Lightweight, high-performance CBT exam engine and review portal (served on the primary domain e.g. `exampilot.ai`).
+2. **Admin Studio** — Dedicated directory (`admin/`) and separate domain (e.g. `admin.exampilot.ai`) for OCR ingestion, AI question generation, paper publishing, and student telemetry.
 
-The app **works fully without any Firebase configuration**. When `VITE_FIREBASE_*` env vars are not set (e.g., on Vercel without dashboard config), `isFirebaseConfigured` returns `false` and the app automatically switches to **Offline Mode**:
+---
 
-- Email/password sign-in creates a local session (saved to `localStorage`)
-- Google sign-in falls back to guest mode
-- Guest sign-in works as always
-- Progress, scores, and study history are all persisted locally
+## 1. Domain Configuration
 
-To enable Firebase Auth (cloud sync, multi-device, admin features), add env vars as described below.
+| Portal | Local Dev | Cloudflare Pages Project | Build Command | Output Dir | Production Domain |
+|---|---|---|---|---|---|
+| **Student Portal** | `http://localhost:3000` | `exampilot` | `npm run build` | `dist` | `exampilot.ai` |
+| **Admin Studio** | `http://localhost:3001` | `exampilot-admin` | `npm run build:admin` | `dist-admin` | `admin.exampilot.ai` |
 
-## Vercel Environment Variables (OPTIONAL — for Firebase Auth)
+Cross-domain linking and routing are managed via `src/config/domainConfig.ts`:
+- Visiting `/admin` on the student domain redirects automatically to `getAdminDomainUrl()`.
+- Header & login "Admin Portal" buttons point to `getAdminDomainUrl()`.
+- Returning from Admin Studio links to `getStudentDomainUrl()`.
 
-The deployed site works without these, but adding them enables cloud sync. Add these in the Vercel dashboard:
+---
 
-**Dashboard URL**: `https://vercel.com/dashboard` → Select `exampilot-eight` → **Settings** → **Environment Variables**
+## 2. Cloudflare Pages Deployment (Step-by-Step)
 
-Add all variables from `.env` in the **Production** environment:
+### A. Deploy Student Portal (`exampilot.ai`)
+1. Go to **Cloudflare Dashboard** → **Workers & Pages** → **Create application** → **Pages** → **Connect to Git**.
+2. Select your repository: `EXAMPILOT`.
+3. Set build settings:
+   - **Framework preset**: `None` / `Vite`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+   - **Root directory**: `/`
+4. Add Environment Variables:
+   - `VITE_ADMIN_URL`: `https://admin.exampilot.ai`
+   - Add all Firebase keys from `.env` (listed below)
+5. Save and Deploy.
+6. Under **Custom domains**, connect your primary domain: `exampilot.ai`.
 
-| Variable | Value |
-|----------|-------|
-| `VITE_FIREBASE_API_KEY` | `AIzaSyCzyyUIqIYcIcApKe2813aCPRW2RdXF6u4` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `exampilot-6836c.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | `exampilot-6836c` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `exampilot-6836c.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `818400419174` |
-| `VITE_FIREBASE_APP_ID` | `1:818400419174:web:7efac6e633785d26cfbca7` |
-| `VITE_FIREBASE_MEASUREMENT_ID` | `G-TF4YQG85N6` |
-| `VITE_AI_PROVIDER` | `auto` |
-| `VITE_OLLAMA_BASE_URL` | `http://127.0.0.1:11434` |
-| `VITE_OLLAMA_MODEL` | `qwen2.5-coder:7b` |
-| `VITE_GEMINI_API_KEY` | *(leave empty)* |
-| `VITE_ADMIN_PASSCODE` | `ExamPilot@Admin2026!` |
+### B. Deploy Admin Studio (`admin.exampilot.ai`)
+1. In **Cloudflare Dashboard**, create a second Pages application connected to the same repository `EXAMPILOT`.
+2. Name it: `exampilot-admin`.
+3. Set build settings:
+   - **Framework preset**: `None` / `Vite`
+   - **Build command**: `npm run build:admin`
+   - **Build output directory**: `dist-admin`
+   - **Root directory**: `/` (or `admin`)
+4. Add Environment Variables:
+   - `VITE_STUDENT_URL`: `https://exampilot.ai`
+   - `VITE_ADMIN_PASSCODE`: `ExamPilot@Admin2026!`
+   - Add all Firebase keys from `.env`
+5. Save and Deploy.
+6. Under **Custom domains**, connect your subdomain: `admin.exampilot.ai`.
 
-> **Security note**: These secrets are in `.env` locally but should NOT be in git. They're stored as Vercel project env vars. Note: Vite inlines `VITE_*` variables at **build time**, so they must be added to Vercel env vars BEFORE the build runs — they cannot be added to `vercel.json`'s `env` field.
+---
 
-## Why `vercel.json` `env` Field Doesn't Work
+## 3. Environment Variables Reference
 
-Vite replaces `import.meta.env.VITE_*` at **build time** during `npm run build`. Vercel's `vercel.json` `env` field only provides runtime env vars (after build). So setting Firebase keys in `vercel.json` has no effect — the build output already has `isFirebaseConfigured = false` baked in.
+| Variable | Required For | Description |
+|---|---|---|
+| `VITE_ADMIN_URL` | Student App | URL to separate admin domain (e.g. `https://admin.exampilot.ai`) |
+| `VITE_STUDENT_URL` | Admin App | URL to student portal domain (e.g. `https://exampilot.ai`) |
+| `VITE_ADMIN_PASSCODE` | Admin App | Passcode for Admin access gate |
+| `VITE_FIREBASE_API_KEY` | Both | `AIzaSyCzyyUIqIYcIcApKe2813aCPRW2RdXF6u4` |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Both | `exampilot-6836c.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | Both | `exampilot-6836c` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Both | `exampilot-6836c.firebasestorage.app` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Both | `818400419174` |
+| `VITE_FIREBASE_APP_ID` | Both | `1:818400419174:web:7efac6e633785d26cfbca7` |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Both | `G-TF4YQG85N6` |
+| `VITE_GEMINI_API_KEY` | Admin (Optional) | Can also be configured dynamically in the Admin UI |
 
-**Solution**: Add env vars in Vercel dashboard → Settings → Environment Variables, or use `CONFIG_FIREBASE_*` private env vars.
+---
 
-## After Adding Env Vars
-
-1. **Redeploy**: `git push` triggers a new Vercel build automatically
-2. **Verify**: Check `https://exampilot-eight.vercel.app` — Firebase Auth enabled
-3. **Check**: Firebase Auth domain must be whitelisted in Firebase Console → Authentication → Sign-in method → enable Email/Password and Anonymous
-
-## Local Development
+## 4. Local Development
 
 ```bash
-cp .env.example .env
-# Fill in .env with your Firebase credentials
+# Run student app (Port 3000)
 npm run dev
+
+# Run admin studio concurrently (Port 3001)
+npm run dev:admin
+
+# Build both applications
+npm run build:all
 ```
 
-## Firebase Auth Checklist
+## 5. Firebase Auth Authorized Domains
 
-- [ ] Firebase Console → Authentication → Sign-in method → Email/Password: **Enabled**
-- [ ] Firebase Console → Authentication → Sign-in method → Anonymous: **Enabled**
-- [ ] Firebase Console → Authentication → Settings → Authorized domains: `exampilot-eight.vercel.app` added
+In **Firebase Console** → **Authentication** → **Settings** → **Authorized domains**, add:
+- `localhost`
+- `exampilot.ai` (student domain)
+- `admin.exampilot.ai` (admin domain)
+- `*.pages.dev` (Cloudflare Pages preview deployments)

@@ -49,7 +49,8 @@ import { getAllCombinedMockTests, getAdminPublishedMockTests } from '../services
 import { submitMockTest } from '../services/firestore';
 import { isFirebaseConfigured } from '../firebase/config';
 import { MockTest, MCQQuestion, TestSubmission } from '../types';
-import { StudentProfileDossier } from '../components/admin/StudentProfileDossier';
+import { getAdminDomainUrl } from '../config/domainConfig';
+import { StudentProfileDossier } from '../components/student/StudentProfileDossier';
 import { StudentProfileSummary } from '../services/studentTelemetryService';
 import { QuestionStemFormatter } from '../components/ui/QuestionStemFormatter';
 import { CartoonMascot, MascotCharacter } from '../components/student/CartoonMascot';
@@ -778,7 +779,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
             <div className="pt-3 border-t border-line text-xs text-muted flex items-center justify-between">
               <span>Official Examination Platform</span>
               <a
-                href="/admin"
+                href={getAdminDomainUrl()}
                 className="font-semibold text-primary hover:underline flex items-center gap-1"
                 title="Access Exam Creator & Admin Studio"
               >
@@ -1505,7 +1506,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         {/* Right controls */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           <a
-            href="/admin"
+            href={getAdminDomainUrl()}
             className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-line hover:border-primary hover:text-primary text-xs font-semibold text-muted transition shadow-2xs"
             title="Open ExamPilot Admin Portal"
           >

@@ -1,0 +1,19 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import AdminApp from './App';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { ToastProvider } from '@/context/ToastContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import '@/index.css';
+
+ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  <React.StrictMode>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <ToastProvider>
+          <AdminApp />
+        </ToastProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
+  </React.StrictMode>
+);

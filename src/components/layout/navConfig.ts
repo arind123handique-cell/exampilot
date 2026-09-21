@@ -52,14 +52,6 @@ export const ALL_NAV_ITEMS: NavItem[] = [
     icon: History,
     role: 'student',
   },
-  {
-    id: 'admin',
-    label: 'Admin Content Studio',
-    short: 'Admin Studio',
-    desc: 'AI Question authoring, curation & database sync',
-    icon: ShieldCheck,
-    role: 'admin',
-  },
 ];
 
 export const findNavItem = (id: ActiveTab): NavItem | undefined =>
