@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "admin": "vite --config admin/vite.config.ts",
     "dev:admin": "vite --config admin/vite.config.ts",
+    "dev-admin": "vite --config admin/vite.config.ts",
     "build": "tsc && vite build",
     "build:admin": "vite build --config admin/vite.config.ts",
+    "build-admin": "vite build --config admin/vite.config.ts",
     "build:all": "npm run build && npm run build:admin",
     "preview": "vite preview",
     "preview:admin": "vite preview --config admin/vite.config.ts",
