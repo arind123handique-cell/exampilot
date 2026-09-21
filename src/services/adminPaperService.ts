@@ -230,27 +230,32 @@ export async function deleteAdminPublishedPaper(paperId: string): Promise<void> 
   const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []);
   setLocal(STORAGE_KEY_MOCKS, customMocks.filter((m) => m.id !== paperId));
 
-  // 4. Sync deletion to Cloud Firestore if connected
+  // 4. Sync deletion to Cloud Firestore non-blocking with timeout so UI never hangs
   if (isFirebaseConfigured && db) {
-    try {
-      const pId = target?.paper?.id || target?.id || paperId;
-      const mId = target?.mockTest?.id || target?.id || paperId;
+    (async () => {
+      try {
+        const pId = target?.paper?.id || target?.id || paperId;
+        const mId = target?.mockTest?.id || target?.id || paperId;
 
-      await Promise.allSettled([
-        deleteDoc(doc(db, 'published_papers', pId)),
-        deleteDoc(doc(db, 'custom_mock_tests', mId))
-      ]);
+        const deletePromise = Promise.allSettled([
+          deleteDoc(doc(db, 'published_papers', pId)),
+          deleteDoc(doc(db, 'custom_mock_tests', mId))
+        ]);
 
-      if (target?.paper?.questions && Array.isArray(target.paper.questions)) {
-        for (const q of target.paper.questions) {
-          if (q && q.id) {
-            deleteDoc(doc(db, 'questions', q.id)).catch(() => {});
+        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
+        await Promise.race([deletePromise, timeoutPromise]);
+
+        if (target?.paper?.questions && Array.isArray(target.paper.questions)) {
+          for (const q of target.paper.questions) {
+            if (q && q.id) {
+              deleteDoc(doc(db, 'questions', q.id)).catch(() => {});
+            }
           }
         }
+      } catch (err) {
+        console.warn('[ExamPilot] Firestore delete notice:', err);
       }
-    } catch (err) {
-      console.warn('[ExamPilot] Firestore delete notice:', err);
-    }
+    })();
   }
 
   // 5. Broadcast real-time deletion across tabs

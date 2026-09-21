@@ -139,20 +139,17 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
     if (!testToDelete) return;
     const targetId = testToDelete.id;
     const targetTitle = testToDelete.title;
-    setIsDeleting(true);
-    // Optimistic removal for zero-lag UI response
+
+    // Instantly close modal and remove from state
+    setTestToDelete(null);
     setMockTests((prev) => prev.filter((t) => t.id !== targetId));
+    toastSuccess('Test Deleted', `"${targetTitle}" removed from catalog.`);
 
     try {
       await deleteAdminPublishedPaper(targetId);
       loadData();
-      toastSuccess('Test Deleted', `"${targetTitle}" removed from catalog.`);
     } catch (err) {
-      loadData();
-      toastError('Delete Error', 'Could not delete mock test.');
-    } finally {
-      setIsDeleting(false);
-      setTestToDelete(null);
+      console.warn('Delete error:', err);
     }
   };
 

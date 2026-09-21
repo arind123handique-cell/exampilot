@@ -69,7 +69,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         </div>
 
         <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-line">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" size="sm" onClick={onClose}>
             {cancelText}
           </Button>
           <button
