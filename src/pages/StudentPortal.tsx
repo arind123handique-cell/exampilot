@@ -46,6 +46,7 @@ import {
 } from '../data/mockData';
 import { getAllCombinedMockTests, getAdminPublishedMockTests } from '../services/adminPaperService';
 import { submitMockTest } from '../services/firestore';
+import { isFirebaseConfigured } from '../firebase/config';
 import { MockTest, MCQQuestion, TestSubmission } from '../types';
 import { StudentProfileDossier } from '../components/admin/StudentProfileDossier';
 import { StudentProfileSummary } from '../services/studentTelemetryService';
@@ -639,7 +640,7 @@ export const StudentPortal: React.FC = () => {
   // 1. UN-AUTHENTICATED: STUDENT CREDENTIAL LOGIN SCREEN
   // Show login if: no user at all, or user is anonymous (auto-created offline session)
   // ─────────────────────────────────────────────────────────────────────────────
-  const isAuthenticated = Boolean(user && !user.isAnonymous);
+  const isAuthenticated = Boolean(user);
 
   if (!isAuthenticated) {
     return (
@@ -669,6 +670,23 @@ export const StudentPortal: React.FC = () => {
           </div>
 
           <Card flush className="p-6 sm:p-7 space-y-4 shadow-xl border-line-strong rounded-3xl bg-card/95 backdrop-blur">
+            {/* Self-diagnosing deployment notice — a silent failure here previously
+                looked like "Google login is broken". */}
+            {!isFirebaseConfigured && (
+              <div className="flex items-start gap-2 rounded-xl border border-warning/50 bg-subtle p-3 text-xs text-muted">
+                <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-warning" />
+                <div className="space-y-1">
+                  <p className="font-semibold text-ink">Cloud sign-in is not configured</p>
+                  <p>
+                    This build has no Firebase configuration, so Google and email sign-in cannot
+                    work. Add <code>VITE_FIREBASE_API_KEY</code> and the other{' '}
+                    <code>VITE_FIREBASE_*</code> variables in your host's environment settings and
+                    redeploy — Vite inlines them at build time.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Google Sign-In / Sign-Up Button */}
             <button
               type="button"

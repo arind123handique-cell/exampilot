@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import {
+  Auth,
   User,
   onAuthStateChanged,
   signInWithEmailAndPassword,
@@ -45,9 +46,54 @@ export const BASELINE_USER_STATS: UserProfile['stats'] = {
   totalStudyHours: 0
 };
 
+/**
+ * Thrown by every cloud sign-in path when the build shipped without Firebase
+ * configuration (e.g. VITE_FIREBASE_* not set on the host).
+ *
+ * This must be an ERROR, never a silent return. The earlier `if (!auth) return;`
+ * resolved successfully, so the UI showed "Signed In with Google!" while nothing
+ * had happened — which made a missing build-time env var look like a broken
+ * Google login.
+ */
+export const FIREBASE_NOT_CONFIGURED_MESSAGE =
+  'Cloud sign-in is unavailable on this deployment: the Firebase configuration is missing from the build. ' +
+  'Vite inlines VITE_* variables at BUILD time, so set VITE_FIREBASE_API_KEY (plus AUTH_DOMAIN, PROJECT_ID, ' +
+  'MESSAGING_SENDER_ID, APP_ID) in your hosting provider\u2019s environment settings and redeploy. ' +
+  'See docs/DEPLOYMENT.md.';
+
+function requireAuth(): Auth {
+  if (!auth) {
+    const err: any = new Error(FIREBASE_NOT_CONFIGURED_MESSAGE);
+    err.code = 'exampilot/firebase-not-configured';
+    throw err;
+  }
+  return auth;
+}
+
 export const formatAuthError = (err: any): string => {
   const code = err?.code || '';
   const msg = err?.message || '';
+
+  if (code === 'exampilot/firebase-not-configured') {
+    return FIREBASE_NOT_CONFIGURED_MESSAGE;
+  }
+
+  // The classic post-deploy failure: the domain is not on Firebase's allowlist.
+  if (code === 'auth/unauthorized-domain') {
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+    return (
+      `This domain (${host}) is not authorised for Firebase sign-in. In the Firebase Console open ` +
+      `Authentication \u2192 Settings \u2192 Authorized domains, add "${host}", then retry.`
+    );
+  }
+
+  if (code === 'auth/popup-blocked') {
+    return 'Your browser blocked the sign-in popup. Allow popups for this site (or use email sign-in) and try again.';
+  }
+
+  if (code === 'auth/cancelled-popup-request') {
+    return 'Another sign-in attempt was already in progress. Please try again.';
+  }
 
   if (code === 'auth/configuration-not-found' || msg.includes('configuration-not-found') || msg.includes('CONFIGURATION_NOT_FOUND')) {
     return "Firebase Authentication is not activated for project 'exampilot-6836c'. In the Firebase Console, go to Build > Authentication, click 'Get Started', and enable Email/Password (or Anonymous). Alternatively, click 'Continue as Guest' below.";
@@ -213,10 +259,10 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
 
   const signInWithEmail = async (email: string, pass: string) => {
     setError(null);
-    if (!auth) return;
 
     try {
-      await timeoutPromise(signInWithEmailAndPassword(auth, email, pass), 8000, 'Sign in timed out. Please check network connection.');
+      const authInstance = requireAuth();
+      await timeoutPromise(signInWithEmailAndPassword(authInstance, email, pass), 8000, 'Sign in timed out. Please check network connection.');
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);
@@ -226,10 +272,10 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
 
   const signUpWithEmail = async (email: string, pass: string, name: string) => {
     setError(null);
-    if (!auth) return;
 
     try {
-      const cred = await timeoutPromise(createUserWithEmailAndPassword(auth, email, pass), 10000, 'Sign up timed out. Please check network connection.');
+      const authInstance = requireAuth();
+      const cred = await timeoutPromise(createUserWithEmailAndPassword(authInstance, email, pass), 10000, 'Sign up timed out. Please check network connection.');
       if (cred.user && name) {
         try {
           await updateProfile(cred.user, { displayName: name });
@@ -267,11 +313,11 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
 
   const signInWithGoogle = async () => {
     setError(null);
-    if (!auth) return;
 
     try {
+      const authInstance = requireAuth();
       const provider = new GoogleAuthProvider();
-      const result = await timeoutPromise(signInWithPopup(auth, provider), 45000, 'Google sign-in popup was closed or timed out.');
+      const result = await timeoutPromise(signInWithPopup(authInstance, provider), 45000, 'Google sign-in popup was closed or timed out.');
       const profile = await getUserProfile(result.user.uid);
       if (profile) {
         setUser(profile);
@@ -383,11 +429,8 @@ const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authenti
 
   const resetPassword = async (email: string) => {
     setError(null);
-    if (!isFirebaseConfigured || !auth) {
-      return;
-    }
     try {
-      await sendPasswordResetEmail(auth, email);
+      await sendPasswordResetEmail(requireAuth(), email);
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);

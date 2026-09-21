@@ -49,6 +49,61 @@ took effect.
    listed. (Cross-tab sync uses `BroadcastChannel`; cross-device needs the Firestore read,
    which the new rules allow for any signed-in user.)
 
+## Vercel — making Google sign-in actually work
+
+Two independent things break Google sign-in on a Vercel deploy. Check the deployed bundle
+first: if `apiKey:""` appears in `assets/index-*.js`, problem 1 applies.
+
+```bash
+curl -s https://<your-app>.vercel.app/ | grep -oE 'src="[^"]+\.js"'   # find the entry bundle
+curl -s https://<your-app>.vercel.app/assets/index-XXXX.js | grep -oE 'apiKey:"[^"]*"'
+```
+
+### 1. Build-time environment variables
+
+`.env` is git-ignored, so Vercel never sees your Firebase keys — and Vite inlines `VITE_*`
+at **build** time, so they must be present when the build runs.
+
+Vercel → Project → Settings → Environment Variables, set for **Production, Preview and
+Development**:
+
+| Name | Value |
+|---|---|
+| `VITE_FIREBASE_API_KEY` | Firebase Console → Project settings → Your apps → Web app |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `<project>.firebaseapp.com` |
+| `VITE_FIREBASE_PROJECT_ID` | `<project>` |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `<project>.appspot.com` |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | from the same web app config |
+| `VITE_FIREBASE_APP_ID` | from the same web app config |
+| `VITE_FIREBASE_MEASUREMENT_ID` | optional |
+
+Then **redeploy**. Adding env vars does not change an existing build.
+
+### 2. Authorised domains
+
+Firebase only permits sign-in from allow-listed domains. Firebase Console → Authentication →
+Settings → **Authorized domains**, add:
+
+- `exampilot-eight.vercel.app`
+- any custom domain
+- (`localhost` is allow-listed by default)
+
+Wildcards are not supported, so every preview URL must be added individually — or keep Google
+sign-in for production only. Also confirm the provider is on: Authentication → Sign-in method →
+Google → Enable.
+
+### Symptom → cause
+
+| Symptom | Cause |
+|---|---|
+| Success toast, but still on the login screen | No Firebase config in the build (env vars missing, or not redeployed) |
+| `auth/unauthorized-domain` | Domain not allow-listed |
+| `auth/popup-blocked` | Browser popup blocker |
+| `auth/operation-not-allowed` | Provider disabled in Firebase Console |
+
+The login screen now shows an amber "Cloud sign-in is not configured" notice when the build
+has no Firebase config, and the auth layer throws a real error instead of silently succeeding.
+
 ## Static hosting (optional)
 
 `firebase.json` also configures Hosting with an SPA rewrite to `dist/index.html`:
