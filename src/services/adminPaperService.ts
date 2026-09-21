@@ -68,6 +68,18 @@ export async function publishAdminPaper(
   const updated = [record, ...existing.filter((r) => r.id !== paper.id)];
   setLocal(STORAGE_KEY_PAPERS, updated);
 
+  // If paper/mock was previously marked deleted, un-blacklist it
+  const deletedMocks = getDeletedMockIds();
+  const deletedPapers = getDeletedPaperIds();
+  if (deletedMocks.has(mockTest.id) || deletedMocks.has(paper.id) || deletedPapers.has(paper.id)) {
+    deletedMocks.delete(mockTest.id);
+    deletedMocks.delete(paper.id);
+    deletedPapers.delete(paper.id);
+    deletedPapers.delete(mockTest.id);
+    setLocal(STORAGE_KEY_DELETED_MOCKS, Array.from(deletedMocks));
+    setLocal(STORAGE_KEY_DELETED_PAPERS, Array.from(deletedPapers));
+  }
+
   // Sync to Cloud Firestore if connected
   if (isFirebaseConfigured && db) {
     try {
@@ -158,31 +170,90 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
   window.dispatchEvent(new CustomEvent('exampilot_papers_updated', { detail: { mockId: mockTest.id } }));
 }
 
+const STORAGE_KEY_DELETED_MOCKS = 'exampilot_deleted_mock_ids';
+const STORAGE_KEY_DELETED_PAPERS = 'exampilot_deleted_paper_ids';
+
+export function getDeletedMockIds(): Set<string> {
+  const raw = getLocal<string[]>(STORAGE_KEY_DELETED_MOCKS, []);
+  return new Set(Array.isArray(raw) ? raw : []);
+}
+
+export function getDeletedPaperIds(): Set<string> {
+  const raw = getLocal<string[]>(STORAGE_KEY_DELETED_PAPERS, []);
+  return new Set(Array.isArray(raw) ? raw : []);
+}
+
+export function restoreDeletedMockTests(): void {
+  localStorage.removeItem(STORAGE_KEY_DELETED_MOCKS);
+  localStorage.removeItem(STORAGE_KEY_DELETED_PAPERS);
+  notifyDataSync('mocks');
+  notifyDataSync('papers');
+  window.dispatchEvent(new CustomEvent('exampilot_papers_updated', { detail: { restored: true } }));
+}
+
 /**
- * Delete an admin-published paper from storage & Firestore
+ * Delete an admin-published paper or mock test from storage & Firestore
  */
 export async function deleteAdminPublishedPaper(paperId: string): Promise<void> {
+  if (!paperId) return;
+
+  // 1. Add to persistent deleted blacklists
+  const deletedMocks = getDeletedMockIds();
+  const deletedPapers = getDeletedPaperIds();
+  deletedMocks.add(paperId);
+  deletedPapers.add(paperId);
+
+  // 2. Look up existing published paper record to delete matching IDs
   const existing = getLocal<PublishedPaperRecord[]>(STORAGE_KEY_PAPERS, []);
-  const target = existing.find((r) => r.id === paperId);
-  const updated = existing.filter((r) => r.id !== paperId);
+  const target = existing.find(
+    (r) => r.id === paperId || r.mockTest?.id === paperId || r.paper?.id === paperId
+  );
+
+  if (target) {
+    if (target.id) {
+      deletedMocks.add(target.id);
+      deletedPapers.add(target.id);
+    }
+    if (target.mockTest?.id) deletedMocks.add(target.mockTest.id);
+    if (target.paper?.id) deletedPapers.add(target.paper.id);
+  }
+
+  setLocal(STORAGE_KEY_DELETED_MOCKS, Array.from(deletedMocks));
+  setLocal(STORAGE_KEY_DELETED_PAPERS, Array.from(deletedPapers));
+
+  // 3. Remove from local published records and custom mocks
+  const updated = existing.filter(
+    (r) => r.id !== paperId && r.mockTest?.id !== paperId && r.paper?.id !== paperId
+  );
   setLocal(STORAGE_KEY_PAPERS, updated);
 
-  // Also check custom mocks
   const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []);
   setLocal(STORAGE_KEY_MOCKS, customMocks.filter((m) => m.id !== paperId));
 
-  if (isFirebaseConfigured && db && target) {
+  // 4. Sync deletion to Cloud Firestore if connected
+  if (isFirebaseConfigured && db) {
     try {
-      await deleteDoc(doc(db, 'published_papers', paperId));
-      await deleteDoc(doc(db, 'custom_mock_tests', target.mockTest.id));
-      for (const q of target.paper.questions) {
-        await deleteDoc(doc(db, 'questions', q.id));
+      const pId = target?.paper?.id || target?.id || paperId;
+      const mId = target?.mockTest?.id || target?.id || paperId;
+
+      await Promise.allSettled([
+        deleteDoc(doc(db, 'published_papers', pId)),
+        deleteDoc(doc(db, 'custom_mock_tests', mId))
+      ]);
+
+      if (target?.paper?.questions && Array.isArray(target.paper.questions)) {
+        for (const q of target.paper.questions) {
+          if (q && q.id) {
+            deleteDoc(doc(db, 'questions', q.id)).catch(() => {});
+          }
+        }
       }
     } catch (err) {
-      console.warn('[ExamPilot] Firestore delete error:', err);
+      console.warn('[ExamPilot] Firestore delete notice:', err);
     }
   }
 
+  // 5. Broadcast real-time deletion across tabs
   notifyDataSync('papers', { paperId });
   notifyDataSync('mocks', { paperId });
   notifyDataSync('questions');
@@ -190,12 +261,22 @@ export async function deleteAdminPublishedPaper(paperId: string): Promise<void> 
 }
 
 /**
+ * Delete a mock test by ID (alias for deleteAdminPublishedPaper)
+ */
+export async function deleteAdminMockTest(mockId: string): Promise<void> {
+  return deleteAdminPublishedPaper(mockId);
+}
+
+/**
  * Helper to combine base static papers with all dynamically published admin papers
  */
 export function getAllCombinedPapers(basePapers: PYQPaper[]): PYQPaper[] {
-  const adminPapers = getAdminPublishedPapers();
+  const deletedPaperIds = getDeletedPaperIds();
+  const adminPapers = getAdminPublishedPapers().filter((p) => !deletedPaperIds.has(p.id));
   const adminIds = new Set(adminPapers.map((p) => p.id));
-  const baseFiltered = basePapers.filter((p) => !adminIds.has(p.id));
+  const baseFiltered = (basePapers || []).filter(
+    (p) => !adminIds.has(p.id) && !deletedPaperIds.has(p.id)
+  );
   return [...adminPapers, ...baseFiltered];
 }
 
@@ -203,11 +284,16 @@ export function getAllCombinedPapers(basePapers: PYQPaper[]): PYQPaper[] {
  * Helper to combine base static mock tests with all dynamically published admin mock tests
  */
 export function getAllCombinedMockTests(baseMocks: MockTest[]): MockTest[] {
-  const adminMocks = getAdminPublishedMockTests();
-  const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []);
+  const deletedMockIds = getDeletedMockIds();
+  const adminMocks = getAdminPublishedMockTests().filter((m) => !deletedMockIds.has(m.id));
+  const customMocks = getLocal<MockTest[]>(STORAGE_KEY_MOCKS, []).filter(
+    (m) => !deletedMockIds.has(m.id)
+  );
   const allDynamic = [...adminMocks, ...customMocks];
 
   const dynamicIds = new Set(allDynamic.map((m) => m.id));
-  const baseFiltered = baseMocks.filter((m) => !dynamicIds.has(m.id));
+  const baseFiltered = (baseMocks || []).filter(
+    (m) => !dynamicIds.has(m.id) && !deletedMockIds.has(m.id)
+  );
   return [...allDynamic, ...baseFiltered];
 }

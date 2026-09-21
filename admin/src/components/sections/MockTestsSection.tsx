@@ -137,12 +137,18 @@ export const MockTestsSection: React.FC<MockTestsSectionProps> = ({
 
   const handleDeleteConfirm = async () => {
     if (!testToDelete) return;
+    const targetId = testToDelete.id;
+    const targetTitle = testToDelete.title;
     setIsDeleting(true);
+    // Optimistic removal for zero-lag UI response
+    setMockTests((prev) => prev.filter((t) => t.id !== targetId));
+
     try {
-      await deleteAdminPublishedPaper(testToDelete.id);
+      await deleteAdminPublishedPaper(targetId);
       loadData();
-      toastSuccess('Test Deleted', `"${testToDelete.title}" removed from catalog.`);
+      toastSuccess('Test Deleted', `"${targetTitle}" removed from catalog.`);
     } catch (err) {
+      loadData();
       toastError('Delete Error', 'Could not delete mock test.');
     } finally {
       setIsDeleting(false);
