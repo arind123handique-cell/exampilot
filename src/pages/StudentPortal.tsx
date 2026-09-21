@@ -51,7 +51,7 @@ import { MockTest, MCQQuestion, TestSubmission } from '../types';
 import { getAdminDomainUrl } from '../config/domainConfig';
 import { StudentProfileDossier } from '../components/student/StudentProfileDossier';
 import { StudentProfileSummary } from '../services/studentTelemetryService';
-import { QuestionStemFormatter } from '../components/ui/QuestionStemFormatter';
+import { QuestionStemFormatter, parseFigureOption, FigureOptionContent } from '../components/ui/QuestionStemFormatter';
 import { CartoonMascot, MascotCharacter } from '../components/student/CartoonMascot';
 import { useRealtimeSync } from '../services/questionBankSyncService';
 import {
@@ -1059,8 +1059,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                       const hasAnswered = Boolean(userChoice);
                       const isThisSelected = normalize(userChoice) === normalize(opt.id);
                       const isThisCorrect = normalize(opt.id) === normalize(currentQ.correctOption);
+                      const figureDesc = parseFigureOption(opt.text);
+                      const isFigureOpt = Boolean(figureDesc);
 
                       let optStyle = 'border-line hover:border-line-strong bg-card text-ink';
+                      if (isFigureOpt && !hasAnswered) {
+                        optStyle = 'border-dashed border-teal-300 dark:border-teal-700 hover:border-teal-400 bg-teal-50/40 dark:bg-teal-950/20 text-ink';
+                      }
                       if (hasAnswered) {
                         if (isThisCorrect) {
                           optStyle = 'border-success bg-success-surface text-success-text font-bold ring-2 ring-success/30';
@@ -1086,11 +1091,20 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                               ? 'bg-danger text-white'
                               : isThisSelected
                               ? 'bg-primary text-white'
+                              : isFigureOpt
+                              ? 'bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 border border-teal-300 dark:border-teal-700'
                               : 'bg-subtle text-muted'
                           }`}>
                             {opt.id}
                           </span>
-                          <span className="flex-1 min-w-0 break-words leading-relaxed">{opt.text}</span>
+
+                          {/* Option content — figure or plain text */}
+                          <span className="flex-1 min-w-0 break-words leading-relaxed">
+                            {figureDesc
+                              ? <FigureOptionContent description={figureDesc} />
+                              : opt.text
+                            }
+                          </span>
 
                           {hasAnswered && isThisCorrect && (
                             <span className="flex items-center gap-1 text-[10px] sm:text-xs font-bold text-success-text bg-success-surface px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-lg border border-success-border flex-shrink-0 self-center">
@@ -1109,6 +1123,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                       );
                     })}
                   </div>
+
 
                   {/* Instant Answer & Detailed Explanation Panel */}
                   {selectedAnswers[currentQ.id] && (() => {
@@ -1148,19 +1163,36 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                         <div className="p-2.5 sm:p-3 rounded-xl bg-surface/80 border border-line space-y-1.5 text-xs w-full max-w-full">
                           <div className="flex items-start gap-1.5 sm:gap-2">
                             <span className="font-bold text-success-text flex-shrink-0 min-w-[85px] sm:min-w-[110px]">Correct Option:</span>
-                            <span className="font-bold text-ink flex-1 min-w-0 break-words">
-                              Option {currentQ.correctOption} — {correctOptObj?.text || ''}
+                            <span className="font-bold text-ink flex-1 min-w-0 break-words flex items-start gap-1">
+                              <span className="flex-shrink-0">Option {currentQ.correctOption} —</span>
+                              <span className="flex-1 min-w-0">
+                                {(() => {
+                                  const desc = parseFigureOption(correctOptObj?.text || '');
+                                  return desc
+                                    ? <FigureOptionContent description={desc} compact />
+                                    : (correctOptObj?.text || '');
+                                })()}
+                              </span>
                             </span>
                           </div>
                           {!isUserCorrect && (
                             <div className="flex items-start gap-1.5 sm:gap-2">
                               <span className="font-bold text-danger-text flex-shrink-0 min-w-[85px] sm:min-w-[110px]">Your Answer:</span>
-                              <span className="text-muted line-through font-medium flex-1 min-w-0 break-words">
-                                Option {userChoice} — {userOptObj?.text || ''}
+                              <span className="text-muted line-through font-medium flex-1 min-w-0 break-words flex items-start gap-1">
+                                <span className="flex-shrink-0">Option {userChoice} —</span>
+                                <span className="flex-1 min-w-0">
+                                  {(() => {
+                                    const desc = parseFigureOption(userOptObj?.text || '');
+                                    return desc
+                                      ? <FigureOptionContent description={desc} compact />
+                                      : (userOptObj?.text || '');
+                                  })()}
+                                </span>
                               </span>
                             </div>
                           )}
                         </div>
+
 
                         {/* Mascot Reaction with Pip */}
                         <div className="py-1 flex items-center justify-between gap-2 flex-wrap">

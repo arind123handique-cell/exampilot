@@ -1,5 +1,5 @@
 import React from 'react';
-import { Columns, CheckCircle2, ListChecks, HelpCircle } from 'lucide-react';
+import { Columns, CheckCircle2, BarChart2, HelpCircle } from 'lucide-react';
 
 export interface QuestionStemFormatterProps {
   stem: string;
@@ -38,6 +38,31 @@ export interface ParsedStatementQuestion {
   introLines: string[];
   statements: ParsedStatement[];
   promptText: string;
+}
+
+/**
+ * Extract a [Stem Figure: description] prefix from the stem.
+ * Returns { figureDesc, remainingStem } or null if none found.
+ */
+export function parseStemFigure(stem: string): { figureDesc: string; remainingStem: string } | null {
+  if (!stem) return null;
+  // Match [Stem Figure: ...] or [Figure: ...] at the very start of the stem
+  const m = stem.match(/^\[(?:Stem )?Figure:\s*([^\]]+)\]\s*/i);
+  if (!m) return null;
+  return {
+    figureDesc: m[1].trim(),
+    remainingStem: stem.slice(m[0].length).trim(),
+  };
+}
+
+/**
+ * Detect whether an option text is a [Figure: ...] description.
+ * Returns the description string, or null.
+ */
+export function parseFigureOption(text: string): string | null {
+  if (!text) return null;
+  const m = text.match(/^\[(?:Stem )?Figure:\s*([^\]]+)\]$/i);
+  return m ? m[1].trim() : null;
 }
 
 /**
@@ -80,7 +105,7 @@ export function parseMatchQuestion(stem: string): ParsedMatchQuestion | null {
   let col1Header = 'List I';
   let col2Header = 'List II';
 
-  const colHeaderMatch = text.match(/^(Column[- ]?I|List[- ]?I(?:\s*\([^)]*\))?)\s{2,}(Column[- ]?II|List[- ]?II(?:\s*\([^)]*\))?)/i);
+  const colHeaderMatch = text.match(/^(Column[- ]?I|List[- ]?I(?:\s*\([^)]*\))?)\ {2,}(Column[- ]?II|List[- ]?II(?:\s*\([^)]*\))?)/i);
   if (colHeaderMatch) {
     col1Header = colHeaderMatch[1].trim();
     col2Header = colHeaderMatch[2].trim();
@@ -122,7 +147,7 @@ export function parseMatchQuestion(stem: string): ParsedMatchQuestion | null {
   const linePairs: MatchPair[] = [];
 
   for (const line of lines) {
-    const headerLine = line.match(/^(Column[- ]?I|List[- ]?I(?:\s*\([^)]*\))?)\s{2,}(Column[- ]?II|List[- ]?II(?:\s*\([^)]*\))?)$/i);
+    const headerLine = line.match(/^(Column[- ]?I|List[- ]?I(?:\s*\([^)]*\))?)\ {2,}(Column[- ]?II|List[- ]?II(?:\s*\([^)]*\))?)$/i);
     if (headerLine) {
       col1Header = headerLine[1].trim();
       col2Header = headerLine[2].trim();
@@ -138,7 +163,7 @@ export function parseMatchQuestion(stem: string): ParsedMatchQuestion | null {
         rightText: m[4].trim()
       });
     } else {
-      const mRelaxed = line.match(/^([a-eA-E]|\([a-eA-E]\))[.)]?\s+(.*?)\s+([1-5]|\([1-5]\))[.)]\s+(.*)$/);
+      const mRelaxed = line.match(/^([a-eA-E]|\([a-eA-E]\))[.)]?\s+(.*?)\s+([1-5]|\([1-5]\))[.]\s+(.*)$/);
       if (mRelaxed) {
         linePairs.push({
           leftId: mRelaxed[1].replace(/[().]/g, '').trim(),
@@ -161,7 +186,7 @@ export function parseMatchQuestion(stem: string): ParsedMatchQuestion | null {
   }
 
   // 6. Pattern C: Inline flattened string (e.g. from OCR single-line output)
-  const rowRegex = /(?:^|\s+)([a-eA-E]|\([a-eA-E]\))[.)]\s+/g;
+  const rowRegex = /(?:^|\s+)([a-eA-E]|\([a-eA-E]\))[.)]\ s+/g;
   const splits: { label: string; content: string }[] = [];
   let m: RegExpExecArray | null;
   let lastIdx = 0;
@@ -312,7 +337,38 @@ export function parseStatementQuestion(stem: string): ParsedStatementQuestion | 
 }
 
 /**
+ * Reusable figure callout card — shown above the stem when the question references a diagram.
+ */
+export const StemFigureCallout: React.FC<{ description: string; compact?: boolean }> = ({ description, compact }) => (
+  <div className={`flex items-start gap-2.5 rounded-xl border border-teal-300 dark:border-teal-700 bg-teal-50 dark:bg-teal-950/40 ${compact ? 'p-2 mb-2' : 'p-3 sm:p-3.5 mb-3'}`}>
+    <BarChart2 className="w-4 h-4 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" />
+    <div className="flex-1 min-w-0">
+      <span className={`block font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wider mb-0.5 ${compact ? 'text-[9px]' : 'text-[10px] sm:text-[11px]'}`}>
+        📊 Figure / Diagram Reference
+      </span>
+      <span className={`text-teal-900 dark:text-teal-100 leading-relaxed break-words ${compact ? 'text-xs' : 'text-xs sm:text-sm'}`}>
+        {description}
+      </span>
+    </div>
+  </div>
+);
+
+/**
+ * Reusable figure option renderer — used inside option buttons and answer summary.
+ */
+export const FigureOptionContent: React.FC<{ description: string; compact?: boolean }> = ({ description, compact }) => (
+  <span className="flex items-start gap-1.5 w-full min-w-0">
+    <BarChart2 className={`flex-shrink-0 text-teal-500 dark:text-teal-400 mt-0.5 ${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'}`} />
+    <span className="flex-1 min-w-0 break-words">
+      <span className={`font-semibold text-teal-700 dark:text-teal-300 mr-1 ${compact ? 'text-[9px]' : 'text-[10px]'}`}>[Figure]</span>
+      <span className={`italic text-inherit ${compact ? 'text-[10px]' : 'text-xs'}`}>{description}</span>
+    </span>
+  </span>
+);
+
+/**
  * Universal Question Stem Formatter Component
+ * - Detects [Stem Figure: ...] prefix and renders a teal diagram callout above the stem.
  * - Automatically renders "Match the following" questions into beautiful, responsive comparison tables.
  * - Formats markdown tables with clean Tailwind data tables.
  * - Formats Statement-based questions with distinct statement cards.
@@ -325,11 +381,16 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
 }) => {
   if (!stem) return null;
 
+  // 0. Strip [Stem Figure: ...] prefix and render it as a callout
+  const figureData = parseStemFigure(stem);
+  const effectiveStem = figureData ? figureData.remainingStem : stem;
+
   // 1. Check for "Match the following"
-  const matchData = parseMatchQuestion(stem);
+  const matchData = parseMatchQuestion(effectiveStem);
   if (matchData) {
     return (
       <div className={`space-y-3 text-left ${className}`}>
+        {figureData && <StemFigureCallout description={figureData.figureDesc} compact={compact} />}
         {/* Instruction Line */}
         <div className="flex items-center gap-2">
           <Columns className="w-4 h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
@@ -400,10 +461,11 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
   }
 
   // 2. Check for Markdown Tables
-  const mdTable = parseMarkdownTable(stem);
+  const mdTable = parseMarkdownTable(effectiveStem);
   if (mdTable) {
     return (
       <div className={`space-y-3 text-left ${className}`}>
+        {figureData && <StemFigureCallout description={figureData.figureDesc} compact={compact} />}
         {mdTable.beforeText && (
           <p className={`font-medium text-ink leading-relaxed whitespace-pre-line ${compact ? 'text-xs' : 'text-sm sm:text-base'}`}>
             {mdTable.beforeText}
@@ -445,10 +507,11 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
   }
 
   // 3. Check for Statement Questions
-  const stmtData = parseStatementQuestion(stem);
+  const stmtData = parseStatementQuestion(effectiveStem);
   if (stmtData) {
     return (
       <div className={`space-y-3 text-left ${className}`}>
+        {figureData && <StemFigureCallout description={figureData.figureDesc} compact={compact} />}
         {stmtData.introLines.length > 0 && (
           <p className={`font-medium text-ink leading-relaxed ${compact ? 'text-xs' : 'text-sm sm:text-base'}`}>
             {stmtData.introLines.join(' ')}
@@ -484,9 +547,12 @@ export const QuestionStemFormatter: React.FC<QuestionStemFormatterProps> = ({
 
   // 4. Default: Standard question with clean multiline spacing
   return (
-    <p className={`font-medium text-ink leading-relaxed whitespace-pre-line text-left ${compact ? 'text-xs' : 'text-sm sm:text-base'} ${className}`}>
-      {stem}
-    </p>
+    <div className={`text-left ${className}`}>
+      {figureData && <StemFigureCallout description={figureData.figureDesc} compact={compact} />}
+      <p className={`font-medium text-ink leading-relaxed whitespace-pre-line ${compact ? 'text-xs' : 'text-sm sm:text-base'}`}>
+        {effectiveStem}
+      </p>
+    </div>
   );
 };
 
