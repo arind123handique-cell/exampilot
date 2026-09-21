@@ -19,9 +19,12 @@
     "audit:coverage": "node scripts/coverage-report.mjs --requests",
     "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox",
     "pyq:inspect": "python tools/pyq_exporter/extract_pyq.py --inspect",
-    "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild"
+    "pyq:rebuild": "python tools/pyq_exporter/extract_pyq.py --rebuild",
+    "supabase:dump": "tsx scripts/migrate-to-supabase.ts",
+    "supabase:migrate": "tsx scripts/migrate-to-supabase.ts --upload"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
     "firebase": "^11.4.0",
