@@ -383,43 +383,83 @@ def gemini_generate(parts: list, api_key: str, models: list, max_output_tokens: 
 STANDARD_SCHEMA = """[
   {
     "questionNumber": 1,
-    "stem": "Full question text. Preserve technical terms, code clauses and names. For 'Match the following', lay the two lists out on separate lines.",
+    "stem": "Full question text. Preserve technical terms, code clauses and names. For 'Match the following', lay the two lists out on separate lines. If the stem references a figure, describe it first as '[Stem Figure: ...]'.",
     "options": [
-      { "id": "A", "text": "..." },
+      { "id": "A", "text": "Text of option A. If this option is an image/diagram, write '[Figure: one-sentence description]'" },
       { "id": "B", "text": "..." },
       { "id": "C", "text": "..." },
       { "id": "D", "text": "..." }
     ],
     "correctOption": "A",
-    "explanation": "Concise worked justification for the key.",
+    "explanation": "Concise worked justification for the key. For figure options: explain WHY the correct figure is right.",
     "subject": "Civil Engineering",
     "topic": "Soil Mechanics",
     "difficulty": "MEDIUM",
-    "questionType": "CONCEPTUAL"
+    "questionType": "CONCEPTUAL",
+    "hasFigureOptions": false
   }
 ]"""
 
 MATH_SCHEMA = """[
   {
     "questionNumber": 1,
-    "stem": "Full question text. For equations use Unicode math: ∫, ∂, ∑, √, α, β, γ, δ, θ, σ, μ, ε, π, ∞, ≤, ≥, ≠, ², ³. For complex LaTeX enclose in $$...$$. Never leave a blank box — write the symbol you see.",
+    "stem": "Full question text. For equations use Unicode math: ∫, ∂, ∑, √, α, β, γ, δ, θ, σ, μ, ε, π, ∞, ≤, ≥, ≠, ², ³. For complex LaTeX enclose in $$...$$. Never leave a blank box — write the symbol you see. If the stem references a figure, describe it first: '[Stem Figure: simply-supported beam, span 6m, point load 10kN at mid-span]'.",
     "options": [
-      { "id": "A", "text": "Exact value or expression, e.g. '42.5 kN/m²' or '2πr²'" },
+      { "id": "A", "text": "Exact value or expression, e.g. '42.5 kN/m²' or '2πr²'. If this option IS an image/graph/diagram, write: '[Figure: one-line description of what the image shows]'" },
       { "id": "B", "text": "..." },
       { "id": "C", "text": "..." },
       { "id": "D", "text": "..." }
     ],
     "correctOption": "A",
-    "explanation": "Step-by-step justification. State the formula used, substitute values, give the result. Cite IS/ACI code clauses when applicable.",
+    "explanation": "Step-by-step justification. State the formula used, substitute values, give the result. For image options: explain WHY the correct figure/graph is right (e.g. 'the parabola opens upward because k>0'). Cite IS/ACI code clauses when applicable.",
     "formulaContext": "Primary formula: e.g. 'σ = P/A'. Include variable definitions.",
     "solutionSteps": "1. Identify given: ...\n2. Apply formula: ...\n3. Calculate: ...",
     "referenceSource": "IS 456:2000 Cl. 26.4 / ASCE 7-16 / etc. (leave blank if not applicable)",
     "subject": "Civil Engineering",
     "topic": "Structural Analysis",
     "difficulty": "HARD",
-    "questionType": "NUMERICAL"
+    "questionType": "DIAGRAM_BASED",
+    "hasFigureOptions": true
   }
 ]"""
+
+# Rules injected into every prompt (math and standard) when source is an image.
+IMAGE_OPTION_RULES = """
+IMAGE / FIGURE OPTIONS — MANDATORY RULES:
+Some questions use diagrams, graphs, waveforms, circuits, or structural figures AS the answer
+options (i.e. options A, B, C, D are four different images rather than text). Do this:
+
+  STEP 1 — DETECT: Look at each option. Is it an image / drawing / graph rather than plain text?
+  STEP 2 — DESCRIBE: If yes, write the option text as:
+        "[Figure: <one clear, specific sentence describing exactly what the image shows>]"
+
+  GOOD EXAMPLES:
+    "[Figure: A sine wave with amplitude 2 and period 2π, starting at origin]"
+    "[Figure: A beam with pin support at left, roller at right, UDL of w kN/m along full span]"
+    "[Figure: A straight line y = 2x + 1 with positive slope crossing y-axis at 1]"
+    "[Figure: A parabola opening upward with vertex at (0, -4)]"
+    "[Figure: A Mohr's circle centred at (50, 0) MPa with radius 30 MPa]"
+    "[Figure: A right-angled triangle, sides 3, 4, 5, angle θ at bottom-left vertex]"
+    "[Figure: A stress-strain curve showing elastic region, yield point at σ_y, and fracture]"
+    "[Figure: A velocity-time graph with constant positive acceleration from rest]"
+    "[Figure: Circuit with resistor R and capacitor C in series, driven by voltage source V]"
+    "[Figure: A T-shaped cross-section, flange 200×20mm, web 20×180mm]"
+    "[Figure: A flow net with 5 flow channels and 12 equipotential drops]"
+    "[Figure: Shear force diagram — zero at both ends, peak +20kN at mid-span]"
+    "[Figure: A block diagram showing input → plant G(s) → output with unity feedback]"
+
+  RULES:
+    • Set hasFigureOptions: true if ANY option is a figure.
+    • NEVER leave an option blank just because it is an image. Always describe it.
+    • If you can only partially see an option image, write what you CAN see:
+        "[Figure: partially visible — a curve with negative slope]"
+    • If the STEM references a figure (e.g. "For the beam shown in Fig. 3"), describe THAT
+      figure at the very start of the stem field:
+        "[Stem Figure: simply-supported beam, span 8m, concentrated load 50kN at 3m from left] Find the reaction at left support."
+    • The explanation MUST state WHY the correct figure is right, e.g.:
+        "Option B is correct because the bending moment is zero at both simply-supported ends
+         and maximum at mid-span, which matches the parabolic BMD shown."
+"""
 
 
 def build_prompt(meta: dict, source: str, math_mode: bool = False) -> str:
@@ -433,7 +473,7 @@ def build_prompt(meta: dict, source: str, math_mode: bool = False) -> str:
     math_instructions = (
         """
 MATHEMATICAL CONTENT RULES (apply to every question):
-- READ every symbol, subscript, superscript, fraction and equation from the image — never skip or blank them.
+- READ every symbol, subscript, superscript, fraction and equation — never skip or blank them.
 - Use Unicode where possible: α β γ δ ε ζ θ κ λ μ ν ξ π ρ σ τ φ ψ ω Δ Σ Ω
   ∫ ∬ ∂ ∇ √ ∛ ∞ ≤ ≥ ≠ ≈ ± × ÷ ² ³ ⁻¹ · → ↔ ⊥ ∥ ∴ ∵
 - For complex expressions (matrices, multi-line integrals, continued fractions) wrap in $$ … $$
@@ -443,7 +483,7 @@ MATHEMATICAL CONTENT RULES (apply to every question):
     "CONCEPTUAL"     — fact/theory, no calculation
     "NUMERICAL"      — requires arithmetic/algebra to obtain a numeric answer
     "FORMULA_RECALL" — asks to identify/complete a formula or derive a result
-    "DIAGRAM_BASED"  — involves a figure, graph, or circuit (describe the figure in the stem)
+    "DIAGRAM_BASED"  — involves a figure, graph, or circuit (describe figures in stem/options)
     "MATCH"          — match-the-following table
 """
         if math_mode
@@ -456,6 +496,9 @@ MATHEMATICAL CONTENT RULES (apply to every question):
         else ""
     )
 
+    # Image option rules apply whenever the source is visual (image mode).
+    figure_rules = IMAGE_OPTION_RULES if source == "image" else ""
+
     return f"""You are an expert exam-paper digitizer and subject-matter examiner.
 
 Paper: {meta['examName']} ({meta['year']}) — {meta['paperType']}
@@ -465,18 +508,22 @@ From {origin}, do the following:
 2. Extract EVERY multiple-choice question (MCQ). Never invent, merge or renumber questions.
 3. For each question produce:
    - questionNumber: the number printed on the paper, else sequential order.
-   - stem: the COMPLETE question text — preserve ALL symbols, values and units.{standard_type_note}
-   - options: exactly four entries with ids "A","B","C","D" (strip the leading "(A)" from the text). If an option is a numeric value or expression, write it exactly.
-   - correctOption: the printed key if visible; otherwise compute/identify the authoritative answer.
-   - explanation: a concise, high-yield justification (cite a standard/clause when apt).
+   - stem: the COMPLETE question text — preserve ALL symbols, values and units. If the stem references a figure, describe it first as "[Stem Figure: ...]".{standard_type_note}
+   - options: exactly four entries with ids "A","B","C","D" (strip the leading "(A)" from the text).
+     * Text options: write the exact text.
+     * Image/figure options: write "[Figure: one-sentence description]".
+   - correctOption: the printed key if visible; otherwise identify the authoritative answer.
+   - explanation: a concise, high-yield justification. For image options: explain WHY the correct figure is right.
+   - hasFigureOptions: true if ANY option is an image/graph/diagram; false otherwise.
    - subject: coarse subject, e.g. "Civil Engineering" or "Mathematics".
    - topic: the specific sub-topic, e.g. "Soil Mechanics", "Fluid Mechanics", "Indian Polity".
-   - difficulty: "EASY" | "MEDIUM" | "HARD".{math_instructions}
+   - difficulty: "EASY" | "MEDIUM" | "HARD".{math_instructions}{figure_rules}
 
 Return ONLY a valid JSON array matching exactly this shape (no markdown fences, no commentary):
 {schema}
 
-If a question is illegible, has fewer than four readable options, or is purely a figure with no extractable text, skip it rather than guessing.
+If a question is truly illegible (cannot read stem AND cannot describe any option at all), skip it.
+NEVER skip a question just because its options are images — always describe the images.
 """
 
 
@@ -581,12 +628,35 @@ def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> t
             for idx, opt in enumerate(raw_options[:4]):
                 text = str(opt.get("text") if isinstance(opt, dict) else opt or "").strip()
                 options.append({"id": VALID_OPTION_IDS[idx], "text": text})
-        # Accept math options that look empty but may be numeric (e.g. "0").
-        if len(options) != 4 or any(not o["text"] and o["text"] != "0" for o in options):
-            # Attempt to use "0" as a valid numeric option.
-            if len(options) == 4:
+
+        # Detect figure-based options — "[Figure: ...]" is a valid non-empty option.
+        def _is_valid_option_text(t: str) -> bool:
+            if t:
+                return True
+            # "0" is a valid numeric answer; treat it as non-empty.
+            return t == "0"
+
+        def _is_figure_option(t: str) -> bool:
+            return t.startswith("[Figure:") or t.startswith("[figure:")
+
+        # If any option is a [Figure: ...] description, it counts as valid.
+        # Replace truly blank options with a placeholder only if len matches.
+        if len(options) != 4:
+            rejected += 1
+            continue
+
+        has_figure_opts = any(_is_figure_option(o["text"]) for o in options)
+
+        # For non-figure options: accept "0" as a valid numeric answer.
+        bad_options = [
+            o for o in options
+            if not _is_valid_option_text(o["text"]) and not _is_figure_option(o["text"])
+        ]
+        if bad_options:
+            if math_mode or is_math_type:
+                # Replace blank non-figure options with "0" as a last resort.
                 options = [
-                    {"id": o["id"], "text": o["text"] if o["text"] else "0"}
+                    {"id": o["id"], "text": o["text"] if _is_valid_option_text(o["text"]) or _is_figure_option(o["text"]) else "0"}
                     for o in options
                 ]
                 if any(not o["text"] for o in options):
@@ -617,12 +687,12 @@ def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> t
 
         # ── Explanation ───────────────────────────────────────────────────
         explanation = str(entry.get("explanation") or "").strip()
-        if not has_meaningful_explanation(explanation, math_mode=math_mode or is_math_type):
-            # For math questions: synthesise a minimal explanation if Gemini omitted it.
-            if math_mode or is_math_type:
+        is_figure_q = has_figure_opts or q_type == "DIAGRAM_BASED"
+        if not has_meaningful_explanation(explanation, math_mode=math_mode or is_math_type or is_figure_q):
+            if math_mode or is_math_type or is_figure_q:
                 formula_ctx = str(entry.get("formulaContext") or "").strip()
                 steps = str(entry.get("solutionSteps") or "").strip()
-                explanation = (formula_ctx or steps or f"Correct answer: {key}.")
+                explanation = formula_ctx or steps or f"Correct answer: {key}."
             else:
                 rejected += 1
                 continue
@@ -635,10 +705,14 @@ def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> t
         if question_number < 1:
             question_number = len(out) + 1
 
-        # ── Math-specific extra fields ────────────────────────────────────
+        # ── Extra fields ──────────────────────────────────────────────────
         formula_context = str(entry.get("formulaContext") or "").strip() or None
         solution_steps = str(entry.get("solutionSteps") or "").strip() or None
         reference_source = str(entry.get("referenceSource") or "").strip() or None
+
+        # Auto-upgrade questionType for figure-option questions.
+        if has_figure_opts and q_type == "CONCEPTUAL":
+            q_type = "DIAGRAM_BASED"
 
         out.append(
             {
@@ -649,6 +723,7 @@ def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> t
                 "formulaContext": formula_context,
                 "solutionSteps": solution_steps,
                 "referenceSource": reference_source,
+                "hasFigureOptions": has_figure_opts,
                 "subject": str(entry.get("subject") or meta.get("subject") or "General Studies").strip(),
                 "topic": str(entry.get("topic") or meta.get("paperType") or meta["examName"]).strip(),
                 "difficulty": difficulty,
@@ -658,6 +733,7 @@ def validate_questions(raw_list: list, meta: dict, math_mode: bool = False) -> t
         )
 
     return out, rejected
+
 
 
 def group_into_sections(questions: list, group_mode: str = "auto") -> list:
@@ -727,10 +803,11 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
                     "options": question["options"],
                     "correctOption": question["correctOption"],
                     "explanation": question["explanation"],
-                    # Math-specific extras (None when not present):
+                    # Math & diagram extras (None when not present):
                     "formulaContext": question.get("formulaContext"),
                     "solutionSteps": question.get("solutionSteps"),
                     "referenceSource": question.get("referenceSource"),
+                    "hasFigureOptions": question.get("hasFigureOptions", False),
                     "difficulty": question["difficulty"],
                     "questionType": question["questionType"],
                     "sourceType": "PYQ",
