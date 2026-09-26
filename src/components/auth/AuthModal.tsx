@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { isFirebaseConfigured } from '../../firebase/config';
+import { isSupabaseConfigured, SUPABASE_URL } from '../../services/supabaseClient';
 import { X, Mail, Lock, User, AlertCircle, Sparkles, CheckCircle2, KeyRound, ShieldCheck, ExternalLink } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -59,9 +59,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         toastSuccess('Welcome back!', 'Signed in successfully.');
         onClose();
       } else if (mode === 'signup') {
-        await signUpWithEmail(email, password, name);
-        toastSuccess('Account Created!', 'Welcome to ExamPilot.');
-        onClose();
+        const result = await signUpWithEmail(email, password, name);
+        if (result.needsConfirmation) {
+          setSuccessMsg('Almost there! Check your inbox for a confirmation link, confirm your email, then sign in.');
+          setMode('signin');
+        } else {
+          toastSuccess('Account Created!', 'Welcome to ExamPilot.');
+          onClose();
+        }
       } else if (mode === 'forgot') {
         await resetPassword(email);
         setSuccessMsg('Password reset email sent! Check your inbox.');
@@ -130,16 +135,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </div>
 
-        {/* Firebase Config Notice */}
+        {/* Supabase Config Notice */}
         <div className="px-6 py-2.5 bg-subtle border-b border-line flex items-center justify-between text-xs">
           <span className="text-ink-soft flex items-center gap-1.5 font-medium">
             <KeyRound className="w-3.5 h-3.5 text-primary" />
             Backend Connection:
           </span>
-          {isFirebaseConfigured ? (
+          {isSupabaseConfigured ? (
             <span className="px-2 py-0.5 rounded-full bg-success-surface text-success-text font-medium text-[11px] flex items-center gap-1 border border-success-border">
               <span className="w-1.5 h-1.5 rounded-full bg-success"></span>
-              Live Firebase Connected
+              Live Supabase Connected
             </span>
           ) : (
             <span className="px-2 py-0.5 rounded-full bg-subtle text-muted font-medium text-[11px] flex items-center gap-1 border border-line">
@@ -206,15 +211,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   </button>
                 </div>
               )}
-              {(error.includes('Firebase Authentication is not activated') || error.includes('Firebase Console')) && (
+              {(error.includes('Supabase') || error.includes('Authentication \u2192 Providers')) && (
                 <div className="pt-1 flex flex-wrap items-center gap-2 border-t border-danger-border/50">
                   <a
-                    href="https://console.firebase.google.com/project/exampilot-6836c/authentication"
+                    href={`https://supabase.com/dashboard/project/${(() => { try { return new URL(SUPABASE_URL).hostname.split('.')[0]; } catch { return ''; } })()}/auth/users`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 rounded-lg bg-danger-text/10 px-2.5 py-1 text-[11px] font-bold text-danger-text hover:bg-danger-text/20 transition underline"
                   >
-                    <span>Firebase Console</span>
+                    <span>Supabase Dashboard</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>

@@ -42,4 +42,4 @@ npm run preview:admin
 - **Environment Variables**:
   - `VITE_STUDENT_URL`: `https://exampilot.ai`
   - `VITE_ADMIN_PASSCODE`: `ExamPilot@Admin2026!`
-  - Plus standard Firebase keys from `.env`
+  - Plus `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from `.env`

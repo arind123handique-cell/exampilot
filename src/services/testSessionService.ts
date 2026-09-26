@@ -3,22 +3,11 @@
  *
  * Manages test drafts (in-progress mock tests) and completed test submissions.
  * Provides dual persistence:
- * 1. Cloud Firestore (collections: 'test_drafts' and 'test_submissions')
+ * 1. Supabase (app_docs collections: 'test_drafts' and 'test_submissions')
  * 2. LocalStorage (offline-first fallback with instant caching)
  */
-import {
-  doc,
-  getDoc,
-  setDoc,
-  deleteDoc,
-  collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit
-} from 'firebase/firestore';
-import { db, isFirebaseConfigured } from '../firebase/config';
+import { getCloudDoc, setCloudDoc, deleteCloudDoc, queryCloudDocs } from './supabaseDocStore';
+import { isSupabaseConfigured } from './supabaseClient';
 import type { MCQQuestion, MockSection } from '../types';
 
 export interface TestDraft {
@@ -115,15 +104,16 @@ export async function saveTestDraft(draft: TestDraft): Promise<void> {
   const filtered = existingDrafts.filter(d => d.id !== draft.id);
   const updated = [draft, ...filtered];
   writeLocalStorage(storageKey, updated);
-  notifyUpdate();
+  notifyUpdate();  // 2. Sync to Supabase if connected
 
-  // 2. Sync to Cloud Firestore if connected
-  if (isFirebaseConfigured && db) {
+  if (draft.userId) {
     try {
-      const draftRef = doc(db, 'test_drafts', draft.id);
-      await setDoc(draftRef, draft, { merge: true });
+      await setCloudDoc('test_drafts', draft.id, draft, {
+        userId: draft.userId,
+        sortKey: draft.lastSavedAt
+      });
     } catch (err) {
-      console.warn('[TestSessionService] Firestore saveTestDraft error, cached locally:', err);
+      console.warn('[TestSessionService] Supabase saveTestDraft error, cached locally:', err);
     }
   }
 }
@@ -154,22 +144,20 @@ export async function getTestDrafts(userId?: string): Promise<TestDraft[]> {
   const storageKey = `${STORAGE_KEYS.draftsPrefix}${userKey}`;
   const localDrafts = getLocalTestDrafts(userId);
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const q = query(
-        collection(db, 'test_drafts'),
-        where('userId', '==', userKey),
-        orderBy('lastSavedAt', 'desc'),
-        limit(25)
-      );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const firestoreDrafts = snap.docs.map(d => d.data() as TestDraft);
-        writeLocalStorage(storageKey, firestoreDrafts);
-        return firestoreDrafts;
+      const cloudDrafts = await queryCloudDocs<TestDraft>('test_drafts', {
+        userId: userKey,
+        orderBySortKey: true,
+        descending: true,
+        limit: 25
+      });
+      if (cloudDrafts.length > 0) {
+        writeLocalStorage(storageKey, cloudDrafts);
+        return cloudDrafts;
       }
     } catch (err) {
-      console.warn('[TestSessionService] Firestore getTestDrafts error, using local:', err);
+      console.warn('[TestSessionService] Supabase getTestDrafts error, using local:', err);
     }
   }
 
@@ -184,14 +172,12 @@ export async function getTestDraft(draftId: string, userId?: string): Promise<Te
   const match = drafts.find(d => d.id === draftId);
   if (match) return match;
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const snap = await getDoc(doc(db, 'test_drafts', draftId));
-      if (snap.exists()) {
-        return snap.data() as TestDraft;
-      }
+      const cloudDraft = await getCloudDoc<TestDraft>('test_drafts', draftId);
+      if (cloudDraft) return cloudDraft;
     } catch (err) {
-      console.warn('[TestSessionService] Firestore getTestDraft error:', err);
+      console.warn('[TestSessionService] Supabase getTestDraft error:', err);
     }
   }
 
@@ -211,12 +197,12 @@ export async function deleteTestDraft(draftId: string, userId?: string): Promise
   writeLocalStorage(storageKey, updated);
   notifyUpdate();
 
-  // 2. Remove from Cloud Firestore
-  if (isFirebaseConfigured && db) {
+  // 2. Remove from Supabase
+  if (isSupabaseConfigured) {
     try {
-      await deleteDoc(doc(db, 'test_drafts', draftId));
+      await deleteCloudDoc('test_drafts', draftId);
     } catch (err) {
-      console.warn('[TestSessionService] Firestore deleteTestDraft error:', err);
+      console.warn('[TestSessionService] Supabase deleteTestDraft error:', err);
     }
   }
 }
@@ -237,13 +223,15 @@ export async function saveTestSubmissionRecord(record: TestSubmissionRecord): Pr
   writeLocalStorage(storageKey, updated);
   notifyUpdate();
 
-  // 2. Sync to Cloud Firestore
-  if (isFirebaseConfigured && db) {
+  // 2. Sync to Supabase
+  if (isSupabaseConfigured && record.userId) {
     try {
-      const subRef = doc(db, 'test_submissions', record.id);
-      await setDoc(subRef, record, { merge: true });
+      await setCloudDoc('test_submissions', record.id, record, {
+        userId: record.userId,
+        sortKey: record.submittedAt
+      });
     } catch (err) {
-      console.warn('[TestSessionService] Firestore saveTestSubmission error, cached locally:', err);
+      console.warn('[TestSessionService] Supabase saveTestSubmission error, cached locally:', err);
     }
   }
 }
@@ -256,22 +244,20 @@ export async function getTestSubmissionRecords(userId?: string): Promise<TestSub
   const storageKey = `${STORAGE_KEYS.submissionsPrefix}${userKey}`;
   const localHistory = readLocalStorage<TestSubmissionRecord[]>(storageKey, []);
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const q = query(
-        collection(db, 'test_submissions'),
-        where('userId', '==', userKey),
-        orderBy('submittedAt', 'desc'),
-        limit(100)
-      );
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const firestoreHistory = snap.docs.map(d => d.data() as TestSubmissionRecord);
-        writeLocalStorage(storageKey, firestoreHistory);
-        return firestoreHistory;
+      const cloudHistory = await queryCloudDocs<TestSubmissionRecord>('test_submissions', {
+        userId: userKey,
+        orderBySortKey: true,
+        descending: true,
+        limit: 100
+      });
+      if (cloudHistory.length > 0) {
+        writeLocalStorage(storageKey, cloudHistory);
+        return cloudHistory;
       }
     } catch (err) {
-      console.warn('[TestSessionService] Firestore getTestSubmissions error, using local:', err);
+      console.warn('[TestSessionService] Supabase getTestSubmissions error, using local:', err);
     }
   }
 
@@ -289,14 +275,12 @@ export async function getTestSubmissionById(
   const match = history.find(h => h.id === id);
   if (match) return match;
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const snap = await getDoc(doc(db, 'test_submissions', id));
-      if (snap.exists()) {
-        return snap.data() as TestSubmissionRecord;
-      }
+      const cloudRecord = await getCloudDoc<TestSubmissionRecord>('test_submissions', id);
+      if (cloudRecord) return cloudRecord;
     } catch (err) {
-      console.warn('[TestSessionService] Firestore getTestSubmissionById error:', err);
+      console.warn('[TestSessionService] Supabase getTestSubmissionById error:', err);
     }
   }
 
@@ -315,11 +299,11 @@ export async function deleteTestSubmissionRecord(id: string, userId?: string): P
   writeLocalStorage(storageKey, updated);
   notifyUpdate();
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      await deleteDoc(doc(db, 'test_submissions', id));
+      await deleteCloudDoc('test_submissions', id);
     } catch (err) {
-      console.warn('[TestSessionService] Firestore deleteTestSubmission error:', err);
+      console.warn('[TestSessionService] Supabase deleteTestSubmission error:', err);
     }
   }
 }

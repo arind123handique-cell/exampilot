@@ -1,18 +1,8 @@
 import { MCQQuestion } from '../types';
-import { db, isFirebaseConfigured } from '../firebase/config';
-import {
-  doc,
-  writeBatch,
-  getDocs,
-  collection,
-  deleteDoc,
-  query,
-  where,
-  limit
-} from 'firebase/firestore';
 import { saveSqlDatabaseDump } from './sqlQuestionService';
 import { isSupabaseConfigured } from './supabaseClient';
-import { batchSaveQuestionsToSupabase } from './supabaseQuestionService';
+import { batchSaveQuestionsToSupabase, deleteQuestionFromSupabase } from './supabaseQuestionService';
+import { setCloudDocs, queryCloudDocs, deleteCloudDoc } from './supabaseDocStore';
 
 const STORAGE_KEY = 'exampilot_custom_questions_bank';
 
@@ -38,25 +28,7 @@ function setLocalQuestions(questions: MCQQuestion[]): void {
 }
 
 /**
- * Strips all undefined fields recursively so Firestore never rejects the payload
- */
-function cleanForFirestore(obj: any): any {
-  if (obj === null || obj === undefined) return null;
-  if (Array.isArray(obj)) return obj.map(cleanForFirestore);
-  if (typeof obj === 'object') {
-    const clean: Record<string, any> = {};
-    for (const [key, val] of Object.entries(obj)) {
-      if (val !== undefined) {
-        clean[key] = cleanForFirestore(val);
-      }
-    }
-    return clean;
-  }
-  return obj;
-}
-
-/**
- * Saves one or more custom questions to Firestore (batched + timeout protected) and LocalStorage
+ * Saves one or more custom questions to Supabase (bulk + timeout protected) and LocalStorage
  */
 export async function saveCustomQuestions(
   questions: MCQQuestion[],
@@ -106,76 +78,45 @@ export async function saveCustomQuestions(
   setLocalQuestions(merged);
   saveSqlDatabaseDump(merged);
 
-  // 3. Batch sync to Supabase PostgreSQL if configured
+  // 3. Batch sync to Supabase `questions` (primary project-wide query target)
   if (isSupabaseConfigured) {
     batchSaveQuestionsToSupabase(sanitized as MCQQuestion[]).catch(err => {
       console.warn('[CustomQuestionDb] Supabase background sync notice:', err);
     });
-  }
 
-  // 4. Batch sync to Cloud Firestore with strict timeout protection
-  if (isFirebaseConfigured && db) {
-    try {
-      const batchSyncPromise = (async () => {
-        // Firestore batch max operations is 500; chunk into sets of 200
-        const chunkSize = 200;
-        for (let i = 0; i < sanitized.length; i += chunkSize) {
-          const chunk = sanitized.slice(i, i + chunkSize);
-          const batch = writeBatch(db);
-
-          for (const item of chunk) {
-            const cleanItem = cleanForFirestore(item);
-
-            // Save to primary 'questions' collection (standard project-wide query target)
-            const qRef = doc(db, 'questions', item.id);
-            batch.set(qRef, cleanItem, { merge: true });
-
-            // Also save to 'custom_questions' collection
-            const customRef = doc(db, 'custom_questions', item.id);
-            batch.set(customRef, cleanItem, { merge: true });
-          }
-
-          await batch.commit();
-        }
-        console.log(`[CustomQuestionDb] Cloud Firestore batch synced ${sanitized.length} questions.`);
-      })();
-
-      // 3.5-second timeout ensures UI is never blocked or frozen on "Saving..."
-      const timeoutPromise = new Promise<{ timeout: true }>(resolve =>
-        setTimeout(() => {
-          console.warn('[CustomQuestionDb] Cloud Firestore sync exceeded 3.5s; questions cached safely in LocalStorage.');
-          resolve({ timeout: true });
-        }, 3500)
-      );
-
-      await Promise.race([batchSyncPromise, timeoutPromise]);
-    } catch (err) {
-      console.warn('[CustomQuestionDb] Firestore sync encountered an issue, preserved safely in LocalStorage:', err);
-    }
+    // 4. Mirror into the app_docs `custom_questions` collection — the listing
+    //    source for getCustomQuestions (replaces the Firestore collection).
+    setCloudDocs(
+      'custom_questions',
+      sanitized.map(q => ({
+        id: q.id,
+        data: q,
+        userId: q.createdByUserId && q.createdByUserId !== 'anonymous' ? q.createdByUserId : undefined,
+        sortKey: q.updatedAt
+      }))
+    ).catch(err => {
+      console.warn('[CustomQuestionDb] Supabase custom_questions sync notice:', err);
+    });
   }
 
   return { success: true, count: sanitized.length };
 }
 
 /**
- * Fetches all custom questions, merging Firestore with LocalStorage
+ * Fetches all custom questions, merging Supabase with LocalStorage
  */
 export async function getCustomQuestions(userId?: string): Promise<MCQQuestion[]> {
   const localQuestions = getLocalQuestions();
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const fetchPromise = (async (): Promise<MCQQuestion[]> => {
-        const qColl = collection(db, 'custom_questions');
-        const qSnapshot =
-          userId && userId !== 'anonymous'
-            ? await getDocs(query(qColl, where('createdByUserId', '==', userId), limit(250)))
-            : await getDocs(query(qColl, limit(250)));
-
-        if (!qSnapshot.empty) {
-          const firestoreList = qSnapshot.docs.map(d => d.data() as MCQQuestion);
+      const fetchPromise = queryCloudDocs<MCQQuestion>('custom_questions', {
+        userId: userId && userId !== 'anonymous' ? userId : undefined,
+        limit: 250
+      }).then(cloudList => {
+        if (cloudList.length > 0) {
           const map = new Map<string, MCQQuestion>();
-          firestoreList.forEach(q => map.set(q.id, q));
+          cloudList.forEach(q => map.set(q.id, q));
           localQuestions.forEach(q => {
             if (!map.has(q.id)) map.set(q.id, q);
           });
@@ -184,7 +125,7 @@ export async function getCustomQuestions(userId?: string): Promise<MCQQuestion[]
           return combined;
         }
         return localQuestions;
-      })();
+      });
 
       const timeoutPromise = new Promise<MCQQuestion[]>(resolve =>
         setTimeout(() => resolve(localQuestions), 3000)
@@ -192,7 +133,7 @@ export async function getCustomQuestions(userId?: string): Promise<MCQQuestion[]
 
       return await Promise.race([fetchPromise, timeoutPromise]);
     } catch (err) {
-      console.warn('[CustomQuestionDb] Firestore fetch error, using local storage cache:', err);
+      console.warn('[CustomQuestionDb] Supabase fetch error, using local storage cache:', err);
     }
   }
 
@@ -200,7 +141,7 @@ export async function getCustomQuestions(userId?: string): Promise<MCQQuestion[]
 }
 
 /**
- * Deletes a single custom question by ID from Firestore and LocalStorage
+ * Deletes a single custom question by ID from Supabase and LocalStorage
  */
 export async function deleteCustomQuestion(questionId: string, userId?: string): Promise<void> {
   if (!questionId) return;
@@ -209,13 +150,14 @@ export async function deleteCustomQuestion(questionId: string, userId?: string):
   const filtered = existing.filter(q => q.id !== questionId);
   setLocalQuestions(filtered);
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      const docRef = doc(db, 'custom_questions', questionId);
-      const qRef = doc(db, 'questions', questionId);
-      await Promise.allSettled([deleteDoc(docRef), deleteDoc(qRef)]);
+      await Promise.allSettled([
+        deleteCloudDoc('custom_questions', questionId),
+        deleteQuestionFromSupabase(questionId)
+      ]);
     } catch (err) {
-      console.warn('[CustomQuestionDb] Firestore delete failed:', err);
+      console.warn('[CustomQuestionDb] Supabase delete failed:', err);
     }
   }
 }

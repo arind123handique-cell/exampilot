@@ -1,21 +1,9 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_FIREBASE_API_KEY?: string;
-  readonly VITE_FIREBASE_AUTH_DOMAIN?: string;
-  readonly VITE_FIREBASE_PROJECT_ID?: string;
-  readonly VITE_FIREBASE_STORAGE_BUCKET?: string;
-  readonly VITE_FIREBASE_MESSAGING_SENDER_ID?: string;
-  readonly VITE_FIREBASE_APP_ID?: string;
-  readonly VITE_FIREBASE_MEASUREMENT_ID?: string;
-  // Optional private config keys (preferred when injected at build-time by CI)
-  readonly CONFIG_FIREBASE_API_KEY?: string;
-  readonly CONFIG_FIREBASE_AUTH_DOMAIN?: string;
-  readonly CONFIG_FIREBASE_PROJECT_ID?: string;
-  readonly CONFIG_FIREBASE_STORAGE_BUCKET?: string;
-  readonly CONFIG_FIREBASE_MESSAGING_SENDER_ID?: string;
-  readonly CONFIG_FIREBASE_APP_ID?: string;
-  readonly CONFIG_FIREBASE_MEASUREMENT_ID?: string;
+  // Supabase project connection (Auth + Postgres) — read by src/services/supabaseClient.ts
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
 }
 
 interface ImportMeta {

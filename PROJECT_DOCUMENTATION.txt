@@ -4,7 +4,7 @@ EXAMPILOT AI — COMPLETE PROJECT DOCUMENTATION
 
 Version: 1.0.0
 Last Updated: September 2026
-Technology: React 18 + TypeScript + Vite + Tailwind CSS v3 + Firebase
+Technology: React 18 + TypeScript + Vite + Tailwind CSS v3 + Supabase
 
 --------------------------------------------------------------------------------
 !! SCOPE CORRECTION (audit, September 2026) — READ BEFORE TRUSTING THIS FILE
@@ -56,7 +56,7 @@ Frontend:
   - Lottie React 3.1.2 (JSON animations)
 
 Backend/AI:
-  - Firebase 11.4.0 (Auth, Firestore, Storage)
+  - Supabase (Auth, Postgres) via @supabase/supabase-js  [previously Firebase Auth/Firestore — migrated Sep 2026]
   - Gemini AI (Google Generative Language API) — for tutor & question generation
   - Demo mode: works fully without any API keys
 
@@ -344,7 +344,9 @@ src/
 │   ├── universalTaxonomy.ts      — Universal exam hierarchy and discovery
 │   ├── knowledgeEngine.ts        — Knowledge entities, graph, audit
 │   ├── researchEngine.ts         — Source traceability, anti-hallucination
-│   └── firestore.ts              — Firebase/Firestore integration
+│   └── userDataService.ts       — Supabase profiles, submissions & question seeding
+│   ├── supabaseDocStore.ts      — Firestore-style docs over app_docs table
+│   ├── supabaseClient.ts        — Supabase client init
 ├── pages/
 │   ├── OnboardingPage.tsx        — Exam selection and setup
 │   ├── StudyPlanPage.tsx         — Adaptive study roadmap
@@ -391,8 +393,6 @@ src/
 │   └── provenance.ts             — Source provenance tracking
 ├── styles/
 │   └── cartoon-theme.css         — Cartoon design system
-└── firebase/
-    └── config.ts                 — Firebase config with demo fallback
 
 scripts/
 ├── validate-knowledge-modules.mjs  — Module structural validation
@@ -458,7 +458,7 @@ Build Performance:
   - Production build: ~3s
   - Production JS total: ~2.2MB (gzip: ~680KB with code splitting)
   - Code splitting: 12+ chunks (index, practice, data-questions, knowledge,
-    firebase, syllabus, factory, motion, icons, confetti)
+    supabase, syllabus, factory, motion, icons, confetti)
 
 Test Results:
   - Knowledge module validation: 25 modules (18 civil, 7 GS), all sound
@@ -514,7 +514,7 @@ Features:
 16. OFFLINE CAPABILITY
 ================================================================================
 
-- Demo mode works without Firebase or Gemini keys
+- Demo mode works without Supabase or Gemini keys
 - Numerical questions generated from deterministic recipes (no API needed)
 - Offline mock generation fallback when AI is unavailable
 - All core functionality available without network

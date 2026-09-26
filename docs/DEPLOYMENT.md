@@ -1,123 +1,104 @@
 # Deployment & admin access
 
-Two things must be done **outside this repository** for the security model to hold. They
-require credentials the codebase does not (and must not) contain, so they cannot be run by
-the coding agent — run them yourself with the Firebase CLI logged in.
+Auth and persistence now run on **Supabase** (Auth + Postgres). Firebase has been removed
+from the codebase. Three things must be done **outside this repository** for the model to
+hold — they require dashboard access the codebase does not contain.
 
-Prerequisite: `firebase login` and `firebase use --add` (select the `exampilot-*` project).
+## 1. Apply the SQL migrations
 
-## 1. Deploy the Firestore rules
+Open Supabase → SQL Editor (project `beahwfkpgplnccrszjvl`) and run, in order:
 
-`firebase.json` points at `firestore.rules`.
+1. `supabase/migrations/20260921_init_questions.sql`
+2. `supabase/migrations/20260921_init_papers.sql`
+3. `supabase/migrations/20260926_auth_and_docs.sql` ← **required for sign-in**
 
-```bash
-firebase deploy --only firestore:rules
-```
+Step 3 creates:
 
-Why it matters: before this, `questions`, `published_papers` and `custom_mock_tests` were
-writable by **any** signed-in user. Because the app auto-creates an anonymous session, that
-was effectively open write access to every answer key. The rules now require the `admin`
-custom claim for those writes.
+- `public.profiles` — one row per student (created automatically on first sign-in), with
+  owner-only write policies;
+- `public.app_docs` — the document store behind test drafts, test submissions, syllabi,
+  learned modules and custom questions.
 
-## 2. Grant the admin custom claim
+Until it is applied, sign-in fails with a PostgREST error and the app falls back to its
+LocalStorage cache.
 
-Publishing content is now gated server-side. Identify the UID that should be allowed to
-publish (visible in the Admin Studio roster, or Firebase Console → Authentication), then set
-the claim. With the Admin SDK, in a trusted server context:
+## 2. Configure Auth providers & redirects
 
-```js
-// one-off script, run with a service account — never in the browser
-const admin = require('firebase-admin');
-admin.initializeApp({ credential: admin.credential.applicationDefault() });
-await admin.auth().setCustomUserClaims('<UID>', { admin: true });
-```
+Supabase → Authentication:
 
-The user must then **sign out and back in** (or force-refresh their ID token) for the claim to
-appear. The Admin Studio shows a banner while the claim is missing, so you can tell whether it
-took effect.
+- **Sign-in method → Email**: enabled (default). With *Confirm email* on, new sign-ups
+  receive a confirmation link and the UI tells the candidate to check their inbox; disable
+  it if you want instant sign-up.
+- **Sign-in method → Google**: enable and paste an OAuth client ID + secret from Google
+  Cloud Console (Credentials → OAuth 2.0 Client IDs → Web application). Add the Supabase
+  callback URL shown in the provider dialog to the Google client's *Authorised redirect
+  URIs*.
+- **URL Configuration**:
+  - *Site URL* → your production origin (e.g. `https://exampilot-eight.vercel.app`) or
+    `http://localhost:3000` for local dev.
+  - *Redirect URLs* → add every origin the app runs on (`http://localhost:3000`,
+    the Vercel domain, any custom domain). Google OAuth returns and password-reset links
+    land here; a URL that is not allow-listed fails silently after Google.
 
-## 3. Verify publishing end to end
+## 3. Verify sign-in & publishing end to end
 
-1. Sign in to the student portal, then open `/admin`.
-2. Confirm the amber "no `admin` claim" banner is **gone**. If it is still there, the claim was
-   not applied to this token.
-3. Publish a paper (PDF OCR → publish, or AI Studio).
-4. Check Firestore Console → `published_papers`, `custom_mock_tests`, `questions`. The
-   documents should exist. If they do not, the rules rejected the write — check the browser
-   console for a `permission-denied` from the `[ExamPilot] Firestore … sync notice` log.
-5. Open the student portal in a second browser/profile and confirm the published paper is
-   listed. (Cross-tab sync uses `BroadcastChannel`; cross-device needs the Firestore read,
-   which the new rules allow for any signed-in user.)
+1. Open the student portal → sign up with email + password (or Google).
+2. Supabase → Table Editor → `profiles`: a row for the new user should exist.
+3. Open `/admin`, unlock with the passcode, publish a paper.
+4. Table Editor → `published_papers`, `custom_mock_tests`, `questions`: rows should exist.
+   If they do not, RLS rejected the write — check the browser console for a
+   `[ExamPilot] Supabase … sync notice`.
+5. Sign in from a second browser/profile and confirm the published paper is listed.
+   (Cross-tab sync uses `BroadcastChannel`; cross-device needs the Supabase read.)
 
-## Vercel — making Google sign-in actually work
+## Vercel — build-time environment variables
 
-Two independent things break Google sign-in on a Vercel deploy. Check the deployed bundle
-first: if `apiKey:""` appears in `assets/index-*.js`, problem 1 applies.
-
-```bash
-curl -s https://<your-app>.vercel.app/ | grep -oE 'src="[^"]+\.js"'   # find the entry bundle
-curl -s https://<your-app>.vercel.app/assets/index-XXXX.js | grep -oE 'apiKey:"[^"]*"'
-```
-
-### 1. Build-time environment variables
-
-`.env` is git-ignored, so Vercel never sees your Firebase keys — and Vite inlines `VITE_*`
-at **build** time, so they must be present when the build runs.
+`.env` is git-ignored, so Vercel never sees your keys — and Vite inlines `VITE_*` at
+**build** time, so they must be present when the build runs.
 
 Vercel → Project → Settings → Environment Variables, set for **Production, Preview and
 Development**:
 
 | Name | Value |
 |---|---|
-| `VITE_FIREBASE_API_KEY` | Firebase Console → Project settings → Your apps → Web app |
-| `VITE_FIREBASE_AUTH_DOMAIN` | `<project>.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | `<project>` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | `<project>.appspot.com` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | from the same web app config |
-| `VITE_FIREBASE_APP_ID` | from the same web app config |
-| `VITE_FIREBASE_MEASUREMENT_ID` | optional |
+| `VITE_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public key |
 
 Then **redeploy**. Adding env vars does not change an existing build.
 
-### 2. Authorised domains
-
-Firebase only permits sign-in from allow-listed domains. Firebase Console → Authentication →
-Settings → **Authorized domains**, add:
-
-- `exampilot-eight.vercel.app`
-- any custom domain
-- (`localhost` is allow-listed by default)
-
-Wildcards are not supported, so every preview URL must be added individually — or keep Google
-sign-in for production only. Also confirm the provider is on: Authentication → Sign-in method →
-Google → Enable.
+(Sandbox/local dev: set the same two keys in the workspace *Keys/API keys* tab. The
+client also ships a hardcoded fallback for the `exampilot` project so local demos work
+without env vars, but production builds should always set them explicitly.)
 
 ### Symptom → cause
 
 | Symptom | Cause |
 |---|---|
-| Success toast, but still on the login screen | No Firebase config in the build (env vars missing, or not redeployed) |
-| `auth/unauthorized-domain` | Domain not allow-listed |
-| `auth/popup-blocked` | Browser popup blocker |
-| `auth/operation-not-allowed` | Provider disabled in Firebase Console |
+| Success toast, but still on the login screen | "Confirm email" is on and the link was not confirmed (UI shows a "Check your inbox" hint) |
+| `Invalid login credentials` | Wrong credentials, or the account predates the migration (see below) |
+| Login screen shows "Supabase configuration is missing" | `VITE_SUPABASE_*` env vars missing from the build |
+| Google button returns to a blank/failed page | Redirect URL not in Supabase → URL Configuration, or OAuth callback not added in Google Cloud |
+| Sign-in error `provider not enabled` | Provider disabled in Supabase → Authentication → Sign-in method |
+| PostgrestError `relation "public.profiles" does not exist` | Migration `20260926_auth_and_docs.sql` not applied yet |
 
-The login screen now shows an amber "Cloud sign-in is not configured" notice when the build
-has no Firebase config, and the auth layer throws a real error instead of silently succeeding.
+### Accounts created before the migration
 
-## Static hosting (optional)
-
-`firebase.json` also configures Hosting with an SPA rewrite to `dist/index.html`:
-
-```bash
-npm run build
-firebase deploy --only hosting
-```
+Firebase Auth accounts do **not** carry over: passwords are hashed differently and cannot
+be exported. Existing students must sign up again with the same email (Supabase will treat
+it as a new account). Their old profile/progress rows remain in Firestore and can be
+ignored or exported separately.
 
 ## What is still NOT secured
 
-- The Admin Studio passcode is a **local UX gate only**. It is compared as a SHA-256 digest so
-  the plaintext no longer ships in the bundle, but a determined user can still set
-  `sessionStorage['exampilot_admin_session'] = 'true'`. That is acceptable *because* the real
-  boundary is the Firestore rules above — the passcode must never be the only defence.
+- The Admin Studio passcode is a **local UX gate only** (SHA-256 digest, but a determined
+  user can still set `sessionStorage['exampilot_admin_session'] = 'true'`). Content tables
+  (`questions`, `published_papers`, `custom_mock_tests`) and the `app_docs` read path keep
+  the pre-existing open RLS posture — the anon key ships in the bundle, so anyone can read
+  (and, for content tables, write) data. The `20260926` migration at least makes
+  `profiles` and user-owned documents **owner-writable only**. Tightening reads needs a
+  server-side component (service-role key never shipped to the browser) — flagged as a
+  critical finding in the September 2026 audit.
+- Admin-side "delete student" only removes the student locally: `profiles` delete is
+  owner-only under RLS, so the cloud row survives until the student deletes it themselves.
 - AI provider calls (`geminiService`, `ollamaService`) run from the browser with a
   user-supplied or env key. Move these behind a server proxy before any paid launch.

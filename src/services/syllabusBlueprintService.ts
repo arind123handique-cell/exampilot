@@ -6,8 +6,8 @@
  * calibrated CBT mock tests can be assembled.
  */
 
-import { isFirebaseConfigured, db } from '../firebase/config';
-import { doc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
+import { isSupabaseConfigured } from './supabaseClient';
+import { setCloudDoc, deleteCloudDoc } from './supabaseDocStore';
 import { notifyDataSync } from './questionBankSyncService';
 
 export interface SyllabusModule {
@@ -377,12 +377,12 @@ export async function saveSyllabusBlueprint(blueprint: SyllabusBlueprint): Promi
   const updated = [clean, ...existing.filter((s) => s.id !== clean.id)];
   setLocalCustomSyllabi(updated);
 
-  // Sync to Cloud Firestore if connected
-  if (isFirebaseConfigured && db) {
+  // Sync to Supabase if connected
+  if (isSupabaseConfigured) {
     try {
-      await setDoc(doc(db, 'syllabi', clean.id), clean, { merge: true });
+      await setCloudDoc('syllabi', clean.id, clean, { sortKey: clean.createdAt });
     } catch (err) {
-      console.warn('[SyllabusBlueprint] Firestore sync notice:', err);
+      console.warn('[SyllabusBlueprint] Supabase sync notice:', err);
     }
   }
 
@@ -398,11 +398,11 @@ export async function deleteSyllabusBlueprint(id: string): Promise<void> {
   const existing = getLocalCustomSyllabi();
   setLocalCustomSyllabi(existing.filter((s) => s.id !== id));
 
-  if (isFirebaseConfigured && db) {
+  if (isSupabaseConfigured) {
     try {
-      await deleteDoc(doc(db, 'syllabi', id));
+      await deleteCloudDoc('syllabi', id);
     } catch (err) {
-      console.warn('[SyllabusBlueprint] Firestore delete notice:', err);
+      console.warn('[SyllabusBlueprint] Supabase delete notice:', err);
     }
   }
 

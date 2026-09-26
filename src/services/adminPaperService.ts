@@ -1,6 +1,6 @@
 import { PYQPaper, MockTest, MCQQuestion } from '../types';
-import { db, isFirebaseConfigured } from '../firebase/config';
-import { doc, setDoc, deleteDoc, getDocs, collection } from 'firebase/firestore';
+import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { batchSaveQuestionsToSupabase, deleteQuestionFromSupabase } from './supabaseQuestionService';
 import { notifyDataSync } from './questionBankSyncService';
 import {
   fetchMockTestsFromSupabase,
@@ -97,29 +97,41 @@ export async function publishAdminPaper(
     console.warn('[ExamPilot] Supabase mock test publish notice:', err);
   });
 
-  // Sync to Cloud Firestore if connected
-  if (isFirebaseConfigured && db) {
+  // Sync paper record + its questions to Supabase (the mock test itself is
+  // handled by saveMockTestToSupabase above: custom_mock_tests + its own
+  // published_papers row + question batch).
+  if (isSupabaseConfigured && supabase) {
     try {
       // 1. Save paper record
-      await setDoc(doc(db, 'published_papers', paper.id), {
-        ...paper,
-        publishedAt: record.publishedAt,
-        publishedBy: record.publishedBy
-      });
-
-      // 2. Save mock test
-      await setDoc(doc(db, 'custom_mock_tests', mockTest.id), {
-        ...mockTest,
-        publishedAt: record.publishedAt,
-        publishedBy: record.publishedBy
-      });
-
-      // 3. Batch save all questions to questions/{id}
-      for (const q of paper.questions) {
-        await setDoc(doc(db, 'questions', q.id), q);
+      const paperRow = {
+        id: paper.id,
+        exam_id: (paper.examName || 'general')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .slice(0, 64) || 'general',
+        exam_name: paper.examName,
+        year: paper.year,
+        paper_type: paper.paperType,
+        total_questions: paper.totalQuestions || paper.questions?.length || 0,
+        download_available: paper.downloadAvailable !== false,
+        frequency_tags: paper.frequencyTags || [],
+        questions: JSON.parse(JSON.stringify(paper.questions || [])),
+        published_at: record.publishedAt,
+        published_by: record.publishedBy,
+        source: 'admin-studio'
+      };
+      const { error: paperErr } = await supabase
+        .from('published_papers')
+        .upsert(paperRow, { onConflict: 'id' });
+      if (paperErr) {
+        console.warn('[ExamPilot] Supabase published_papers upsert notice:', paperErr.message);
       }
+
+      // 2. Batch save all questions to the questions table
+      await batchSaveQuestionsToSupabase(paper.questions || [], 200);
     } catch (err) {
-      console.warn('[ExamPilot] Firestore paper publish sync notice:', err);
+      console.warn('[ExamPilot] Supabase paper publish sync notice:', err);
     }
   }
 
@@ -169,19 +181,12 @@ export async function updateAdminPublishedMockTest(mockTest: MockTest): Promise<
     console.warn('[ExamPilot] Supabase mock update notice:', err);
   });
 
-  // Sync to Cloud Firestore if connected
-  if (isFirebaseConfigured && db) {
+  // Sync the updated question pool to Supabase
+  if (isSupabaseConfigured) {
     try {
-      await setDoc(doc(db, 'custom_mock_tests', mockTest.id), {
-        ...mockTest,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
-
-      for (const q of allQuestions) {
-        await setDoc(doc(db, 'questions', q.id), q, { merge: true });
-      }
+      await batchSaveQuestionsToSupabase(allQuestions, 200);
     } catch (err) {
-      console.warn('[ExamPilot] Firestore mock update notice:', err);
+      console.warn('[ExamPilot] Supabase mock update notice:', err);
     }
   }
 
@@ -276,30 +281,19 @@ export async function deleteAdminPublishedPaper(paperId: string): Promise<void> 
     deleteMockTestFromSupabase(target.paper.id).catch(() => {});
   }
 
-  // 5. Sync deletion to Cloud Firestore non-blocking with timeout so UI never hangs
-  if (isFirebaseConfigured && db) {
+  // 5. Sync question deletions to Supabase non-blocking — paper/mock rows are
+  //    already removed by deleteMockTestFromSupabase above
+  if (isSupabaseConfigured) {
     (async () => {
       try {
-        const pId = target?.paper?.id || target?.id || paperId;
-        const mId = target?.mockTest?.id || target?.id || paperId;
-
-        const deletePromise = Promise.allSettled([
-          deleteDoc(doc(db, 'published_papers', pId)),
-          deleteDoc(doc(db, 'custom_mock_tests', mId))
-        ]);
-
-        const timeoutPromise = new Promise((resolve) => setTimeout(resolve, 2000));
-        await Promise.race([deletePromise, timeoutPromise]);
-
         if (target?.paper?.questions && Array.isArray(target.paper.questions)) {
-          for (const q of target.paper.questions) {
-            if (q && q.id) {
-              deleteDoc(doc(db, 'questions', q.id)).catch(() => {});
-            }
-          }
+          const ids = target.paper.questions
+            .filter((q) => q && q.id)
+            .map((q) => q.id);
+          await Promise.allSettled(ids.map((qId) => deleteQuestionFromSupabase(qId)));
         }
       } catch (err) {
-        console.warn('[ExamPilot] Firestore delete notice:', err);
+        console.warn('[ExamPilot] Supabase question delete notice:', err);
       }
     })();
   }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   ShieldCheck,
   FileText,
@@ -36,8 +36,6 @@ import {
 import { useRealtimeSync } from '../services/questionBankSyncService';
 import { PYQPaper, MockTest } from '../types';
 import { useToast } from '../context/ToastContext';
-import { useAuth } from '../context/AuthContext';
-import { isFirebaseConfigured } from '../firebase/config';
 import { verifyAdminPasscode } from '../services/adminAuth';
 
 interface AdminPortalPageProps {
@@ -65,30 +63,6 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   const [adminPasscode, setAdminPasscode] = useState('');
   const [passcodeError, setPasscodeError] = useState<string | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
-
-  // In cloud mode, privileged writes require the `admin` custom claim enforced by
-  // firestore.rules. Surface it so an admin is not left guessing why publishing fails.
-  const { firebaseUser } = useAuth();
-  const [hasAdminClaim, setHasAdminClaim] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    if (!isFirebaseConfigured || !firebaseUser) {
-      setHasAdminClaim(null);
-      return;
-    }
-    firebaseUser
-      .getIdTokenResult()
-      .then((res) => {
-        if (!cancelled) setHasAdminClaim(res.claims?.admin === true);
-      })
-      .catch(() => {
-        if (!cancelled) setHasAdminClaim(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [firebaseUser]);
 
   const [publishedPapers, setPublishedPapers] = useState<PYQPaper[]>(() => getAdminPublishedPapers());
 
@@ -208,15 +182,6 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
   return (
     <div className="flex h-screen w-full max-w-full flex-col overflow-hidden bg-canvas text-ink">
       {/* ───── Dedicated Admin Top App Bar ───── */}
-      {isFirebaseConfigured && hasAdminClaim === false && (
-        <div className="z-20 flex items-center gap-2 border-b border-warning/40 bg-subtle px-3 py-2 text-[11px] text-muted sm:px-6">
-          <ShieldCheck className="h-3.5 w-3.5 flex-shrink-0 text-warning" />
-          <span>
-            This account has no <code>admin</code> custom claim. Publishing will update this
-            browser only — Firestore will reject cloud writes. See <code>.env.example</code>.
-          </span>
-        </div>
-      )}
       <header className="z-20 flex h-14 flex-shrink-0 items-center justify-between gap-3 border-b border-indigo-500/20 bg-card/95 px-3 backdrop-blur sm:px-6 shadow-xs">
         {/* Admin Brand */}
         <div className="flex items-center gap-3">

@@ -26,8 +26,7 @@ import {
 } from '../../data/mockData';
 import { ASSAM_DWR_2026_QUESTIONS } from '../../data/assamDwr2026Questions';
 import { getAdminPublishedPapers } from '../../services/adminPaperService';
-import { seedFirestoreQuestions } from '../../services/firestore';
-import { isFirebaseConfigured } from '../../firebase/config';
+import { seedSupabaseQuestions } from '../../services/userDataService';
 import { MCQQuestion, PYQPaper } from '../../types';
 import { useRealtimeSync } from '../../services/questionBankSyncService';
 
@@ -90,15 +89,15 @@ export const QuestionDatabaseManager: React.FC = () => {
 
   const handleSyncFirestore = async () => {
     setIsSyncing(true);
-    setSyncStatus('Connecting to Cloud Firestore...');
+    setSyncStatus('Connecting to Supabase...');
     try {
-      const res = await seedFirestoreQuestions();
+      const res = await seedSupabaseQuestions();
       if (res.success) {
-        toastSuccess('Cloud Sync Complete', `Synced ${res.count} questions to Cloud Firestore!`);
-        setSyncStatus(`Successfully synced ${res.count} questions to Firestore collection: questions`);
+        toastSuccess('Cloud Sync Complete', `Synced ${res.count} questions to Supabase!`);
+        setSyncStatus(`Successfully synced ${res.count} questions to the Supabase questions table`);
       } else {
-        toastError('Sync Failed', 'Firebase is not connected or credentials are missing.');
-        setSyncStatus('Firestore sync failed: Check Firebase configuration.');
+        toastError('Sync Failed', 'Supabase is not connected or configuration is missing.');
+        setSyncStatus('Supabase sync failed: Check VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY.');
       }
     } catch (err: any) {
       toastError('Sync Error', err.message || 'Error pushing questions');

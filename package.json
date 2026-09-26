@@ -29,7 +29,6 @@
     "@supabase/supabase-js": "^2.116.0",
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
-    "firebase": "^11.4.0",
     "framer-motion": "^13.4.0",
     "lottie-react": "^3.1.2",
     "lucide-react": "^0.477.0",

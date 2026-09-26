@@ -45,8 +45,7 @@ import {
   fetchAndSyncMockTests
 } from '../services/adminPaperService';
 import { subscribeToMockTestChanges } from '../services/supabaseMockTestService';
-import { submitMockTest } from '../services/firestore';
-import { isFirebaseConfigured } from '../firebase/config';
+import { submitMockTest } from '../services/userDataService';
 import { MockTest, MCQQuestion, TestSubmission } from '../types';
 import { getAdminDomainUrl } from '../config/domainConfig';
 import { StudentProfileDossier } from '../components/student/StudentProfileDossier';
@@ -668,8 +667,13 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         await signInWithEmail(email, password);
         toastSuccess('Welcome Back!', 'Logged into your Student Account.');
       } else {
-        await signUpWithEmail(email, password, name);
-        toastSuccess('Account Created!', 'Welcome to ExamPilot Student Portal.');
+        const result = await signUpWithEmail(email, password, name);
+        if (result.needsConfirmation) {
+          toastSuccess('Confirm Your Email', 'We sent a confirmation link to your inbox. Confirm it, then sign in.');
+          setAuthMode('signin');
+        } else {
+          toastSuccess('Account Created!', 'Welcome to ExamPilot Student Portal.');
+        }
       }
     } catch (err: any) {
       toastError('Authentication Failed', err.message || 'Check your credentials.');

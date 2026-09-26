@@ -216,3 +216,24 @@ export async function batchSaveQuestionsToSupabase(
 
   return { success: failed === 0, inserted, failed };
 }
+
+/**
+ * Delete a single question by id (replaces Firestore `deleteDoc(questions/{id})`)
+ */
+export async function deleteQuestionFromSupabase(id: string): Promise<boolean> {
+  if (!isSupabaseConfigured || !supabase) {
+    return false;
+  }
+
+  try {
+    const { error } = await supabase.from('questions').delete().eq('id', id);
+    if (error) {
+      console.warn('[SupabaseQuestionService] Delete error:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn('[SupabaseQuestionService] Delete exception:', err);
+    return false;
+  }
+}

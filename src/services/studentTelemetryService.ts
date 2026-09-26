@@ -1,6 +1,6 @@
 import { UserProfile, TestSubmission, MockTest } from '../types';
-import { db, isFirebaseConfigured } from '../firebase/config';
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, deleteDoc } from 'firebase/firestore';
+import { isSupabaseConfigured } from './supabaseClient';
+import { listAllProfiles, deleteProfile } from './userDataService';
 import { notifyDataSync } from './questionBankSyncService';
 
 export interface StudentProfileSummary {
@@ -319,45 +319,38 @@ export async function getAllStudentProfilesWithScores(): Promise<StudentProfileS
     console.warn('[ExamPilot] Local student telemetry notice:', err);
   }
 
-  // 2. Sync from Cloud Firestore if configured
-  if (isFirebaseConfigured && db) {
+  // 2. Sync from Supabase profiles if configured
+  if (isSupabaseConfigured) {
     try {
-      const usersSnap = await Promise.race([
-        getDocs(collection(db, 'users')),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 2500))
-      ]);
-
-      if (usersSnap && !usersSnap.empty) {
-        usersSnap.docs.forEach((d) => {
-          const u = d.data() as UserProfile;
-          if (u && u.uid && !mapByUid.has(u.uid)) {
-            mapByUid.set(u.uid, {
-              uid: u.uid,
-              email: u.email || 'student@exampilot.ai',
-              displayName: u.displayName || 'Enrolled Aspirant',
-              photoURL: u.photoURL,
-              targetExam: u.preferences?.examName || 'APSC & State Exams',
-              targetYear: u.preferences?.targetYear || 2026,
-              registeredDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active',
-              lastActiveDate: 'Recent',
-              dailyHoursGoal: u.preferences?.dailyHoursGoal || 4,
-              testsAttempted: 0,
-              totalScoreSum: 0,
-              maxScoreSum: 0,
-              averageAccuracy: u.stats?.accuracyRate || 0,
-              latestScore: 0,
-              latestMaxScore: 100,
-              latestExamTitle: 'Enrolled Aspirant',
-              latestDate: 'Pending',
-              readinessScore: u.stats?.readinessScore || 65,
-              subjectMastery: {},
-              submissions: []
-            });
-          }
-        });
-      }
+      const cloudUsers = await listAllProfiles();
+      cloudUsers.forEach((u) => {
+        if (u && u.uid && !mapByUid.has(u.uid)) {
+          mapByUid.set(u.uid, {
+            uid: u.uid,
+            email: u.email || 'student@exampilot.ai',
+            displayName: u.displayName || 'Enrolled Aspirant',
+            photoURL: u.photoURL,
+            targetExam: u.preferences?.examName || 'APSC & State Exams',
+            targetYear: u.preferences?.targetYear || 2026,
+            registeredDate: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active',
+            lastActiveDate: 'Recent',
+            dailyHoursGoal: u.preferences?.dailyHoursGoal || 4,
+            testsAttempted: 0,
+            totalScoreSum: 0,
+            maxScoreSum: 0,
+            averageAccuracy: u.stats?.accuracyRate || 0,
+            latestScore: 0,
+            latestMaxScore: 100,
+            latestExamTitle: 'Enrolled Aspirant',
+            latestDate: 'Pending',
+            readinessScore: u.stats?.readinessScore || 65,
+            subjectMastery: {},
+            submissions: []
+          });
+        }
+      });
     } catch (err) {
-      console.warn('[ExamPilot] Firestore users telemetry query notice:', err);
+      console.warn('[ExamPilot] Supabase profiles telemetry query notice:', err);
     }
   }
 
@@ -401,12 +394,13 @@ export async function deleteStudentUser(uid: string): Promise<boolean> {
       }
     } catch {}
 
-    // 4. Delete from Cloud Firestore if configured
-    if (isFirebaseConfigured && db) {
+    // 4. Delete from Supabase if configured (owner-only RLS may reject an
+    //    admin-side delete; the local blacklist above still hides the student)
+    if (isSupabaseConfigured) {
       try {
-        await deleteDoc(doc(db, 'users', uid));
+        await deleteProfile(uid);
       } catch (err) {
-        console.warn('[ExamPilot] Firestore user delete notice:', err);
+        console.warn('[ExamPilot] Supabase user delete notice:', err);
       }
     }
 

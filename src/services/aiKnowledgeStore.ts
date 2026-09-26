@@ -1,8 +1,9 @@
 import { KnowledgeModule, MCQQuestion, TopicQuestion } from '../types';
 import { TOPIC_KNOWLEDGE_MODULES } from '../data/topicKnowledge';
 import { CIVIL_ENGINEERING_QUESTIONS, GENERAL_STUDIES_QUESTIONS, ALL_QUESTIONS } from '../data/mockData';
-import { db, isFirebaseConfigured } from '../firebase/config';
-import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { isSupabaseConfigured } from './supabaseClient';
+import { batchSaveQuestionsToSupabase, deleteQuestionFromSupabase } from './supabaseQuestionService';
+import { setCloudDoc, deleteCloudDoc } from './supabaseDocStore';
 
 const STORAGE_KEY_MODULES = 'exampilot_ai_learned_modules';
 const STORAGE_KEY_QUESTIONS = 'exampilot_ai_learned_questions';
@@ -84,15 +85,15 @@ export async function saveLearnedModule(
   ];
   setLocal(STORAGE_KEY_QUESTIONS, updatedQuestions);
 
-  // Sync to Cloud Firestore if configured
-  if (isFirebaseConfigured && db) {
+  // Sync to Supabase if configured
+  if (isSupabaseConfigured) {
     try {
-      await setDoc(doc(db, 'learned_modules', module.id), enrichedModule, { merge: true });
-      for (const q of newQuestions) {
-        await setDoc(doc(db, 'questions', q.id), q, { merge: true });
-      }
+      await setCloudDoc('learned_modules', module.id, enrichedModule, {
+        sortKey: new Date().toISOString()
+      });
+      await batchSaveQuestionsToSupabase(newQuestions);
     } catch (err) {
-      console.warn('Firestore sync failed for learned module, cached locally:', err);
+      console.warn('Supabase sync failed for learned module, cached locally:', err);
     }
   }
 
@@ -115,14 +116,14 @@ export async function deleteLearnedModule(moduleId: string): Promise<void> {
     const updatedQuestions = existingQuestions.filter((q) => !qIdsToRemove.has(q.id));
     setLocal(STORAGE_KEY_QUESTIONS, updatedQuestions);
 
-    if (isFirebaseConfigured && db) {
+    if (isSupabaseConfigured) {
       try {
-        await deleteDoc(doc(db, 'learned_modules', moduleId));
-        for (const qId of qIdsToRemove) {
-          await deleteDoc(doc(db, 'questions', qId));
-        }
+        await deleteCloudDoc('learned_modules', moduleId);
+        await Promise.allSettled(
+          Array.from(qIdsToRemove).map((qId) => deleteQuestionFromSupabase(qId))
+        );
       } catch (err) {
-        console.warn('Firestore delete failed:', err);
+        console.warn('Supabase delete failed:', err);
       }
     }
   }

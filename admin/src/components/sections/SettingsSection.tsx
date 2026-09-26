@@ -30,8 +30,7 @@ import {
   getCurrentAdminRole,
   setCurrentAdminRole
 } from '@/services/adminRoleService';
-import { isFirebaseConfigured, db } from '@/firebase/config';
-import { collection, getDocs, limit, query } from 'firebase/firestore';
+import { isSupabaseConfigured, supabase } from '@/services/supabaseClient';
 import { notifyDataSync } from '@/services/questionBankSyncService';
 import { AdminSectionId } from '../AdminSidebar';
 
@@ -71,25 +70,28 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
 
   const checkCloudHealth = async () => {
     setCloudStatus('checking');
-    if (!isFirebaseConfigured || !db) {
+    if (!isSupabaseConfigured || !supabase) {
       setCloudStatus('offline');
       return;
     }
 
     const start = performance.now();
     try {
-      // Test read with timeout
-      const q = query(collection(db, 'questions'), limit(1));
-      const snap = await Promise.race([
-        getDocs(q),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('Cloud timeout')), 3000))
+      // Test connectivity with a lightweight count query per table
+      const [questionsRes, usersRes, papersRes] = await Promise.all([
+        supabase.from('questions').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('uid', { count: 'exact', head: true }),
+        supabase.from('published_papers').select('id', { count: 'exact', head: true })
       ]);
+      if (questionsRes.error) throw new Error(questionsRes.error.message);
       const latency = Math.round(performance.now() - start);
 
       setCloudStatus('connected');
       setCollectionsInfo(prev => ({
         ...prev,
-        questions: snap.size,
+        users: usersRes.count ?? 0,
+        publishedPapers: papersRes.count ?? 0,
+        questions: questionsRes.count ?? 0,
         latencyMs: latency
       }));
     } catch (err) {
@@ -263,7 +265,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
               Cloud Backend & Connectivity
             </h3>
             <p className="text-xs text-muted">
-              Live status of Google Cloud Firestore, Firebase Authentication, and client synchronization
+              Live status of Supabase PostgreSQL, Supabase Auth, and client synchronization
             </p>
           </div>
           <Button size="sm" variant="outline" onClick={checkCloudHealth} className="text-xs">
@@ -275,7 +277,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="p-5 border-line space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Firestore Database</span>
+              <span className="text-xs font-semibold text-muted">Supabase Database</span>
               <Badge tone={cloudStatus === 'connected' ? 'success' : cloudStatus === 'checking' ? 'warning' : 'danger'}>
                 {cloudStatus === 'connected' ? 'Online' : cloudStatus === 'checking' ? 'Connecting...' : 'Offline / Local'}
               </Badge>
@@ -285,23 +287,23 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
             </div>
             <p className="text-[11px] text-muted">
               {cloudStatus === 'connected'
-                ? 'Direct WebSocket connection to Cloud Firestore is active and responsive.'
+                ? 'HTTPS connection to Supabase PostgreSQL is active and responsive.'
                 : 'Running in zero-latency offline-first mode via browser localStorage.'}
             </p>
           </Card>
 
           <Card className="p-5 border-line space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-muted">Firebase Authentication</span>
-              <Badge tone={isFirebaseConfigured ? 'success' : 'default'}>
-                {isFirebaseConfigured ? 'Configured' : 'Dev Anonymous'}
+              <span className="text-xs font-semibold text-muted">Supabase Auth</span>
+              <Badge tone={isSupabaseConfigured ? 'success' : 'default'}>
+                {isSupabaseConfigured ? 'Configured' : 'Dev Anonymous'}
               </Badge>
             </div>
             <div className="text-xl font-bold font-display text-ink">
-              {isFirebaseConfigured ? 'Production' : 'Anonymous Mode'}
+              {isSupabaseConfigured ? 'Production' : 'Anonymous Mode'}
             </div>
             <p className="text-[11px] text-muted">
-              Controls candidate identity, cloud progress backups, and role claim evaluation.
+              Controls candidate identity and cloud progress backups.
             </p>
           </Card>
 

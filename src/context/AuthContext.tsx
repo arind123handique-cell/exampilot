@@ -1,31 +1,26 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import {
-  Auth,
-  User,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-  updateProfile
-} from 'firebase/auth';
-import { auth, db, isFirebaseConfigured } from '../firebase/config';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { UserProfile, UserPreferences } from '../types';
-import { getUserProfile, saveUserProfile } from '../services/firestore';
+import { getUserProfile, saveUserProfile } from '../services/userDataService';
 
 interface AuthContextType {
-  firebaseUser: User | null;
+  /** Raw Supabase Auth user (session identity), null when signed out. */
+  authUser: User | null;
   user: UserProfile | null;
   loading: boolean;
   isDemoMode: boolean;
   error: string | null;
   signInWithEmail: (email: string, pass: string) => Promise<void>;
-  signUpWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string, name: string) => Promise<{ needsConfirmation: boolean }>;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  /** Completes a password-recovery link flow by setting a new password. */
+  completePasswordRecovery: (newPassword: string) => Promise<void>;
+  /** True while the browser holds a password-recovery session (reset link clicked). */
+  recoveryMode: boolean;
+  clearRecoveryMode: () => void;
   updatePreferences: (prefs: Partial<UserPreferences>) => Promise<void>;
   updateStats: (stats: Partial<UserProfile['stats']>) => Promise<void>;
   recordActivity: (deltaQuestions: number, deltaCorrect: number, deltaHours?: number) => Promise<void>;
@@ -45,85 +40,189 @@ export const BASELINE_USER_STATS: UserProfile['stats'] = {
 };
 
 /**
- * Thrown by every cloud sign-in path when the build shipped without Firebase
- * configuration (e.g. VITE_FIREBASE_* not set on the host).
+ * Thrown by every cloud sign-in path when the build shipped without Supabase
+ * configuration (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY not set on the host).
  *
- * This must be an ERROR, never a silent return. The earlier `if (!auth) return;`
- * resolved successfully, so the UI showed "Signed In with Google!" while nothing
- * had happened — which made a missing build-time env var look like a broken
- * Google login.
+ * This must be an ERROR, never a silent return — a missing build-time env var
+ * must not masquerade as a working sign-in.
  */
-export const FIREBASE_NOT_CONFIGURED_MESSAGE =
-  'Cloud sign-in is unavailable on this deployment: the Firebase configuration is missing from the build. ' +
-  'Vite inlines VITE_* variables at BUILD time, so set VITE_FIREBASE_API_KEY (plus AUTH_DOMAIN, PROJECT_ID, ' +
-  'MESSAGING_SENDER_ID, APP_ID) in your hosting provider\u2019s environment settings and redeploy. ' +
-  'See docs/DEPLOYMENT.md.';
+export const SUPABASE_NOT_CONFIGURED_MESSAGE =
+  'Cloud sign-in is unavailable on this deployment: the Supabase configuration is missing from the build. ' +
+  'Vite inlines VITE_* variables at BUILD time, so set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY ' +
+  'in your hosting provider\u2019s environment settings and redeploy.';
 
-function requireAuth(): Auth {
-  if (!auth) {
-    const err: any = new Error(FIREBASE_NOT_CONFIGURED_MESSAGE);
-    err.code = 'exampilot/firebase-not-configured';
+function requireAuth() {
+  if (!isSupabaseConfigured || !supabase) {
+    const err: any = new Error(SUPABASE_NOT_CONFIGURED_MESSAGE);
+    err.code = 'exampilot/supabase-not-configured';
     throw err;
   }
-  return auth;
+  return supabase;
 }
 
 export const formatAuthError = (err: any): string => {
-  const code = err?.code || '';
-  const msg = err?.message || '';
+  const msg = String(err?.message || '');
+  const code = String(err?.code || '');
 
-  if (code === 'exampilot/firebase-not-configured') {
-    return FIREBASE_NOT_CONFIGURED_MESSAGE;
-  }
-
-  // The classic post-deploy failure: the domain is not on Firebase's allowlist.
-  if (code === 'auth/unauthorized-domain') {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
-    return (
-      `This domain (${host}) is not authorised for Firebase sign-in. In the Firebase Console open ` +
-      `Authentication \u2192 Settings \u2192 Authorized domains, add "${host}", then retry.`
-    );
+  if (code === 'exampilot/supabase-not-configured') {
+    return SUPABASE_NOT_CONFIGURED_MESSAGE;
   }
 
-  if (code === 'auth/popup-blocked') {
-    return 'Your browser blocked the sign-in popup. Allow popups for this site (or use email sign-in) and try again.';
+  if (msg.includes('Invalid login credentials')) {
+    return 'Incorrect email or password. Please verify your credentials or create a new account.';
   }
-
-  if (code === 'auth/cancelled-popup-request') {
-    return 'Another sign-in attempt was already in progress. Please try again.';
+  if (msg.includes('Email not confirmed')) {
+    return 'Please confirm your email first. Check your inbox for the confirmation link, then sign in again.';
   }
-
-  if (code === 'auth/configuration-not-found' || msg.includes('configuration-not-found') || msg.includes('CONFIGURATION_NOT_FOUND')) {
-    return "Firebase Authentication is not activated for project 'exampilot-6836c'. In the Firebase Console, go to Build > Authentication, click 'Get Started', and enable Email/Password and Google sign-in.";
+  if (msg.includes('User already registered') || code === 'user_already_exists') {
+    return 'An account with this email address already exists. Please sign in instead.';
   }
-  if (code === 'auth/operation-not-allowed' || msg.includes('operation-not-allowed')) {
-    return "This sign-in method is currently disabled in your Firebase project. Go to Firebase Console > Authentication > Sign-in method and enable it.";
+  if (msg.includes('Password should be at least') || code === 'weak_password') {
+    return 'Password is too weak. Please use at least 6 characters.';
   }
-  if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
-    return "Incorrect email or password. Please verify your credentials or create a new account.";
+  if (msg.includes('Signups not allowed')) {
+    return 'Sign-ups are currently disabled on this deployment. Contact your administrator.';
   }
-  if (code === 'auth/email-already-in-use') {
-    return "An account with this email address already exists. Please sign in instead.";
+  if (msg.includes('For security purposes') || msg.includes('rate limit') || code === 'over_email_send_rate_limit') {
+    return 'Too many attempts. Please wait a minute before trying again.';
   }
-  if (code === 'auth/weak-password') {
-    return "Password is too weak. Please use at least 6 characters.";
+  if (msg.includes('provider') && msg.includes('not enabled')) {
+    return 'This sign-in provider is not enabled in Supabase. Enable it under Authentication \u2192 Providers.';
   }
-  if (code === 'auth/popup-closed-by-user') {
-    return "Sign-in popup was closed before completing.";
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || code === 'retryable') {
+    return 'Network connection issue. Please check your internet connection.';
   }
-  if (code === 'auth/network-request-failed') {
-    return "Network connection issue. Please check your internet connection.";
+  if (msg.includes('both password and token') || msg.includes('otp')) {
+    return 'This password reset link has expired or was already used. Please request a new one.';
   }
   return msg || 'Authentication request failed. Please check credentials and try again.';
 };
 
+function defaultProfileFromAuth(u: User): UserProfile {
+  const meta = (u.user_metadata || {}) as Record<string, any>;
+  return {
+    uid: u.id,
+    email: u.email || null,
+    displayName: meta.display_name || meta.name || 'Aspirant',
+    photoURL: meta.avatar_url || meta.picture || null,
+    isAnonymous: false,
+    preferences: {
+      examId: 'apsc-ae-civil',
+      examName: 'APSC Assistant Engineer (Civil)',
+      advtNumber: 'Advt 31/2025',
+      targetYear: 2026,
+      dailyHoursGoal: 4,
+      currentStream: 'Civil Engineering',
+      level: 'intermediate',
+      onboarded: true
+    },
+    stats: { ...BASELINE_USER_STATS },
+    createdAt: new Date().toISOString()
+  };
+}
+
+/**
+ * Compact modal rendered by the provider itself when a password-recovery link
+ * lands (Supabase fires PASSWORD_RECOVERY with a temporary session). Keeps the
+ * recovery flow working without depending on any particular page route.
+ */
+const PasswordResetGate: React.FC<{
+  onSubmit: (password: string) => Promise<void>;
+  onCancel: () => void;
+  error: string | null;
+}> = ({ onSubmit, onCancel, error }) => {
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError(null);
+    if (password.length < 6) {
+      setLocalError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirm) {
+      setLocalError('Both passwords must match.');
+      return;
+    }
+    setBusy(true);
+    try {
+      await onSubmit(password);
+    } catch {
+      // surfaced via context error below
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+      <div role="dialog" aria-modal="true" aria-label="Set a new password" className="w-full max-w-sm rounded-2xl border border-line bg-card p-5 shadow-2xl space-y-4">
+        <div>
+          <h3 className="font-display text-base font-semibold text-ink">Set a new password</h3>
+          <p className="text-xs text-muted mt-1">
+            You followed a password reset link. Choose a new password to secure your account.
+          </p>
+        </div>
+        {(localError || error) && (
+          <div className="rounded-xl border border-danger-border bg-danger-surface px-3 py-2 text-xs text-danger-text">
+            {localError || error}
+          </div>
+        )}
+        <form onSubmit={submit} className="space-y-3">
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink-soft">New password</span>
+            <input
+              type="password"
+              autoFocus
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+              placeholder="At least 6 characters"
+            />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-ink-soft">Confirm password</span>
+            <input
+              type="password"
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+              placeholder="Repeat it"
+            />
+          </label>
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="rounded-lg px-3 py-2 text-xs font-semibold text-muted hover:text-ink transition"
+            >
+              Later
+            </button>
+            <button
+              type="submit"
+              disabled={busy}
+              className="rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-dark disabled:opacity-60"
+            >
+              {busy ? 'Saving…' : 'Save password'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [recoveryMode, setRecoveryMode] = useState<boolean>(false);
 
-  // Initialize or restore session
+  // Initialize or restore session via Supabase Auth
   useEffect(() => {
     // Clean up any legacy demo or anonymous guest keys
     try {
@@ -139,72 +238,73 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       // ignore
     }
 
-    if (isFirebaseConfigured && auth) {
-      const authInstance = auth;
-      const unsubscribe = onAuthStateChanged(authInstance, async (fbUser) => {
-        setFirebaseUser(fbUser);
-        if (fbUser) {
+    if (isSupabaseConfigured && supabase) {
+      let cancelled = false;
+
+      const applySession = async (session: Session | null) => {
+        const supaUser = session?.user ?? null;
+        if (cancelled) return;
+        setAuthUser(supaUser);
+
+        if (supaUser) {
           // Reject anonymous sessions if any exist
-          if (fbUser.isAnonymous) {
-            try {
-              await signOut(authInstance);
-            } catch {
-              // ignore
+          if (supaUser.is_anonymous) {
+            // Deferred: awaiting an auth method inside the onAuthStateChange
+            // callback can deadlock the GoTrue client.
+            setTimeout(() => {
+              supabase?.auth.signOut().catch(() => {
+                // ignore
+              });
+            }, 0);
+            if (!cancelled) {
+              setUser(null);
+              localStorage.removeItem(USER_SESSION_CACHE_KEY);
+              setLoading(false);
             }
-            setUser(null);
-            localStorage.removeItem(USER_SESSION_CACHE_KEY);
-            setLoading(false);
             return;
           }
 
           try {
-            const profile = await getUserProfile(fbUser.uid);
+            const profile = await getUserProfile(supaUser.id);
             if (profile) {
-              setUser(profile);
+              if (!cancelled) setUser(profile);
               localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(profile));
             } else {
-              // Create authentic user profile document in Firestore
-              const newProfile: UserProfile = {
-                uid: fbUser.uid,
-                email: fbUser.email,
-                displayName: fbUser.displayName || 'Aspirant',
-                photoURL: fbUser.photoURL || null,
-                isAnonymous: false,
-                preferences: {
-                  examId: 'apsc-ae-civil',
-                  examName: 'APSC Assistant Engineer (Civil)',
-                  advtNumber: 'Advt 31/2025',
-                  targetYear: 2026,
-                  dailyHoursGoal: 4,
-                  currentStream: 'Civil Engineering',
-                  level: 'intermediate',
-                  onboarded: true
-                },
-                stats: { ...BASELINE_USER_STATS },
-                createdAt: new Date().toISOString()
-              };
+              const newProfile = defaultProfileFromAuth(supaUser);
               await saveUserProfile(newProfile);
-              setUser(newProfile);
+              if (!cancelled) setUser(newProfile);
               localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(newProfile));
             }
           } catch (err: any) {
-            console.error('Error syncing profile with Cloud Firestore:', err);
-            setError(err.message || 'Failed to fetch user profile');
+            console.error('Error syncing profile with Supabase:', err);
+            if (!cancelled) setError(err.message || 'Failed to fetch user profile');
           }
         } else {
-          // If no active Firebase user, user must authenticate
-          setUser(null);
+          // No active session → user must authenticate
+          if (!cancelled) setUser(null);
           localStorage.removeItem(USER_SESSION_CACHE_KEY);
         }
-        setLoading(false);
+        if (!cancelled) setLoading(false);
+      };
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setRecoveryMode(true);
+        }
+        void applySession(session);
       });
 
-      return () => unsubscribe();
-    } else {
-      setUser(null);
-      localStorage.removeItem(USER_SESSION_CACHE_KEY);
-      setLoading(false);
+      return () => {
+        cancelled = true;
+        subscription.unsubscribe();
+      };
     }
+
+    // Not configured: local-cache-only mode (clearly an error state upstream)
+    setUser(null);
+    localStorage.removeItem(USER_SESSION_CACHE_KEY);
+    setLoading(false);
+    return;
   }, []);
 
   const timeoutPromise = <T,>(promise: Promise<T>, ms = 8000, errorMsg = 'Authentication request timed out'): Promise<T> => {
@@ -217,8 +317,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signInWithEmail = async (email: string, pass: string) => {
     setError(null);
     try {
-      const authInstance = requireAuth();
-      await timeoutPromise(signInWithEmailAndPassword(authInstance, email, pass), 8000, 'Sign in timed out. Please check network connection.');
+      const client = requireAuth();
+      await timeoutPromise(
+        client.auth.signInWithPassword({ email, password: pass }),
+        8000,
+        'Sign in timed out. Please check network connection.'
+      );
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);
@@ -226,36 +330,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const signUpWithEmail = async (email: string, pass: string, name: string) => {
+  const signUpWithEmail = async (email: string, pass: string, name: string): Promise<{ needsConfirmation: boolean }> => {
     setError(null);
     try {
-      const authInstance = requireAuth();
-      const cred = await timeoutPromise(createUserWithEmailAndPassword(authInstance, email, pass), 10000, 'Sign up timed out. Please check network connection.');
-      if (cred.user && name) {
-        try { await updateProfile(cred.user, { displayName: name }); } catch { /* ignore */ }
-      }
-      const newProfile: UserProfile = {
-        uid: cred.user.uid,
-        email: cred.user.email,
-        displayName: name || cred.user.displayName || 'Aspirant',
-        photoURL: cred.user.photoURL || null,
-        isAnonymous: false,
-        preferences: {
-          examId: 'apsc-ae-civil',
-          examName: 'APSC Assistant Engineer (Civil)',
-          advtNumber: 'Advt 31/2025',
-          targetYear: 2026,
-          dailyHoursGoal: 4,
-          currentStream: 'Civil Engineering',
-          level: 'beginner',
-          onboarded: false
-        },
-        stats: { ...BASELINE_USER_STATS },
-        createdAt: new Date().toISOString()
-      };
-      await saveUserProfile(newProfile);
-      setUser(newProfile);
-      localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(newProfile));
+      const client = requireAuth();
+      const { data, error: signUpError } = await timeoutPromise(
+        client.auth.signUp({
+          email,
+          password: pass,
+          options: { data: { display_name: name } }
+        }),
+        10000,
+        'Sign up timed out. Please check network connection.'
+      );
+      if (signUpError) throw signUpError;
+
+      // With "Confirm email" enabled in Supabase, signUp returns a user but no
+      // session — profile creation then happens on first sign-in via the auth
+      // listener above. Surface that state so the UI can guide the candidate.
+      const needsConfirmation = Boolean(data.user && !data.session);
+      return { needsConfirmation };
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);
@@ -266,37 +360,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signInWithGoogle = async () => {
     setError(null);
     try {
-      const authInstance = requireAuth();
-      const provider = new GoogleAuthProvider();
-      const result = await timeoutPromise(signInWithPopup(authInstance, provider), 45000, 'Google sign-in popup was closed or timed out.');
-      const profile = await getUserProfile(result.user.uid);
-      if (profile) {
-        setUser(profile);
-        localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(profile));
-      } else {
-        const newProfile: UserProfile = {
-          uid: result.user.uid,
-          email: result.user.email,
-          displayName: result.user.displayName || 'Aspirant',
-          photoURL: result.user.photoURL || null,
-          isAnonymous: false,
-          preferences: {
-            examId: 'apsc-ae-civil',
-            examName: 'APSC Assistant Engineer (Civil)',
-            advtNumber: 'Advt 31/2025',
-            targetYear: 2026,
-            dailyHoursGoal: 4,
-            currentStream: 'Civil Engineering',
-            level: 'intermediate',
-            onboarded: true
-          },
-          stats: { ...BASELINE_USER_STATS },
-          createdAt: new Date().toISOString()
-        };
-        await saveUserProfile(newProfile);
-        setUser(newProfile);
-        localStorage.setItem(USER_SESSION_CACHE_KEY, JSON.stringify(newProfile));
-      }
+      const client = requireAuth();
+      // Full-page OAuth redirect: after Google returns, onAuthStateChange
+      // fires and the profile is created/loaded by the session listener.
+      const { error: oauthError } = await timeoutPromise(
+        client.auth.signInWithOAuth({
+          provider: 'google',
+          options: { redirectTo: window.location.origin }
+        }),
+        45000,
+        'Google sign-in timed out.'
+      );
+      if (oauthError) throw oauthError;
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);
@@ -305,24 +380,53 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
-    if (isFirebaseConfigured && auth) {
-      await signOut(auth);
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('[ExamPilot] signOut notice:', err);
+      }
     }
     setUser(null);
-    setFirebaseUser(null);
+    setAuthUser(null);
     localStorage.removeItem(USER_SESSION_CACHE_KEY);
   };
 
   const resetPassword = async (email: string) => {
     setError(null);
     try {
-      await sendPasswordResetEmail(requireAuth(), email);
+      const client = requireAuth();
+      await timeoutPromise(
+        client.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin }),
+        10000,
+        'Password reset request timed out. Please check network connection.'
+      );
     } catch (err: any) {
       const friendlyMsg = formatAuthError(err);
       setError(friendlyMsg);
       throw new Error(friendlyMsg);
     }
   };
+
+  const completePasswordRecovery = async (newPassword: string) => {
+    setError(null);
+    try {
+      const client = requireAuth();
+      const { error: updateError } = await timeoutPromise(
+        client.auth.updateUser({ password: newPassword }),
+        10000,
+        'Password update timed out. Please check network connection.'
+      );
+      if (updateError) throw updateError;
+      setRecoveryMode(false);
+    } catch (err: any) {
+      const friendlyMsg = formatAuthError(err);
+      setError(friendlyMsg);
+      throw new Error(friendlyMsg);
+    }
+  };
+
+  const clearRecoveryMode = () => setRecoveryMode(false);
 
   const updatePreferences = async (newPrefs: Partial<UserPreferences>) => {
     if (!user) return;
@@ -389,7 +493,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   return (
     <AuthContext.Provider
       value={{
-        firebaseUser,
+        authUser,
         user,
         loading,
         isDemoMode: false,
@@ -399,6 +503,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         signInWithGoogle,
         logout,
         resetPassword,
+        completePasswordRecovery,
+        recoveryMode,
+        clearRecoveryMode,
         updatePreferences,
         updateStats,
         recordActivity,
@@ -406,6 +513,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }}
     >
       {children}
+      {recoveryMode && (
+        <PasswordResetGate
+          error={error}
+          onSubmit={completePasswordRecovery}
+          onCancel={clearRecoveryMode}
+        />
+      )}
     </AuthContext.Provider>
   );
 };

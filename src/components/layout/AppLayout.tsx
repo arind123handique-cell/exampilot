@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { isFirebaseConfigured } from '../../firebase/config';
+import { isSupabaseConfigured } from '../../services/supabaseClient';
 import { LogOut, LogIn, UserRound, ShieldCheck, ClipboardList, Sparkles, History, GraduationCap, Archive } from 'lucide-react';
 import { ActiveTab } from './navConfig';
 import { ThemeToggle } from '../ui/ThemeToggle';
@@ -145,8 +145,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
           <ThemeToggle />
 
-          {/* Firebase sync badge */}
-          {isFirebaseConfigured && (
+          {/* Cloud sync badge */}
+          {isSupabaseConfigured && (
             <span className="hidden items-center gap-1 rounded-full border border-success-border bg-success-surface px-2 py-0.5 text-[11px] font-medium text-success-text sm:flex">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Cloud Sync
