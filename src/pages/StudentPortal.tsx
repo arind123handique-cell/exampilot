@@ -52,6 +52,7 @@ import { MockTest, MCQQuestion, TestSubmission } from '../types';
 import { getAdminDomainUrl } from '../config/domainConfig';
 import { StudentProfileDossier } from '../components/student/StudentProfileDossier';
 import { StudentAiSettings } from '../components/student/StudentAiSettings';
+import { DiagnosticsPanel } from '../components/student/DiagnosticsPanel';
 import { StudentProfileSummary } from '../services/studentTelemetryService';
 import { QuestionStemFormatter, parseFigureOption, FigureOptionContent } from '../components/ui/QuestionStemFormatter';
 import { CartoonMascot, MascotCharacter } from '../components/student/CartoonMascot';
@@ -2389,6 +2390,16 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
             </Card>
 
             <StudentAiSettings userId={user?.uid} />
+
+            <Card flush className="p-6">
+              <h2 className="font-display font-bold text-xl text-ink">Diagnostics</h2>
+              <p className="text-xs text-muted mt-1 max-w-3xl">
+                Every failure in this session, across every part of the app — uploads, AI calls, sync
+                errors and anything the browser caught on its own. Copy it into a bug report.
+              </p>
+            </Card>
+
+            <DiagnosticsPanel />
           </div>
         )}
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Upload,
   FileText,
@@ -16,7 +16,9 @@ import { Button } from '../ui/Button';
 import { EmptyState } from '../ui/EmptyState';
 import { useToast } from '../../context/ToastContext';
 import { hasLiveAi } from '../../services/geminiService';
-import { readFileAsBase64, parseExamPdfWithGemini, MAX_INLINE_UPLOAD_BYTES } from '../../services/pdfParserService';
+import { MAX_INLINE_UPLOAD_BYTES } from '../../services/pdfParserService';
+import { startPaperUpload, useUploadJob } from '../../services/paperUploadJob';
+import { reportFailure } from '../../services/appDiagnostics';
 import {
   StudentPaper,
   listStudentPapers,
@@ -55,8 +57,10 @@ export const StudentPaperSolver: React.FC<StudentPaperSolverProps> = ({ userId }
   const [year, setYear] = useState('');
   const [subject, setSubject] = useState('General Studies');
 
-  const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<string | null>(null);
+  // Busy/status live in a module-level job, not here. This component is only
+  // mounted while the Papers tab is open, so keeping them in local state meant a
+  // tab switch threw away the spinner and progress of a running extraction.
+  const { busy, status, outcome, error: jobError, runId } = useUploadJob();
   const [papers, setPapers] = useState<StudentPaper[]>([]);
   const [loadingPapers, setLoadingPapers] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -85,77 +89,59 @@ export const StudentPaperSolver: React.FC<StudentPaperSolverProps> = ({ userId }
     setVerifyOnly(false);
   }, [expandedId]);
 
-  const handleSolve = async () => {
+  const handleSolve = () => {
     // The key may have been added after this section mounted.
     setAiReady(hasLiveAi());
     if (!file) {
       toastError('No paper selected', 'Choose a PDF (or image) of the question paper first.');
       return;
     }
-    if (!aiReady) {
+    if (!hasLiveAi()) {
       toastError('Gemini key required', 'Add your Gemini API key to extract answers and explanations.');
       return;
     }
 
-    setBusy(true);
-    setStatus('Reading the paper…');
-    try {
-      const { base64, mimeType } = await readFileAsBase64(file);
-      const parsedYear = Number(year) || new Date().getFullYear();
-      const questions = await parseExamPdfWithGemini(
-        base64,
-        mimeType,
-        {
-          examName: title.trim() || file.name.replace(/\.[a-z0-9]+$/i, ''),
-          year: parsedYear,
-          paperType: 'Question Paper',
-          subject: subject.trim() || 'General Studies',
-          // Not used by the extractor; kept sensible for downstream tooling.
-          durationMinutes: 120,
-          totalMarks: 0,
-          negativeMarksPerIncorrect: 0.25,
-          // Unknown provenance: a key the model does not report as printed is
-          // treated as model-derived, never as an official one.
-          keySource: 'auto'
-        },
-        (step) => setStatus(step)
-      );
-
-      if (questions.length === 0) {
-        toastError('Nothing extracted', 'No multiple-choice questions could be read from that file.');
-        return;
+    const selected = file;
+    setFile(null);
+    void startPaperUpload({
+      userId: userId || '',
+      file: selected,
+      title,
+      year,
+      subject,
+      onCompleted: () => {
+        void refreshPapers();
       }
+    });
+  };
 
-      setStatus('Checking the question bank for repeats…');
-      const result = await saveStudentPaper({
-        userId: userId || '',
-        title: title.trim() || file.name.replace(/\.[a-z0-9]+$/i, ''),
-        examName: title.trim() || file.name.replace(/\.[a-z0-9]+$/i, ''),
-        year: parsedYear,
-        subject: subject.trim() || 'General Studies',
-        questions
-      });
+  // The job outlives this component, so its result is announced on the way back
+  // in rather than from inside the extraction itself.
+  const announcedRun = useRef<number>(-1);
+  useEffect(() => {
+    if (!runId || announcedRun.current === runId) return;
+    announcedRun.current = runId;
 
+    if (jobError) {
+      toastError('Could not solve the paper', jobError);
+      return;
+    }
+    if (outcome) {
       toastSuccess(
         'Paper solved',
-        `${result.paper.questionCount} question(s) answered · ${result.addedToBank} added to the bank` +
-          (result.paper.duplicateCount > 0 ? ` · ${result.paper.duplicateCount} repeat(s) skipped` : '') +
-          (result.paper.aiDerivedKeyCount > 0
-            ? ` · ${result.paper.aiDerivedKeyCount} answer(s) solved by AI — verify them`
+        `${outcome.questionCount} question(s) answered · ${outcome.addedToBank} added to the bank` +
+          (outcome.duplicateCount > 0 ? ` · ${outcome.duplicateCount} repeat(s) skipped` : '') +
+          (outcome.aiDerivedKeyCount > 0
+            ? ` · ${outcome.aiDerivedKeyCount} answer(s) solved by AI — verify them`
             : '')
       );
-
-      setFile(null);
-      setTitle('');
-      setExpandedId(result.paper.id);
-      await refreshPapers();
-    } catch (err: any) {
-      toastError('Could not solve the paper', err?.message || 'Extraction failed. Please try again.');
-    } finally {
-      setBusy(false);
-      setStatus(null);
     }
-  };
+  }, [runId, jobError, outcome, toastError, toastSuccess]);
+
+  useEffect(() => {
+    if (!jobError) return;
+    reportFailure('paper.upload.ui', jobError, { surfacedInUi: true });
+  }, [jobError]);
 
   const handleDelete = async (paper: StudentPaper) => {
     if (!userId) return;

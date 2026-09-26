@@ -14,7 +14,7 @@
     "build:all": "npm run build && npm run build:admin",
     "preview": "vite preview",
     "preview:admin": "vite preview --config admin/vite.config.ts",
-    "test": "node scripts/validate-knowledge-modules.mjs && node scripts/test-numerical-engine.mjs && node scripts/test-ai-validation.mjs && tsx scripts/test-mock-randomization.ts && tsx scripts/test-paper-upload.ts && tsx scripts/test-ai-credentials.ts",
+    "test": "node scripts/validate-knowledge-modules.mjs && node scripts/test-numerical-engine.mjs && node scripts/test-ai-validation.mjs && tsx scripts/test-mock-randomization.ts && tsx scripts/test-paper-upload.ts && tsx scripts/test-ai-credentials.ts && tsx scripts/test-diagnostics.ts",
     "audit:content": "node scripts/audit-content-coverage.mjs",
     "audit:coverage": "node scripts/coverage-report.mjs --requests",
     "pyq:import": "python tools/pyq_exporter/extract_pyq.py --inbox pyq-inbox --supabase",

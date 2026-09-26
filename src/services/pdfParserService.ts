@@ -1,5 +1,6 @@
 import { MCQQuestion } from '../types';
-import { callGeminiMultimodal, getGeminiApiKey, getLastAiDiagnostics } from './geminiService';
+import { callGeminiMultimodal, getGeminiApiKey, getLastAiDiagnostics, getLastAiError } from './geminiService';
+import { logEvent, reportFailure } from './appDiagnostics';
 
 export interface ExamPaperMeta {
   examName: string;
@@ -39,17 +40,39 @@ export interface ExtractedQuestionRaw {
  * Read a browser File object as Base64 string
  */
 export function readFileAsBase64(file: File): Promise<{ base64: string; mimeType: string }> {
+  const startedAt = Date.now();
+  logEvent('pdf.read', 'reading file as base64', {
+    name: file.name,
+    sizeBytes: file.size,
+    type: file.type || 'unknown'
+  });
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => {
       const result = reader.result as string;
       const base64 = result.includes(',') ? result.split(',')[1] : result;
+      logEvent('pdf.read', 'file read', {
+        name: file.name,
+        base64Chars: base64.length,
+        approxBytes: approxBase64Bytes(base64),
+        elapsedMs: Date.now() - startedAt
+      });
       resolve({
         base64,
         mimeType: file.type || 'application/pdf'
       });
     };
-    reader.onerror = (err) => reject(err);
+    reader.onerror = () => {
+      // FileReader gives a bare DOM event with no useful message, so the raw
+      // event would otherwise reach the reporter as "[object Event]".
+      const reason = new Error(`Could not read "${file.name}" from disk.`);
+      reportFailure('pdf.read', reason, {
+        name: file.name,
+        sizeBytes: file.size,
+        readerResult: String(reader.result ?? 'null')
+      });
+      reject(reason);
+    };
     reader.readAsDataURL(file);
   });
 }
@@ -145,12 +168,22 @@ export async function parseExamPdfWithGemini(
   meta: ExamPaperMeta,
   onProgress?: (status: string) => void
 ): Promise<MCQQuestion[]> {
+  const startedAt = Date.now();
+  const approxBytes = approxBase64Bytes(fileBase64);
+  logEvent('pdf.parse', 'extraction requested', {
+    exam: meta.examName,
+    year: meta.year,
+    subject: meta.subject,
+    mimeType,
+    approxBytes,
+    approxMb: Number((approxBytes / (1024 * 1024)).toFixed(3))
+  });
+
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new Error('Gemini API Key is required for PDF OCR parsing. Please configure your key.');
   }
 
-  const approxBytes = approxBase64Bytes(fileBase64);
   if (approxBytes > MAX_INLINE_UPLOAD_BYTES) {
     const sizeMb = (approxBytes / (1024 * 1024)).toFixed(1);
     const limitMb = (MAX_INLINE_UPLOAD_BYTES / (1024 * 1024)).toFixed(0);
@@ -162,6 +195,7 @@ export async function parseExamPdfWithGemini(
   }
 
   onProgress?.('Uploading PDF to Gemini AI OCR engine...');
+  logEvent('pdf.parse', 'sending to Gemini', { approxBytes, mimeType });
 
   const prompt = `You are an expert exam paper digitizer, OCR specialist, and subject matter evaluator.
 Analyze the attached official examination question paper PDF/document for: "${meta.examName} (${meta.year}) — ${meta.paperType}".
@@ -218,15 +252,38 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
     maxOutputTokens: 16000
   });
 
+  const requestMs = Date.now() - startedAt;
+  const diagnostics = getLastAiDiagnostics();
+
   if (!responseText) {
+    reportFailure('pdf.parse', 'Gemini OCR returned an empty response', {
+      approxBytes,
+      mimeType,
+      requestMs,
+      model: diagnostics.model,
+      finishReason: diagnostics.finishReason,
+      providerError: diagnostics.error ?? getLastAiError()
+    });
     throw new Error('Gemini OCR returned an empty response. Verify your API key or document format.');
   }
+
+  logEvent('pdf.parse', 'Gemini responded', {
+    model: diagnostics.model,
+    finishReason: diagnostics.finishReason,
+    requestMs,
+    responseChars: responseText.length
+  });
 
   // A long paper runs out of output budget mid-JSON. The partial payload then
   // fails to parse with a misleading "unexpected end of JSON" error, so the
   // truncation is detected and reported as what it actually is.
-  const diagnostics = getLastAiDiagnostics();
   if (diagnostics.finishReason === 'MAX_TOKENS') {
+    reportFailure('pdf.parse', 'response truncated at the token limit', {
+      model: diagnostics.model,
+      responseChars: responseText.length,
+      requestMs,
+      approxBytes
+    });
     throw new Error(
       'The paper is too long to extract in one pass — the response was cut off before the ' +
         'question list finished. Split the paper into smaller parts (or use `npm run pyq:import` ' +
@@ -240,7 +297,11 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
   try {
     parsed = cleanAndParseJson(responseText);
   } catch (err: any) {
-    console.error('[pdfParser] response was not JSON:', responseText?.slice(0, 800));
+    reportFailure('pdf.parse', err, {
+      model: diagnostics.model,
+      responseChars: responseText.length,
+      responseHead: responseText?.slice(0, 800)
+    });
     throw new Error(`Failed to parse extracted questions JSON: ${err.message || err}`);
   }
 
@@ -252,13 +313,13 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
   // asserted a cause it had not checked, and logged nothing, so a schema
   // mismatch looked identical to a genuinely non-question document.
   if (!Array.isArray(parsed)) {
-    console.error(
-      '[pdfParser] expected a JSON array, got:',
-      typeof parsed,
-      'keys=' + (parsed && typeof parsed === 'object' ? Object.keys(parsed).join(',') : 'n/a'),
-      '| response head:',
-      responseText?.slice(0, 800)
-    );
+    reportFailure('pdf.parse', 'expected a JSON array of questions', {
+      gotType: typeof parsed,
+      keys: parsed && typeof parsed === 'object' ? Object.keys(parsed).join(',') : 'n/a',
+      model: diagnostics.model,
+      responseChars: responseText.length,
+      responseHead: responseText?.slice(0, 800)
+    });
     const shape =
       parsed && typeof parsed === 'object'
         ? `The model replied with an object with keys: ${Object.keys(parsed).join(', ') || '(none)'}.`
@@ -270,7 +331,13 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
   }
 
   if (parsed.length === 0) {
-    console.warn('[pdfParser] model returned an empty question list. Response head:', responseText?.slice(0, 800));
+    reportFailure('pdf.parse', 'model read the document but found no questions', {
+      model: diagnostics.model,
+      finishReason: diagnostics.finishReason,
+      approxBytes,
+      approxMb: Number((approxBytes / (1024 * 1024)).toFixed(3)),
+      responseHead: responseText?.slice(0, 800)
+    });
     throw new Error(
       'The model read the file but found no multiple-choice questions in it. ' +
         'Check that this is the question paper itself — exam notifications, syllabus documents and ' +
