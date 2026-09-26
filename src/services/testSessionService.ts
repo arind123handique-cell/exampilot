@@ -19,7 +19,7 @@ import {
   limit
 } from 'firebase/firestore';
 import { db, isFirebaseConfigured } from '../firebase/config';
-import type { MCQQuestion } from '../types';
+import type { MCQQuestion, MockSection } from '../types';
 
 export interface TestDraft {
   id: string;
@@ -27,6 +27,13 @@ export interface TestDraft {
   testTitle: string;
   topics: string[];
   questions: MCQQuestion[];
+  /**
+   * Full section snapshot of the live attempt (bank-drawn questions included).
+   * Present on drafts saved after randomization was introduced; resume must
+   * prefer this over the authored mock's sections, because the drawn question
+   * ids do not exist in the original paper. Optional for older drafts.
+   */
+  sections?: MockSection[];
   userAnswers: Record<string, 'A' | 'B' | 'C' | 'D'>;
   flaggedQuestions: string[];
   timeRemainingSeconds: number;

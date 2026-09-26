@@ -60,6 +60,7 @@ import {
   deleteTestDraft,
   type TestDraft
 } from '../services/testSessionService';
+import { randomizeMockForAttempt, buildBankMockForTest, buildSyllabusMockTest } from '../services/mockAssemblyService';
 
 interface StudentTestRecord {
   id: string;
@@ -109,6 +110,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [showPaletteMobile, setShowPaletteMobile] = useState(false);
   const [paletteFilter, setPaletteFilter] = useState<'all' | 'unattempted' | 'flagged' | 'answered'>('all');
+  // Random Test Builder — draws a fresh paper from the full question bank
+  const [randomQuestionCount, setRandomQuestionCount] = useState(50);
+  const [randomTopicQuery, setRandomTopicQuery] = useState('');
 
   // Mascot Companion Character State — Pip the Owl is ExamPilot's fixed permanent mascot
   const mascotChar: MascotCharacter = 'owl';
@@ -388,6 +392,9 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         testTitle: activeMock.title,
         topics: activeMock.sections.map((s) => s.name),
         questions: allQuestions.map((a) => a.question),
+        // Snapshot the live sections: bank-drawn question ids are not in the
+        // authored paper, so resume needs these to rebuild the exact attempt.
+        sections: activeMock.sections,
         userAnswers: answeredOnly,
         flaggedQuestions: Object.keys(flagged).filter((id) => flagged[id]),
         timeRemainingSeconds: timeLeft,
@@ -415,27 +422,27 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
   // ── Start Exam Handler with Unique Randomization Per Student Attempt ──
   const handleStartMock = (mock: MockTest) => {
-    const flat: { question: MCQQuestion; sectionName: string }[] = [];
+    // 1. Re-draw this attempt's questions from the full question bank, scoped
+    //    to the syllabus subject groups and topics THIS test covers (derived
+    //    from its own authored questions). Section names/sizes are preserved,
+    //    so every attempt is a fresh paper on the same syllabus.
+    const bankDrawn = buildBankMockForTest(mock);
 
-    mock.sections.forEach((sec) => {
-      sec.questions.forEach((q) => {
-        // Deep clone question to avoid mutating shared bank
-        const qCopy: MCQQuestion = JSON.parse(JSON.stringify(q));
-        flat.push({ question: qCopy, sectionName: sec.name });
-      });
-    });
-
-    // Build sessionMock with the exact questions
-    const sessionMock: MockTest = {
-      ...mock,
-      sections: mock.sections.map((sec) => ({
-        ...sec,
-        questions: flat.filter((f) => f.sectionName === sec.name).map((f) => f.question)
-      }))
-    };
+    // 2. Randomize the attempt: shuffle question order per section and remap
+    //    option letters (answer key remapped too), so no two students — or two
+    //    attempts — see the same paper. Answers stay keyed by question id, and
+    //    drafts store the already-randomized question snapshot, so resume and
+    //    review are exact.
+    const sessionMock: MockTest = randomizeMockForAttempt(bankDrawn);
 
     setActiveMock(sessionMock);
-    setAllQuestions(flat);
+    // The exam screen renders from this flat list, so it must mirror the
+    // randomized section order in sessionMock exactly.
+    setAllQuestions(
+      sessionMock.sections.flatMap((sec) =>
+        sec.questions.map((q) => ({ question: q, sectionName: sec.name }))
+      )
+    );
     setCurrentIndex(0);
     setSelectedAnswers({});
     setFlagged({});
@@ -449,9 +456,10 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
     draftStartedAtRef.current = new Date().toISOString();
     void deleteTestDraft(mock.id, user?.uid);
     setResumableDraft(null);
+    const drawnCount = sessionMock.sections.reduce((n, s) => n + s.questions.length, 0);
     toastSuccess(
       `Exam Started: ${mock.title}`,
-      `${flat.length} Questions · ${mock.durationMinutes} Minutes`
+      `${drawnCount} Questions · ${mock.durationMinutes} Minutes`
     );
   };
 
@@ -475,12 +483,21 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
       return;
     }
 
-    const flat = draft.questions.map((q) => {
-      const sec = mock.sections.find((s) => s.questions.some((x) => x.id === q.id));
-      return { question: q, sectionName: sec?.name ?? 'General' };
-    });
+    // Prefer the session snapshot stored with the draft: bank-drawn question
+    // ids do not exist in the authored paper, so the authored sections can no
+    // longer be used to rebuild the attempt. Older drafts without `sections`
+    // fall back to the original lookup.
+    const sessionSections = draft.sections;
+    const flat = sessionSections
+      ? sessionSections.flatMap((sec) =>
+          sec.questions.map((q) => ({ question: q, sectionName: sec.name }))
+        )
+      : draft.questions.map((q) => {
+          const sec = mock.sections.find((s) => s.questions.some((x) => x.id === q.id));
+          return { question: q, sectionName: sec?.name ?? 'General' };
+        });
 
-    setActiveMock(mock);
+    setActiveMock(sessionSections ? { ...mock, sections: sessionSections } : mock);
     setAllQuestions(flat);
     setSelectedAnswers(draft.userAnswers || {});
     setFlagged(Object.fromEntries((draft.flaggedQuestions || []).map((id) => [id, true])));
@@ -1724,6 +1741,65 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
                 </div>
               </Card>
             )}
+
+            {/* ── Random Test Builder: fresh paper drawn from the full bank ── */}
+            <Card flush className="p-5 border-primary/30 bg-gradient-to-r from-primary/10 via-transparent to-amber-500/10 rounded-3xl shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+                <div className="flex-1 space-y-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full bg-primary text-white font-bold text-[10px] uppercase tracking-wider">🎲 Random Test Builder</span>
+                    <span className="px-2 py-0.5 rounded-full bg-subtle text-muted font-semibold text-[10px]">Every attempt is a brand-new paper</span>
+                  </div>
+                  <h3 className="font-display font-bold text-base text-ink">Generate a fresh mock from the full question bank</h3>
+                  <p className="text-xs text-muted leading-relaxed">
+                    Questions are drawn at random across the syllabus subject groups, optionally scoped to a topic — then shuffled
+                    with randomized option order. Enter a topic to narrow the draw, or leave it blank for a full-syllabus paper.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-end gap-3 flex-shrink-0">
+                  <label className="block sm:w-56">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Topic (optional)</span>
+                    <input
+                      type="text"
+                      value={randomTopicQuery}
+                      onChange={(e) => setRandomTopicQuery(e.target.value)}
+                      placeholder="e.g. soil mechanics, polity…"
+                      className="w-full rounded-xl border border-line bg-card px-3 py-2 text-xs text-ink placeholder:text-muted/60 focus:border-primary focus:outline-none"
+                    />
+                  </label>
+                  <label className="block sm:w-28">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-muted mb-1">Questions</span>
+                    <select
+                      value={randomQuestionCount}
+                      onChange={(e) => setRandomQuestionCount(Number(e.target.value))}
+                      className="w-full rounded-xl border border-line bg-card px-3 py-2 text-xs text-ink focus:border-primary focus:outline-none"
+                    >
+                      {[10, 25, 50, 75, 100].map((n) => (
+                        <option key={n} value={n}>{n}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <Button
+                    onClick={() => {
+                      const topic = randomTopicQuery.trim();
+                      const generated = buildSyllabusMockTest({
+                        title: topic ? `${topic} — Random Topic Test` : 'Random Syllabus Mock',
+                        paperName: topic
+                          ? `Randomly drawn from the full bank, scoped to ${topic}`
+                          : 'Randomly assembled from the full question bank',
+                        questionCount: randomQuestionCount,
+                        topics: topic ? [topic] : undefined
+                      });
+                      handleStartMock(generated);
+                    }}
+                    className="bg-primary hover:bg-primary-dark text-white font-bold shadow-md shadow-primary/20"
+                    iconRight={<Play className="w-3.5 h-3.5" />}
+                  >
+                    Start Random Test
+                  </Button>
+                </div>
+              </div>
+            </Card>
 
             {/* Test Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
