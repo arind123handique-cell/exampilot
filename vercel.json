@@ -4,7 +4,6 @@
   "devCommand": "npm run dev",
   "installCommand": "npm install",
   "framework": "vite",
-  "regions": ["iad1", "sfo1"],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
