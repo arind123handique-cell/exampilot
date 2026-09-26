@@ -34,11 +34,11 @@ Supabase → Authentication:
   callback URL shown in the provider dialog to the Google client's *Authorised redirect
   URIs*.
 - **URL Configuration**:
-  - *Site URL* → your production origin (e.g. `https://exampilot-eight.vercel.app`) or
+  - *Site URL* → your production origin (e.g. `https://exampilot.pages.dev`) or
     `http://localhost:3000` for local dev.
   - *Redirect URLs* → add every origin the app runs on (`http://localhost:3000`,
-    the Vercel domain, any custom domain). Google OAuth returns and password-reset links
-    land here; a URL that is not allow-listed fails silently after Google.
+    the Cloudflare domain, any custom domain). Google OAuth returns and password-reset
+    links land here; a URL that is not allow-listed fails silently after Google.
 
 ## 3. Verify sign-in & publishing end to end
 
@@ -51,20 +51,27 @@ Supabase → Authentication:
 5. Sign in from a second browser/profile and confirm the published paper is listed.
    (Cross-tab sync uses `BroadcastChannel`; cross-device needs the Supabase read.)
 
-## Vercel — build-time environment variables
+## Cloudflare — build-time environment variables
 
-`.env` is git-ignored, so Vercel never sees your keys — and Vite inlines `VITE_*` at
+Cloudflare Workers is the only deployment target. `wrangler.jsonc` serves the built
+`dist/` as static assets with SPA fallback, so `npm run build` is the whole build
+step.
+
+`.env` is git-ignored, so the build never sees your keys — and Vite inlines `VITE_*` at
 **build** time, so they must be present when the build runs.
 
-Vercel → Project → Settings → Environment Variables, set for **Production, Preview and
-Development**:
+Cloudflare Dashboard → Workers & Pages → your project → Settings → Variables and
+Secrets, set for **Production** (and **Preview** if you use branch builds):
 
 | Name | Value |
 |---|---|
 | `VITE_SUPABASE_URL` | Supabase → Project Settings → API → Project URL |
 | `VITE_SUPABASE_ANON_KEY` | Supabase → Project Settings → API → anon public key |
 
-Then **redeploy**. Adding env vars does not change an existing build.
+Then **redeploy**. Adding a variable does not change an existing build.
+
+These are the two `VITE_*` values only. `VITE_ADMIN_PASSCODE_SHA256` belongs to the
+separate admin build, not this one.
 
 (Sandbox/local dev: set the same two keys in the workspace *Keys/API keys* tab. The
 client also ships a hardcoded fallback for the `exampilot` project so local demos work
