@@ -1,4 +1,4 @@
-# Firebase service account key — never commit credentials.
+# Supabase service account key — never commit credentials.
 serviceAccount.json
 *serviceAccount*.json
 

@@ -4,6 +4,12 @@ ExamPilot is partitioned into two independent applications for optimal security,
 1. **Student Portal** — Lightweight, high-performance CBT exam engine and review portal (served on the primary domain e.g. `exampilot.ai`).
 2. **Admin Studio** — Dedicated directory (`admin/`) and separate domain (e.g. `admin.exampilot.ai`) for OCR ingestion, AI question generation, paper publishing, and student telemetry.
 
+**Cloudflare is the only deployment target.** Vercel, Netlify and Firebase configuration has been
+removed; `wrangler.jsonc` and the Cloudflare Pages steps below are what remain.
+
+For SQL migrations, Auth provider setup and the known security gaps, see
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ---
 
 ## 1. Domain Configuration
@@ -32,7 +38,7 @@ Cross-domain linking and routing are managed via `src/config/domainConfig.ts`:
    - **Root directory**: `/`
 4. Add Environment Variables:
    - `VITE_ADMIN_URL`: `https://admin.exampilot.ai`
-   - Add all Firebase keys from `.env` (listed below)
+   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (see section 3)
 5. Save and Deploy.
 6. Under **Custom domains**, connect your primary domain: `exampilot.ai`.
 
@@ -46,10 +52,13 @@ Cross-domain linking and routing are managed via `src/config/domainConfig.ts`:
    - **Root directory**: `/` (or `admin`)
 4. Add Environment Variables:
    - `VITE_STUDENT_URL`: `https://exampilot.ai`
-   - `VITE_ADMIN_PASSCODE`: `ExamPilot@Admin2026!`
-   - Add all Firebase keys from `.env`
+   - `VITE_ADMIN_PASSCODE_SHA256`: the digest described in section 3
+   - `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
 5. Save and Deploy.
 6. Under **Custom domains**, connect your subdomain: `admin.exampilot.ai`.
+
+Vite inlines `VITE_*` at **build** time, so adding a variable does not change an existing
+build. Redeploy after any change.
 
 ---
 
@@ -59,15 +68,20 @@ Cross-domain linking and routing are managed via `src/config/domainConfig.ts`:
 |---|---|---|
 | `VITE_ADMIN_URL` | Student App | URL to separate admin domain (e.g. `https://admin.exampilot.ai`) |
 | `VITE_STUDENT_URL` | Admin App | URL to student portal domain (e.g. `https://exampilot.ai`) |
-| `VITE_ADMIN_PASSCODE` | Admin App | Passcode for Admin access gate |
-| `VITE_FIREBASE_API_KEY` | Both | `AIzaSyCzyyUIqIYcIcApKe2813aCPRW2RdXF6u4` |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Both | `exampilot-6836c.firebaseapp.com` |
-| `VITE_FIREBASE_PROJECT_ID` | Both | `exampilot-6836c` |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Both | `exampilot-6836c.firebasestorage.app` |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Both | `818400419174` |
-| `VITE_FIREBASE_APP_ID` | Both | `1:818400419174:web:7efac6e633785d26cfbca7` |
-| `VITE_FIREBASE_MEASUREMENT_ID` | Both | `G-TF4YQG85N6` |
-| `VITE_GEMINI_API_KEY` | Admin (Optional) | Can also be configured dynamically in the Admin UI |
+| `VITE_SUPABASE_URL` | Both | Supabase → Project Settings → API → Project URL |
+| `VITE_SUPABASE_ANON_KEY` | Both | Supabase → Project Settings → API → anon public key |
+| `VITE_ADMIN_PASSCODE_SHA256` | Admin App | SHA-256 digest of the admin passcode (see below) |
+| `VITE_GEMINI_API_KEY` | Optional | Fallback AI key; students can also supply their own from Profile → AI Settings |
+
+**Never commit a passcode.** `VITE_ADMIN_PASSCODE` (plaintext) is inlined into the shipped
+bundle, which is how a previous version leaked one. Use the hash:
+
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('YOUR_PASSCODE').digest('hex'))"
+```
+
+If `VITE_ADMIN_PASSCODE_SHA256` is unset the admin portal stays locked and says so — there is
+no default passcode.
 
 ---
 
@@ -82,12 +96,18 @@ npm run dev:admin
 
 # Build both applications
 npm run build:all
+
+# Run the test suites
+npm test
 ```
 
-## 5. Firebase Auth Authorized Domains
+---
 
-In **Firebase Console** → **Authentication** → **Settings** → **Authorized domains**, add:
-- `localhost`
-- `exampilot.ai` (student domain)
-- `admin.exampilot.ai` (admin domain)
-- `*.pages.dev` (Cloudflare Pages preview deployments)
+## 5. Authorized origins
+
+Supabase → **Authentication → URL Configuration**:
+
+- **Site URL** → the production origin, or `http://localhost:3000` for local dev.
+- **Redirect URLs** → every origin the app runs on: `http://localhost:3000`, the Cloudflare
+  domain, and any custom domain. Google OAuth returns and password-reset links land here, and a
+  URL that is not allow-listed **fails silently** after Google.

@@ -62,23 +62,23 @@ ExamPilot AI now supports **any examination** — not just Civil Engineering. Th
 ## 🎨 Local Design Showcase
 
 An interactive preview gallery has been compiled in `stitch-screens/`:
-- **Open Gallery**: Open [`stitch-screens/index.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/index.html) in any browser to switch between all screens and toggle between Desktop & Mobile viewports.
+- **Open Gallery**: Open [`stitch-screens/index.html`](stitch-screens/index.html) in any browser to switch between all screens and toggle between Desktop & Mobile viewports.
 
 ### Screen Inventory
 
 | File | Title | Description |
 |---|---|---|
-| [`00-logo.svg`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/00-logo.svg) | Brand Logo | Official ExamPilot vector brandmark |
-| [`01-onboarding.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/01-onboarding.html) | Onboarding (Base) | Exam selection, target year & preparation level setup |
-| [`02-onboarding-desktop.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/02-onboarding-desktop.html) | Onboarding (Desktop) | Full desktop multi-step exam onboarding wizard |
-| [`03-personalized-study-plan.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/03-personalized-study-plan.html) | Personalized Study Plan | Adaptive study roadmap, syllabus pacing & daily tasks |
-| [`04-syllabus-explorer.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/04-syllabus-explorer.html) | Syllabus Explorer & Topics | Hierarchical syllabus tree with weightages & revision notes |
-| [`05-mcq-practice-assessment.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/05-mcq-practice-assessment.html) | MCQ Practice & Assessment | Timed question engine with instant explanations & formulas |
-| [`06-full-mock-test-simulation.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/06-full-mock-test-simulation.html) | Full Mock Test Simulation | Strict exam simulation environment with question palette |
-| [`07-previous-papers-archive.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/07-previous-papers-archive.html) | PYQ & Question Archive | Historical exam papers, topic filters & difficulty ratings |
-| [`08-syllabus-aware-ai-tutor.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/08-syllabus-aware-ai-tutor.html) | Syllabus-Aware AI Tutor | Interactive AI co-pilot grounded in official syllabus |
-| [`09-progress-analytics.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/09-progress-analytics.html) | Progress & Exam Readiness | Analytics dashboard, radar competency charts & predictions |
-| [`10-mobile-platform.html`](file:///d:/PROJECTS%20APP/EXAMPILOT/stitch-screens/10-mobile-platform.html) | Mobile Platform Experience | Mobile responsive viewport implementation |
+| [`00-logo.svg`](stitch-screens/00-logo.svg) | Brand Logo | Official ExamPilot vector brandmark |
+| [`01-onboarding.html`](stitch-screens/01-onboarding.html) | Onboarding (Base) | Exam selection, target year & preparation level setup |
+| [`02-onboarding-desktop.html`](stitch-screens/02-onboarding-desktop.html) | Onboarding (Desktop) | Full desktop multi-step exam onboarding wizard |
+| [`03-personalized-study-plan.html`](stitch-screens/03-personalized-study-plan.html) | Personalized Study Plan | Adaptive study roadmap, syllabus pacing & daily tasks |
+| [`04-syllabus-explorer.html`](stitch-screens/04-syllabus-explorer.html) | Syllabus Explorer & Topics | Hierarchical syllabus tree with weightages & revision notes |
+| [`05-mcq-practice-assessment.html`](stitch-screens/05-mcq-practice-assessment.html) | MCQ Practice & Assessment | Timed question engine with instant explanations & formulas |
+| [`06-full-mock-test-simulation.html`](stitch-screens/06-full-mock-test-simulation.html) | Full Mock Test Simulation | Strict exam simulation environment with question palette |
+| [`07-previous-papers-archive.html`](stitch-screens/07-previous-papers-archive.html) | PYQ & Question Archive | Historical exam papers, topic filters & difficulty ratings |
+| [`08-syllabus-aware-ai-tutor.html`](stitch-screens/08-syllabus-aware-ai-tutor.html) | Syllabus-Aware AI Tutor | Interactive AI co-pilot grounded in official syllabus |
+| [`09-progress-analytics.html`](stitch-screens/09-progress-analytics.html) | Progress & Exam Readiness | Analytics dashboard, radar competency charts & predictions |
+| [`10-mobile-platform.html`](stitch-screens/10-mobile-platform.html) | Mobile Platform Experience | Mobile responsive viewport implementation |
 
 ---
 
