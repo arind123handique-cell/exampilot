@@ -44,18 +44,55 @@ import {
   getOllamaStatus
 } from './ollamaService';
 
-export type AiProvider = 'gemini' | 'ollama' | 'offline';
+import {
+  getActiveEntry,
+  getCredentialStore,
+  AI_PROVIDERS,
+  type AiProviderId
+} from './aiCredentials';
+
+import {
+  callOpenAiCompat,
+  callOpenAiCompatJson,
+  getLastCompatError,
+  getLastCompatFinishReason,
+  getLastCompatModel
+} from './openAiCompatClient';
+
+export type AiProvider = AiProviderId | 'ollama' | 'offline';
 
 export { MockGenOptions, AiReply };
 
+/**
+ * The student's own key, if they configured one in their profile.
+ *
+ * A student key takes precedence over the app-level Gemini key: they asked for
+ * that provider, and billing should follow their choice. Returns null when they
+ * have not set one up, which leaves the original Gemini → Ollama → offline
+ * chain untouched.
+ */
+function resolveUserCredential(): { provider: AiProviderId; apiKey: string; model: string } | null {
+  const store = getCredentialStore();
+  const entry = store.entries[store.activeProvider];
+  if (!entry?.apiKey) return null;
+  const model = entry.model?.trim() || AI_PROVIDERS[store.activeProvider]?.suggestedModels[0] || '';
+  // No model means we cannot build a request; treat it as unconfigured rather
+  // than firing calls that will fail for a reason the UI already shows.
+  if (!model) return null;
+  return { provider: store.activeProvider, apiKey: entry.apiKey, model };
+}
+
 /** Which provider is currently in charge of answering. */
 export function getActiveProvider(): AiProvider {
+  const user = resolveUserCredential();
+  if (user) return user.provider;
   if (hasGeminiKey()) return 'gemini';
   if (hasLiveOllama()) return 'ollama';
   return 'offline';
 }
 
 export function hasLiveAi(): boolean {
+  if (resolveUserCredential()) return true;
   return hasGeminiKey() || hasLiveOllama();
 }
 
@@ -63,6 +100,8 @@ export { hasLiveOllama };
 
 /** Diagnostics stitched together from whichever provider answered. */
 export function getActiveModel(): string | null {
+  const user = resolveUserCredential();
+  if (user) return user.provider === 'gemini' ? getActiveGeminiModel() ?? user.model : user.model;
   if (hasGeminiKey()) return getActiveGeminiModel();
   if (hasLiveOllama()) return getActiveOllamaModel();
   return null;
@@ -76,6 +115,9 @@ export function getModelCandidates(): string[] {
 }
 
 export function getLastAiError(): string | null {
+  const user = resolveUserCredential();
+  if (user && user.provider !== 'gemini') return getLastCompatError();
+  if (user) return getGeminiError();
   if (hasGeminiKey()) return getGeminiError();
   return getLastOllamaError();
 }
@@ -97,6 +139,8 @@ export {
 
 /** Human-readable label shown in status badges. */
 export function providerLabel(): string {
+  const user = resolveUserCredential();
+  if (user) return `${AI_PROVIDERS[user.provider].label} (${getActiveModel()})`;
   if (hasGeminiKey()) return `Google Gemini (${getActiveModel()})`;
   if (hasLiveOllama()) return `Local Ollama (${getOllamaModel()})`;
   return 'Offline recipes';
@@ -109,7 +153,22 @@ export async function generateTutorReply(
   history: AiChatMessage[] = [],
   examName?: string
 ): Promise<AiReply | null> {
-  if (hasGeminiKey()) {
+  const user = resolveUserCredential();
+  if (user && user.provider !== 'gemini') {
+    const result = await callOpenAiCompat({
+      provider: user.provider,
+      apiKey: user.apiKey,
+      model: user.model,
+      messages: [
+        { role: 'system', content: TUTOR_SYSTEM_PROMPT },
+        { role: 'user', content: buildTutorTurn(examName, history, userText) }
+      ],
+      maxTokens: 1400
+    });
+    if (!result.text) return null;
+    return parseAiReply(result.text);
+  }
+  if (user || hasGeminiKey()) {
     return generateGeminiTutorReply(userText, history, examName);
   }
   // Free tier: local Ollama. Reuse the Gemini tutor system prompt so the local
@@ -120,7 +179,22 @@ export async function generateTutorReply(
 }
 
 export async function generateMcqDeepDive(question: MCQQuestion): Promise<AiReply | null> {
-  if (hasGeminiKey()) {
+  const user = resolveUserCredential();
+  if (user && user.provider !== 'gemini') {
+    const result = await callOpenAiCompat({
+      provider: user.provider,
+      apiKey: user.apiKey,
+      model: user.model,
+      messages: [
+        { role: 'system', content: TUTOR_SYSTEM_PROMPT },
+        { role: 'user', content: buildDeepDivePrompt(question) }
+      ],
+      maxTokens: 1000
+    });
+    if (!result.text) return null;
+    return parseAiReply(result.text);
+  }
+  if (user || hasGeminiKey()) {
     return generateGeminiDeepDive(question);
   }
   const raw = await callOllamaText(buildDeepDivePrompt(question), 1000);
@@ -139,7 +213,11 @@ export async function generateMcqDeepDive(question: MCQQuestion): Promise<AiRepl
  * the caller (MockTestPage) can fall back to deterministic recipes.
  */
 export async function generateMockTestQuestions(options: MockGenOptions): Promise<MCQQuestion[]> {
-  if (hasGeminiKey()) {
+  const user = resolveUserCredential();
+  if (user && user.provider !== 'gemini') {
+    return generateCompatMock(options, user);
+  }
+  if (user || hasGeminiKey()) {
     return generateGeminiMock(options);
   }
   if (!hasLiveOllama()) {
@@ -192,16 +270,73 @@ Output contract (very important):
 - These two lines will be hidden from the user and shown as structured chips.`;
 
 function buildTutorPrompt(examName: string | undefined, history: AiChatMessage[], userText: string): string {
+  return `${TUTOR_SYSTEM_PROMPT}
+
+${buildTutorTurn(examName, history, userText)}`;
+}
+
+/** The user turn on its own, for providers that take a real system message. */
+function buildTutorTurn(examName: string | undefined, history: AiChatMessage[], userText: string): string {
   const historyText = history
     .slice(-8)
     .map((m) => `${m.role === 'user' ? 'Student' : 'Tutor'}: ${m.content}`)
     .join('\n\n');
 
-  return `${TUTOR_SYSTEM_PROMPT}
-
-${examName ? `Target exam: ${examName}.` : ''}
+  return `${examName ? `Target exam: ${examName}.` : ''}
 ${historyText ? `Conversation so far:\n${historyText}\n\n` : ''}
-Student question: ${userText}`;
+Student question: ${userText}`.trim();
+}
+
+/**
+ * Mock generation through the student's own OpenAI-compatible provider.
+ *
+ * Batched the same way the Ollama path is: asking for 100 questions in one
+ * response reliably truncates, and a truncated response is the failure that
+ * quietly produces half a mock test.
+ */
+async function generateCompatMock(
+  options: MockGenOptions,
+  credential: { provider: AiProviderId; apiKey: string; model: string }
+): Promise<MCQQuestion[]> {
+  const { topicQuery, category, questionCount, examName, onProgress } = options;
+  const batchSize = 20;
+  const totalBatches = Math.ceil(questionCount / batchSize);
+  const collected: MCQQuestion[] = [];
+  const sourceLabel = `${AI_PROVIDERS[credential.provider].label} Draft`;
+
+  for (let batch = 0; batch < totalBatches; batch += 1) {
+    const remaining = questionCount - collected.length;
+    if (remaining <= 0) break;
+
+    onProgress?.(
+      batch + 1,
+      totalBatches,
+      `${AI_PROVIDERS[credential.provider].label}: writing questions ${collected.length + 1}-${collected.length + remaining} (batch ${batch + 1}/${totalBatches})…`
+    );
+
+    const prompt = buildMockPrompt(topicQuery, category, Math.min(remaining, batchSize), examName);
+    const parsed = await callOpenAiCompatJson<{ questions?: unknown[] }>({
+      provider: credential.provider,
+      apiKey: credential.apiKey,
+      model: credential.model,
+      messages: [{ role: 'user', content: prompt }],
+      maxTokens: 8192
+    });
+
+    if (!parsed) {
+      // Surface the real reason rather than returning a short mock that looks
+      // like a model quality problem.
+      throw new Error(getLastCompatError() || 'The model did not return usable questions.');
+    }
+
+    const list = Array.isArray(parsed) ? parsed : Array.isArray(parsed.questions) ? parsed.questions : [];
+    for (const item of list) {
+      const q = normalizeGeneratedQuestion(item, collected.length, category, sourceLabel);
+      if (q) collected.push(q);
+      if (collected.length >= questionCount) break;
+    }
+  }
+  return collected;
 }
 
 function buildDeepDivePrompt(question: MCQQuestion): string {
@@ -266,7 +401,8 @@ Output MUST be valid JSON exactly matching this shape (no markdown fences, no co
 function normalizeGeneratedQuestion(
   raw: any,
   index: number,
-  category: 'civil' | 'gs'
+  category: 'civil' | 'gs',
+  sourceLabel = 'Local Model Draft'
 ): MCQQuestion | null {
   if (!raw || typeof raw.stem !== 'string' || !raw.stem.trim()) return null;
 
@@ -299,7 +435,7 @@ function normalizeGeneratedQuestion(
     diffRaw === 'EASY' || diffRaw === 'HARD' ? (diffRaw as MCQQuestion['difficulty']) : 'MEDIUM';
 
   return {
-    id: `ollama-mock-${Date.now()}-${index + 1}`,
+    id: `ai-mock-${Date.now()}-${index + 1}`,
     questionNumber: index + 1,
     examId: category === 'civil' ? 'apsc-ae-civil' : 'apsc-cce-gs',
     subject: typeof raw.subject === 'string' && raw.subject.trim() ? raw.subject.trim() : 'Local Model',
@@ -314,7 +450,7 @@ function normalizeGeneratedQuestion(
         ? raw.explanation.trim()
         : 'Refer to the governing standard provisions and syllabus references.',
     difficulty,
-    pyqExam: 'Local Model Draft'
+    pyqExam: sourceLabel
   };
 }
 

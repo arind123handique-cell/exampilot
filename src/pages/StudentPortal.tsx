@@ -51,6 +51,7 @@ import { submitMockTest } from '../services/userDataService';
 import { MockTest, MCQQuestion, TestSubmission } from '../types';
 import { getAdminDomainUrl } from '../config/domainConfig';
 import { StudentProfileDossier } from '../components/student/StudentProfileDossier';
+import { StudentAiSettings } from '../components/student/StudentAiSettings';
 import { StudentProfileSummary } from '../services/studentTelemetryService';
 import { QuestionStemFormatter, parseFigureOption, FigureOptionContent } from '../components/ui/QuestionStemFormatter';
 import { CartoonMascot, MascotCharacter } from '../components/student/CartoonMascot';
@@ -2372,10 +2373,23 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
 
         {/* ── TAB 3: STUDENT PROFILE DOSSIER ── */}
         {studentTab === 'profile' && !reviewingRecord && (
-          <StudentProfileDossier
-            student={myProfileSummary}
-            isSelfProfile={true}
-          />
+          <div className="space-y-6 animate-fadeIn">
+            <StudentProfileDossier
+              student={myProfileSummary}
+              isSelfProfile={true}
+            />
+
+            <Card flush className="p-6">
+              <h2 className="font-display font-bold text-xl text-ink">AI Settings</h2>
+              <p className="text-xs text-muted mt-1 max-w-3xl">
+                Already pay for an AI model? Point the tutor, deep dives and mock generator at your own key
+                instead of relying on the shared one. Nothing is charged to this app and your key is never
+                sent to another student.
+              </p>
+            </Card>
+
+            <StudentAiSettings userId={user?.uid} />
+          </div>
         )}
 
         {/* ── TAB 4: REAL PERFORMANCE ANALYTICS ── */}
