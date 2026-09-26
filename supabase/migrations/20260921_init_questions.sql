@@ -41,11 +41,19 @@ CREATE INDEX IF NOT EXISTS idx_questions_type ON public.questions(question_type)
 ALTER TABLE public.questions ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read access to all questions for student practice and mock tests
+DROP POLICY IF EXISTS "Public read access for questions" ON public.questions;
 CREATE POLICY "Public read access for questions"
   ON public.questions FOR SELECT
   USING (true);
 
 -- Allow insert/update with service_role or admin client
+--
+-- WARNING: this is an open write. RLS is the only thing standing between the
+-- anon key (which ships in the public bundle) and the question bank, and
+-- `USING (true)` is not a boundary. Tightening it requires admin writes to go
+-- through a service_role Edge Function, because every admin write today is
+-- client-side with no Supabase session — see the audit note in the repo README.
+DROP POLICY IF EXISTS "Admin full access for questions" ON public.questions;
 CREATE POLICY "Admin full access for questions"
   ON public.questions FOR ALL
   USING (true)

@@ -22,9 +22,15 @@ CREATE INDEX IF NOT EXISTS idx_published_papers_exam_id
   ON public.published_papers (exam_id);
 
 ALTER TABLE public.published_papers ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Public read access for papers"
+
+-- PostgreSQL has no `CREATE POLICY IF NOT EXISTS`, so this file used to abort
+-- with a syntax error before creating a single policy. DROP-then-CREATE is the
+-- idempotent form and matches the later migrations.
+DROP POLICY IF EXISTS "Public read access for papers" ON public.published_papers;
+CREATE POLICY "Public read access for papers"
   ON public.published_papers FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "Admin full access for papers"
+DROP POLICY IF EXISTS "Admin full access for papers" ON public.published_papers;
+CREATE POLICY "Admin full access for papers"
   ON public.published_papers FOR ALL USING (true) WITH CHECK (true);
 
 
@@ -45,7 +51,10 @@ CREATE INDEX IF NOT EXISTS idx_custom_mock_tests_exam_id
   ON public.custom_mock_tests (exam_id);
 
 ALTER TABLE public.custom_mock_tests ENABLE ROW LEVEL SECURITY;
-CREATE POLICY IF NOT EXISTS "Public read access for mocks"
+
+DROP POLICY IF EXISTS "Public read access for mocks" ON public.custom_mock_tests;
+CREATE POLICY "Public read access for mocks"
   ON public.custom_mock_tests FOR SELECT USING (true);
-CREATE POLICY IF NOT EXISTS "Admin full access for mocks"
+DROP POLICY IF EXISTS "Admin full access for mocks" ON public.custom_mock_tests;
+CREATE POLICY "Admin full access for mocks"
   ON public.custom_mock_tests FOR ALL USING (true) WITH CHECK (true);
