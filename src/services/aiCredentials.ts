@@ -58,7 +58,7 @@ export const AI_PROVIDERS: Record<AiProviderId, AiProviderDescriptor> = {
     baseUrl: '',
     keyPlaceholder: 'AIzaSy…',
     signupUrl: 'https://aistudio.google.com/app/apikey',
-    suggestedModels: ['gemini-2.5-flash', 'gemini-2.0-flash'],
+    suggestedModels: ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash'],
     supportsVision: true,
     freeTierNote: 'Free tier with a generous rate limit. Also the only provider here that can read an uploaded PDF.'
   },

@@ -23,6 +23,7 @@ import {
   invalidateCredentialCache
 } from '../src/services/aiCredentials';
 import { parseJsonLoose, getLastCompatError } from '../src/services/openAiCompatClient';
+import { DEFAULT_GEMINI_MODELS, cleanModelName } from '../src/services/geminiService';
 
 /* ------------------------------------------------------- minimal DOM shim */
 
@@ -82,6 +83,52 @@ check('the requested providers are all present', () => {
 check('only gemini claims vision support', () => {
   const vision = AI_PROVIDER_IDS.filter((id) => AI_PROVIDERS[id].supportsVision);
   assert.deepEqual(vision, ['gemini']);
+});
+
+/* ------------------------------------------------------------ gemini models */
+
+check('gemini 3.5 flash and 3.8 are offered in the profile panel', () => {
+  const suggested = AI_PROVIDERS.gemini.suggestedModels;
+  assert.ok(suggested.includes('gemini-3.5-flash'), 'gemini-3.5-flash missing');
+  assert.ok(suggested.includes('gemini-3.8-flash'), 'gemini-3.8-flash missing');
+});
+
+check('gemini 3.8 is offered before 3.5', () => {
+  const suggested = AI_PROVIDERS.gemini.suggestedModels;
+  assert.ok(
+    suggested.indexOf('gemini-3.8-flash') < suggested.indexOf('gemini-3.5-flash'),
+    'the newer model should be tried first'
+  );
+});
+
+check('the shared Gemini candidate list contains both new models', () => {
+  assert.ok(DEFAULT_GEMINI_MODELS.includes('gemini-3.5-flash'));
+  assert.ok(DEFAULT_GEMINI_MODELS.includes('gemini-3.8-flash'));
+});
+
+check('the shared Gemini candidate list is ordered newest first', () => {
+  assert.equal(DEFAULT_GEMINI_MODELS[0], 'gemini-3.8-flash');
+  assert.equal(DEFAULT_GEMINI_MODELS[1], 'gemini-3.5-flash');
+});
+
+check('the retired 1.5 model is probed last, never first', () => {
+  const idx = DEFAULT_GEMINI_MODELS.indexOf('gemini-1.5-flash');
+  assert.ok(idx > 0, 'retired model must not lead the probe list');
+  assert.equal(idx, DEFAULT_GEMINI_MODELS.length - 1);
+});
+
+check('model names are unique and clean', () => {
+  assert.equal(new Set(DEFAULT_GEMINI_MODELS).size, DEFAULT_GEMINI_MODELS.length);
+  for (const m of DEFAULT_GEMINI_MODELS) {
+    assert.equal(cleanModelName(m), m, `${m} is not in canonical form`);
+    assert.doesNotMatch(m, /^models\//);
+  }
+});
+
+check('cleanModelName strips the models/ prefix', () => {
+  assert.equal(cleanModelName('models/gemini-3.5-flash'), 'gemini-3.5-flash');
+  assert.equal(cleanModelName('  gemini-3.8-flash  '), 'gemini-3.8-flash');
+  assert.equal(cleanModelName(''), '');
 });
 
 /* ------------------------------------------------------------- masking */

@@ -4,6 +4,9 @@ import {
   getOllamaModel,
   getOllamaBaseUrl
 } from './ollamaService';
+import { getGeminiModelCandidates, cleanModelName } from './geminiService';
+
+const GEMINI_ENDPOINT_ROOT = 'https://generativelanguage.googleapis.com/v1beta/models';
 
 export interface IngestionOptions {
   topicQuery: string;
@@ -222,32 +225,58 @@ The output MUST be valid JSON conforming to the following structure:
   ]
 }`;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: systemPrompt }] }],
-        generationConfig: { responseMimeType: 'application/json' }
-      })
-    }
-  );
+  // Walk the shared candidate list instead of naming a model here. This used to
+  // hardcode `gemini-1.5-flash`, which Google retired — the call then 404'd, the
+  // error was swallowed by the caller, and the studio quietly fell back to the
+  // built-in synthesiser with nothing but a console warning. Same failure shape
+  // as the outage described in geminiService, in a second place.
+  const candidates = getGeminiModelCandidates();
+  let lastFailure = '';
 
-  if (!response.ok) {
-    throw new Error(`Gemini API error: ${response.statusText}`);
+  for (const candidate of candidates) {
+    const model = cleanModelName(candidate);
+    if (!model) continue;
+
+    const response = await fetch(
+      `${GEMINI_ENDPOINT_ROOT}/${model}:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt }] }],
+          generationConfig: { responseMimeType: 'application/json' }
+        })
+      }
+    );
+
+    // 404 means this particular model is gone or renamed, not that the key is
+    // bad — try the next one. Anything else is a real failure worth reporting.
+    if (response.status === 404) {
+      lastFailure = `${model} is not available (404)`;
+      continue;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error on ${model}: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!textResponse) return null;
+
+    const parsed = JSON.parse(textResponse);
+    return {
+      module: parsed.module,
+      questions: parsed.questions,
+      source: 'GEMINI_AI'
+    };
   }
 
-  const data = await response.json();
-  const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!textResponse) return null;
-
-  const parsed = JSON.parse(textResponse);
-  return {
-    module: parsed.module,
-    questions: parsed.questions,
-    source: 'GEMINI_AI'
-  };
+  throw new Error(
+    lastFailure
+      ? `No configured Gemini model responded. Last attempt: ${lastFailure}.`
+      : 'No Gemini model candidates are configured.'
+  );
 }
 
 /**

@@ -34,12 +34,15 @@ export function cleanModelName(model: string): string {
 }
 
 export const DEFAULT_GEMINI_MODELS = [
+  'gemini-3.8-flash',
+  'gemini-3.5-flash',
   'gemini-3.5-flash-lite',
   'gemini-2.5-flash',
   'gemini-2.0-flash',
   'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-3.8-flash'
+  // Retired by Google. Kept last purely as a historical probe: a 404 here just
+  // moves on to nothing, and it is never reached while a live model answers.
+  'gemini-1.5-flash'
 ];
 
 /** Model that actually answered, remembered so later calls skip the probe. */

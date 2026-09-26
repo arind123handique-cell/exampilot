@@ -2,7 +2,7 @@
  * AI PROVIDER MANAGEMENT & GENERATION HISTORY
  *
  * Supports multi-provider architecture:
- * - Google Gemini (Primary Default: gemini-3.5-flash-lite, gemini-2.5-flash, gemini-1.5-flash)
+ * - Google Gemini (Primary Default: gemini-3.8-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-2.5-flash)
  * - OpenAI (gpt-4o-mini, gpt-4o)
  * - Anthropic (claude-3-5-sonnet, claude-3-5-haiku)
  * - OpenRouter
@@ -55,7 +55,7 @@ export const DEFAULT_AI_PROVIDERS: Record<AiProviderType, AiProviderConfig> = {
     id: 'gemini',
     name: 'Google Gemini',
     defaultModel: 'gemini-3.5-flash-lite',
-    models: ['gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-2.0-flash'],
+    models: ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'],
     apiKey: '',
     isActive: true,
     isConfigured: true,
