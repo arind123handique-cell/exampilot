@@ -25,6 +25,9 @@
     "supabase:dump": "tsx scripts/migrate-to-supabase.ts",
     "supabase:migrate": "tsx --env-file=.env scripts/migrate-to-supabase.ts --upload"
   },
+  "engines": {
+    "node": ">=20.18.0"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",
     "@types/canvas-confetti": "^1.9.0",
