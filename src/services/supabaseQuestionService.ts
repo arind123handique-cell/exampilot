@@ -26,6 +26,48 @@ export interface QuestionRow {
   pyq_exam: string | null;
   created_at?: string;
   updated_at?: string;
+  /** Normalised stem fingerprint used for duplicate detection. */
+  stem_hash?: string | null;
+  /** 'PRINTED' when the paper shows the key, 'MODEL_DERIVED' when solved. */
+  answer_key_source?: string | null;
+  key_confidence?: string | null;
+}
+
+/**
+ * Normalise a question stem for duplicate detection: case, punctuation and
+ * whitespace are noise, the words are not.
+ */
+export function normalizeStem(stem: string): string {
+  return String(stem || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+/** FNV-1a, 32-bit. */
+function fnv1a(input: string, seed: number): number {
+  let h = seed >>> 0;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
+/**
+ * Two independently seeded FNV-1a passes concatenated into 64 bits of hash.
+ * Cheap and synchronous (no crypto context needed, unlike SubtleCrypto on
+ * plain-HTTP origins), and with two seeds a collision across a few thousand
+ * bank questions is vanishingly unlikely — a false positive would silently
+ * drop a question, which is the failure mode we care about.
+ */
+export function stemHash(stem: string): string {
+  const norm = normalizeStem(stem);
+  if (!norm) return '';
+  return (
+    fnv1a(norm, 0x811c9dc5).toString(16).padStart(8, '0') +
+    fnv1a(norm, 0x7fffffff).toString(16).padStart(8, '0')
+  );
 }
 
 /**
@@ -36,6 +78,13 @@ export function questionToRow(q: MCQQuestion): QuestionRow {
   const optB = q.options?.find((o) => o.id === 'B')?.text || '';
   const optC = q.options?.find((o) => o.id === 'C')?.text || '';
   const optD = q.options?.find((o) => o.id === 'D')?.text || '';
+
+  // Resolve the key source once: a printed key is always high confidence, and
+  // only 'PYQ' rows without an explicit label fall back to 'printed'.
+  const answerKeySource: 'PRINTED' | 'MODEL_DERIVED' =
+    q.answerKeySource || (q.sourceType === 'PYQ' ? 'PRINTED' : 'MODEL_DERIVED');
+  const keyConfidence: 'HIGH' | 'MEDIUM' | 'LOW' =
+    q.keyConfidence || (answerKeySource === 'PRINTED' ? 'HIGH' : 'LOW');
 
   return {
     id: q.id,
@@ -65,6 +114,9 @@ export function questionToRow(q: MCQQuestion): QuestionRow {
     source_type: q.sourceType || 'OFFICIAL_EXAM',
     pyq_year: q.pyqYear || null,
     pyq_exam: q.pyqExam || null,
+    stem_hash: stemHash(q.stem),
+    answer_key_source: answerKeySource,
+    key_confidence: keyConfidence,
     updated_at: new Date().toISOString()
   };
 }
@@ -110,6 +162,8 @@ export function rowToQuestion(row: QuestionRow): MCQQuestion {
     difficulty: (row.difficulty || 'MEDIUM') as 'EASY' | 'MEDIUM' | 'HARD',
     questionType: row.question_type as any,
     sourceType: row.source_type as any,
+    answerKeySource: (row.answer_key_source === 'PRINTED' ? 'PRINTED' : 'MODEL_DERIVED') as 'PRINTED' | 'MODEL_DERIVED',
+    keyConfidence: (row.key_confidence || 'LOW') as 'HIGH' | 'MEDIUM' | 'LOW',
     pyqYear: row.pyq_year || undefined,
     pyqExam: row.pyq_exam || undefined
   };

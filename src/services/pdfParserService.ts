@@ -1,5 +1,5 @@
 import { MCQQuestion } from '../types';
-import { callGeminiMultimodal, getGeminiApiKey } from './geminiService';
+import { callGeminiMultimodal, getGeminiApiKey, getLastAiDiagnostics } from './geminiService';
 
 export interface ExamPaperMeta {
   examName: string;
@@ -10,6 +10,14 @@ export interface ExamPaperMeta {
   totalMarks: number;
   negativeMarksPerIncorrect: number;
   examId?: string;
+  /**
+   * How to read an answer key the model does not report the source of.
+   * 'printed' (default) suits the admin workflow, where the paper is an
+   * official one. 'auto' suits student uploads of unknown provenance, and
+   * treats a missing label as model-derived. The model's own per-question
+   * label always wins over this.
+   */
+  keySource?: 'printed' | 'auto';
 }
 
 export interface ExtractedQuestionRaw {
@@ -22,6 +30,9 @@ export interface ExtractedQuestionRaw {
   topic?: string;
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD';
   questionType?: 'CONCEPTUAL' | 'NUMERICAL' | 'FORMULA_RECALL';
+  /** 'printed' when the paper itself shows the key, 'model_derived' when solved. */
+  keySource?: 'printed' | 'model_derived';
+  keyConfidence?: 'high' | 'medium' | 'low';
 }
 
 /**
@@ -78,6 +89,53 @@ function cleanAndParseJson(text: string): any {
 }
 
 /**
+ * Largest paper we send to Gemini as inline data.
+ *
+ * The whole file travels base64-encoded inside a single generateContent call,
+ * and the API rejects a request over ~20 MB. A scanned 100-question paper
+ * crosses that easily, so the limit is checked up front with an actionable
+ * message instead of an opaque HTTP 400.
+ */
+export const MAX_INLINE_UPLOAD_BYTES = 15 * 1024 * 1024;
+
+/** Rough byte length of a base64 payload without decoding it. */
+function approxBase64Bytes(base64: string): number {
+  const clean = base64.includes(',') ? base64.split(',')[1] : base64;
+  return Math.floor((clean.length * 3) / 4);
+}
+
+export interface KeyProvenance {
+  keyPrinted: boolean;
+  answerKeySource: 'PRINTED' | 'MODEL_DERIVED';
+  keyConfidence: 'HIGH' | 'MEDIUM' | 'LOW';
+}
+
+/**
+ * Decides how much to trust an extracted answer key.
+ *
+ * Only a key the model explicitly reports as printed counts as official. A
+ * missing label is resolved from the caller's declaration: 'printed' keeps the
+ * admin workflow (official papers) working, 'auto' is the conservative choice
+ * for uploads of unknown provenance and treats silence as model-derived.
+ */
+export function deriveKeyProvenance(
+  rawKeySource: string | undefined,
+  rawKeyConfidence: string | undefined,
+  declared: 'printed' | 'auto' = 'printed'
+): KeyProvenance {
+  const keyPrinted = rawKeySource ? rawKeySource === 'printed' : declared === 'printed';
+  if (keyPrinted) {
+    return { keyPrinted, answerKeySource: 'PRINTED', keyConfidence: 'HIGH' };
+  }
+  const reported = String(rawKeyConfidence || '').toLowerCase();
+  const keyConfidence: 'HIGH' | 'MEDIUM' | 'LOW' =
+    reported === 'high' || reported === 'medium' || reported === 'low'
+      ? (reported.toUpperCase() as 'HIGH' | 'MEDIUM' | 'LOW')
+      : 'LOW';
+  return { keyPrinted, answerKeySource: 'MODEL_DERIVED', keyConfidence };
+}
+
+/**
  * Multimodal Gemini OCR & MCQ Extractor
  * Reads whole exam paper PDF or images, performs OCR, and structures questions into standard MCQ objects.
  */
@@ -90,6 +148,17 @@ export async function parseExamPdfWithGemini(
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new Error('Gemini API Key is required for PDF OCR parsing. Please configure your key.');
+  }
+
+  const approxBytes = approxBase64Bytes(fileBase64);
+  if (approxBytes > MAX_INLINE_UPLOAD_BYTES) {
+    const sizeMb = (approxBytes / (1024 * 1024)).toFixed(1);
+    const limitMb = (MAX_INLINE_UPLOAD_BYTES / (1024 * 1024)).toFixed(0);
+    throw new Error(
+      `This paper is ${sizeMb} MB, over the ${limitMb} MB limit for browser extraction ` +
+        '(the file is sent to the AI in one request). Compress or split the paper, or run ' +
+        '`npm run pyq:import` on the inbox for large scans.'
+    );
   }
 
   onProgress?.('Uploading PDF to Gemini AI OCR engine...');
@@ -110,7 +179,10 @@ TASK:
      d. [Item from List I]        4. [Item from List II]
      Select the correct answer using the codes given below.
    - Extract the 4 options labeled (A), (B), (C), (D) with clean option texts (omit the leading "(A)" from the text string).
-   - Identify the correct option key ('A', 'B', 'C', or 'D'). If marked in the paper, extract it; otherwise, solve and provide the authoritative correct key.
+   - Identify the correct option key ('A', 'B', 'C', or 'D') and report HOW you got it:
+     * If the paper prints an answer key (a key column, marked options, or a key section at the end), copy it and set "keySource": "printed", "keyConfidence": "high".
+     * If no key is printed, solve the question yourself, set "keySource": "model_derived", and set "keyConfidence" to "high", "medium" or "low" depending on how certain you are.
+     Never report "printed" for a key you worked out yourself. Accuracy of the label matters more than the answer.
    - Provide a concise, high-yield official explanation justifying the answer.
    - Identify the subject (e.g. "${meta.subject}", "General Studies", "Civil Engineering") and specific topic (e.g. "Assam History", "Soil Mechanics", "Indian Polity").
    - Classify difficulty as "EASY", "MEDIUM", or "HARD".
@@ -131,7 +203,9 @@ Return a strictly valid JSON array of objects with this exact structure:
     "explanation": "Why this option is correct...",
     "subject": "${meta.subject}",
     "topic": "Topic Name",
-    "difficulty": "MEDIUM"
+    "difficulty": "MEDIUM",
+    "keySource": "printed",
+    "keyConfidence": "high"
   }
 ]
 
@@ -146,6 +220,18 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
 
   if (!responseText) {
     throw new Error('Gemini OCR returned an empty response. Verify your API key or document format.');
+  }
+
+  // A long paper runs out of output budget mid-JSON. The partial payload then
+  // fails to parse with a misleading "unexpected end of JSON" error, so the
+  // truncation is detected and reported as what it actually is.
+  const diagnostics = getLastAiDiagnostics();
+  if (diagnostics.finishReason === 'MAX_TOKENS') {
+    throw new Error(
+      'The paper is too long to extract in one pass — the response was cut off before the ' +
+        'question list finished. Split the paper into smaller parts (or use `npm run pyq:import` ' +
+        'for the CLI importer, which chunks and validates).'
+    );
   }
 
   onProgress?.('Validating extracted questions and schemas...');
@@ -184,17 +270,30 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
       ? raw.correctOption
       : 'A';
 
+    // The model reports where each key came from. Only a reported "printed"
+    // key earns the official PYQ label; anything else is model-derived, and
+    // under 'auto' a missing label is treated the same conservative way.
+    const { keyPrinted, answerKeySource, keyConfidence } = deriveKeyProvenance(
+      raw.keySource,
+      raw.keyConfidence,
+      meta.keySource
+    );
+
     return {
       id: `pyq-${examSlug}-${timestamp}-q${String(qNum).padStart(3, '0')}`,
       stem: raw.stem || `Question ${qNum}`,
       options: validOptions,
       correctOption: correctKey,
-      explanation: raw.explanation || `Official answer key: (${correctKey}).`,
+      explanation: raw.explanation || (keyPrinted
+        ? `Official answer key: (${correctKey}).`
+        : `Derived answer: (${correctKey}). Verify against the official key.`),
       subject: raw.subject || meta.subject || 'General Studies',
       topic: raw.topic || meta.paperType || meta.examName,
       difficulty: raw.difficulty || 'MEDIUM',
       questionType: raw.questionType || 'CONCEPTUAL',
-      sourceType: 'PYQ',
+      sourceType: keyPrinted ? 'PYQ' : 'AI_GENERATED',
+      answerKeySource,
+      keyConfidence,
       pyqYear: meta.year,
       examId: meta.examId || examSlug,
       questionNumber: qNum

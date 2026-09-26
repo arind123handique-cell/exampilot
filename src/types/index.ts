@@ -140,6 +140,14 @@ export interface MCQQuestion {
    */
   sourceType?: QuestionSourceType;
   /**
+   * Where the answer key came from. 'PRINTED' means the paper itself shows the
+   * key; 'MODEL_DERIVED' means the model solved the question. A model-derived
+   * key is never presented as an official one.
+   */
+  answerKeySource?: 'PRINTED' | 'MODEL_DERIVED';
+  /** How sure the extraction is about the key (printed keys are always high). */
+  keyConfidence?: 'HIGH' | 'MEDIUM' | 'LOW';
+  /**
    * What the student actually has to do. NUMERICAL means the answer must be
    * computed from given data; FORMULA_RECALL means the options are constants or
    * formulas to be remembered; CONCEPTUAL is definitional/statement based.

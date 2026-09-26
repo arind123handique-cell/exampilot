@@ -27,7 +27,8 @@ import {
   Award,
   BarChart2,
   X,
-  ShieldCheck
+  ShieldCheck,
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -37,6 +38,7 @@ import { Badge } from '../components/ui/Badge';
 import { ThemeToggle } from '../components/ui/ThemeToggle';
 import { StatTile } from '../components/ui/StatTile';
 import { EmptyState } from '../components/ui/EmptyState';
+import { StudentPaperSolver } from '../components/student/StudentPaperSolver';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { MOCK_TESTS } from '../data/mockData';
 import {
@@ -101,7 +103,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
   const { user, error: authError, logout, signInWithGoogle, signInWithEmail, signUpWithEmail, clearError } = useAuth();
   const { success: toastSuccess, error: toastError } = useToast();
 
-  const [studentTab, setStudentTab] = useState<'tests' | 'review' | 'profile' | 'analytics'>('tests');
+  const [studentTab, setStudentTab] = useState<'tests' | 'review' | 'profile' | 'analytics' | 'papers'>('tests');
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -1559,7 +1561,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           <button
             onClick={() => setStudentTab('review')}
             className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition ${
-              (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics'
+              (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics' && studentTab !== 'papers'
                 ? 'bg-primary text-white shadow-2xs font-bold'
                 : 'text-muted hover:text-ink'
             }`}
@@ -1595,6 +1597,18 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
           >
             <BarChart2 className="w-3.5 h-3.5" />
             <span>Analytics</span>
+          </button>
+
+          <button
+            onClick={() => { setStudentTab('papers'); setReviewingRecord(null); }}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg transition ${
+              studentTab === 'papers' && !reviewingRecord
+                ? 'bg-primary text-white shadow-2xs font-bold'
+                : 'text-muted hover:text-ink'
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>My Papers</span>
           </button>
         </div>
 
@@ -1637,12 +1651,12 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         <button
           onClick={() => setStudentTab('review')}
           className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
-            (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics'
+            (studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics' && studentTab !== 'papers'
               ? 'text-primary font-bold'
               : 'text-muted hover:text-ink'
           }`}
         >
-          <Award className={`w-5 h-5 ${(studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics' ? 'text-primary' : 'text-muted'}`} />
+          <Award className={`w-5 h-5 ${(studentTab === 'review' || reviewingRecord) && studentTab !== 'profile' && studentTab !== 'analytics' && studentTab !== 'papers' ? 'text-primary' : 'text-muted'}`} />
           <span className="text-[10px] mt-0.5">Review</span>
           {pastRecords.length > 0 && (
             <span className="absolute -top-1 right-2 min-w-4 h-4 px-1 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
@@ -1673,6 +1687,18 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         >
           <BarChart2 className={`w-5 h-5 ${studentTab === 'analytics' && !reviewingRecord ? 'text-primary' : 'text-muted'}`} />
           <span className="text-[10px] mt-0.5">Analytics</span>
+        </button>
+
+        <button
+          onClick={() => { setStudentTab('papers'); setReviewingRecord(null); }}
+          className={`flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-all ${
+            studentTab === 'papers' && !reviewingRecord
+              ? 'text-primary font-bold'
+              : 'text-muted hover:text-ink'
+          }`}
+        >
+          <FileText className={`w-5 h-5 ${studentTab === 'papers' && !reviewingRecord ? 'text-primary' : 'text-muted'}`} />
+          <span className="text-[10px] mt-0.5">My Papers</span>
         </button>
       </nav>
 
@@ -1881,7 +1907,7 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
         )}
 
         {/* ── TAB 2: MOCK TEST REVIEW & RESULTS ── */}
-        {(studentTab === 'review' || (reviewingRecord && studentTab !== 'profile')) && (
+        {(studentTab === 'review' || (reviewingRecord && studentTab !== 'profile' && studentTab !== 'analytics' && studentTab !== 'papers')) && (
           <div className="space-y-6 animate-fadeIn">
             {/* If reviewing a specific record or just submitted exam */}
             {reviewingRecord || currentResult ? (
@@ -2476,6 +2502,11 @@ export const StudentPortal: React.FC<StudentPortalProps> = ({ presetMock }) => {
               </>
             )}
           </div>
+        )}
+
+        {/* ── TAB 5: MY PAPERS — UPLOAD A PAPER, GET ANSWERS, REVIEW LATER ── */}
+        {studentTab === 'papers' && !reviewingRecord && (
+          <StudentPaperSolver userId={user?.uid} />
         )}
       </main>
     </div>

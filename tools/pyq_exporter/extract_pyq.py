@@ -850,8 +850,62 @@ def build_paper_and_mock(meta: dict, sections: list) -> tuple:
     return paper, mock
 
 
+# Filename/meta markers for hand-made or sample papers that live in out/ for
+# pipeline testing. They must never reach generated.ts, which is what students
+# actually get (and what the mock-test engine draws from).
+FIXTURE_MARKERS = ("test-", "-test", "_test", "fixture", "sample", "example", "dummy")
+
+
+def is_fixture_json(json_path: Path, meta: dict) -> bool:
+    """True for test/sample papers that should not be published."""
+    if meta.get("fixture") or meta.get("isTest") or meta.get("testOnly"):
+        return True
+    stem = json_path.stem.lower()
+    return any(marker in stem for marker in FIXTURE_MARKERS)
+
+
+def read_generated_paper_counts() -> dict:
+    """paper id -> question count, as currently published in generated.ts."""
+    if not GENERATED_TS.exists():
+        return {}
+    src = GENERATED_TS.read_text(encoding="utf-8")
+    marker = "GENERATED_PYQ_PAPERS = "
+    if marker not in src:
+        return {}
+    start = src.index(marker) + len(marker)
+    end = src.find("] as unknown as", start)
+    if end == -1:
+        return {}
+    try:
+        arr = json.loads(src[start : end + 1])
+    except Exception:
+        return {}
+    return {p.get("id"): len(p.get("questions") or []) for p in arr if p.get("id")}
+
+
+def report_generated_drift(papers: list) -> None:
+    """
+    Print what a rebuild would add/drop versus what is live today.
+
+    generated.ts is derived from out/, so silent divergence (a source JSON
+    deleted, a hand-edited paper, a fixture promoted) is invisible until
+    someone diffs a 10k-line file. This makes every rebuild state the delta.
+    """
+    old = read_generated_paper_counts()
+    new = {p["id"]: len(p.get("questions") or []) for p in papers if p.get("id")}
+    if not old:
+        return
+    for pid in sorted(set(old) - set(new)):
+        warn(f"  dropping paper {pid} ({old[pid]} question(s)) — no source JSON in out/")
+    for pid in sorted(set(new) - set(old)):
+        log(f"  adding paper {pid} ({new[pid]} question(s))")
+    before, after = sum(old.values()), sum(new.values())
+    if before != after:
+        log(f"  question count: {before} -> {after} ({after - before:+d})")
+
+
 def rebuild_generated_ts(inbox: Path, dry_run: bool = False, math_mode: bool = False) -> tuple:
-    """Regenerates src/data/pyq/generated.ts from every pyq-inbox/out/*.json."""
+    """Regenerates src/data/pyq/generated.ts from every publishable pyq-inbox/out/*.json."""
     out_dir = inbox / "out"
     papers, mocks = [], []
     counter = 0
@@ -863,6 +917,9 @@ def rebuild_generated_ts(inbox: Path, dry_run: bool = False, math_mode: bool = F
             warn(f"skipping {json_path.name}: {exc}")
             continue
         meta = payload.get("meta") or {}
+        if is_fixture_json(json_path, meta):
+            log(f"  skipping {json_path.name}: test fixture (not published to students)")
+            continue
         meta.setdefault("slug", slugify(json_path.stem))
         meta.setdefault("examName", meta.get("examName") or json_path.stem)
         meta.setdefault("year", datetime.now().year)
@@ -897,6 +954,8 @@ export const GENERATED_PYQ_PAPERS = {json.dumps(papers, indent=2, ensure_ascii=F
 
 export const GENERATED_PYQ_MOCK_TESTS = {json.dumps(mocks, indent=2, ensure_ascii=False)} as unknown as MockTest[];
 """
+
+    report_generated_drift(papers)
 
     if dry_run:
         log(f"  (dry run) would write {GENERATED_TS.relative_to(REPO_ROOT)} — {len(papers)} paper(s), {counter} questions")
