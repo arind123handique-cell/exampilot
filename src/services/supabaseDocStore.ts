@@ -13,6 +13,7 @@
  * Requires the `20260926_auth_and_docs.sql` migration to be applied.
  */
 import { supabase, isSupabaseConfigured } from './supabaseClient';
+import { reportFailure } from './appDiagnostics';
 
 const DEFAULT_TIMEOUT_MS = 5000;
 
@@ -43,7 +44,7 @@ function withTimeout<T>(promise: PromiseLike<T>, ms: number, label: string): Pro
 }
 
 function notConfiguredWarning(op: string): void {
-  console.warn(`[SupabaseDocStore] ${op} skipped — Supabase is not configured.`);
+  reportFailure('supabase.docStore', `${op} skipped — Supabase is not configured`, { op, configured: false });
 }
 
 /**
@@ -70,12 +71,12 @@ export async function getCloudDoc<T>(
       `get(${collection}/${docId})`
     );
     if (error) {
-      console.warn(`[SupabaseDocStore] get(${collection}/${docId}) error:`, error.message);
+      reportFailure('supabase.docStore.get', error, { collection, docId });
       return null;
     }
     return (data?.[0]?.data as T) ?? null;
   } catch (err: any) {
-    console.warn(`[SupabaseDocStore] get(${collection}/${docId}) notice:`, err?.message || err);
+    reportFailure('supabase.docStore.get', err, { collection, docId });
     return null;
   }
 }
@@ -110,12 +111,12 @@ export async function setCloudDoc(
       `set(${collection}/${docId})`
     );
     if (error) {
-      console.warn(`[SupabaseDocStore] set(${collection}/${docId}) error:`, error.message);
+      reportFailure('supabase.docStore.set', error, { collection, docId });
       return false;
     }
     return true;
   } catch (err: any) {
-    console.warn(`[SupabaseDocStore] set(${collection}/${docId}) notice:`, err?.message || err);
+    reportFailure('supabase.docStore.set', err, { collection, docId });
     return false;
   }
 }
@@ -146,12 +147,12 @@ export async function setCloudDocs(
       `setMany(${collection})`
     );
     if (error) {
-      console.warn(`[SupabaseDocStore] setMany(${collection}) error:`, error.message);
+      reportFailure('supabase.docStore.setMany', error, { collection, count: docs.length });
       return false;
     }
     return true;
   } catch (err: any) {
-    console.warn(`[SupabaseDocStore] setMany(${collection}) notice:`, err?.message || err);
+    reportFailure('supabase.docStore.setMany', err, { collection, count: docs.length });
     return false;
   }
 }
@@ -173,12 +174,12 @@ export async function deleteCloudDoc(collection: string, docId: string): Promise
       `delete(${collection}/${docId})`
     );
     if (error) {
-      console.warn(`[SupabaseDocStore] delete(${collection}/${docId}) error:`, error.message);
+      reportFailure('supabase.docStore.delete', error, { collection, docId });
       return false;
     }
     return true;
   } catch (err: any) {
-    console.warn(`[SupabaseDocStore] delete(${collection}/${docId}) notice:`, err?.message || err);
+    reportFailure('supabase.docStore.delete', err, { collection, docId });
     return false;
   }
 }
@@ -220,12 +221,12 @@ export async function queryCloudDocs<T>(
       `query(${collection})`
     );
     if (error) {
-      console.warn(`[SupabaseDocStore] query(${collection}) error:`, error.message);
+      reportFailure('supabase.docStore.query', error, { collection, query });
       return [];
     }
     return (data || []).map((row) => row.data as T);
   } catch (err: any) {
-    console.warn(`[SupabaseDocStore] query(${collection}) notice:`, err?.message || err);
+    reportFailure('supabase.docStore.query', err, { collection, query });
     return [];
   }
 }

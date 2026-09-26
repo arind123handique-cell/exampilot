@@ -1,4 +1,4 @@
-# Secrets — .env holds Firebase credentials and the optional Gemini key
+# Secrets — .env holds Supabase keys and the optional Gemini key
 .env
 .env.local
 .env.*.local
@@ -28,5 +28,4 @@ repro-*.png
 !.vscode/extensions.json
 .idea/
 
-.vercel
 .env*

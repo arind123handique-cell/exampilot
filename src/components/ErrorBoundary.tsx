@@ -1,4 +1,5 @@
 import React from 'react';
+import { reportFailure } from '../services/appDiagnostics';
 
 interface Props {
   children: React.ReactNode;
@@ -18,7 +19,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[ErrorBoundary]', error, info);
+    // A crash unmounts the whole tree, so this is the only place it can be
+    // recorded — the Diagnostics panel itself is gone at this point.
+    reportFailure('react.ErrorBoundary', error, {
+      componentStack: (info.componentStack || '').split('\n').slice(0, 12).join(' | ')
+    });
     this.setState({ info: info.componentStack || undefined });
   }
 
