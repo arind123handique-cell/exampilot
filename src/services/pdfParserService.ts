@@ -236,17 +236,50 @@ IMPORTANT: Do not output any conversational filler or markdown fences outside th
 
   onProgress?.('Validating extracted questions and schemas...');
 
-  let rawList: ExtractedQuestionRaw[];
+  let parsed: any;
   try {
-    rawList = cleanAndParseJson(responseText);
+    parsed = cleanAndParseJson(responseText);
   } catch (err: any) {
-    console.error('Failed to parse Gemini response as JSON:', responseText);
+    console.error('[pdfParser] response was not JSON:', responseText?.slice(0, 800));
     throw new Error(`Failed to parse extracted questions JSON: ${err.message || err}`);
   }
 
-  if (!Array.isArray(rawList) || rawList.length === 0) {
-    throw new Error('No valid questions could be extracted from the document. Ensure the PDF contains legible MCQ text.');
+  // Three different things land here and they need different advice:
+  //   - a non-empty array        → fine
+  //   - an empty array           → the model read the file and saw no MCQs
+  //   - a non-array              → the model answered in a shape we don't read
+  // The previous single message ("ensure the PDF contains legible MCQ text")
+  // asserted a cause it had not checked, and logged nothing, so a schema
+  // mismatch looked identical to a genuinely non-question document.
+  if (!Array.isArray(parsed)) {
+    console.error(
+      '[pdfParser] expected a JSON array, got:',
+      typeof parsed,
+      'keys=' + (parsed && typeof parsed === 'object' ? Object.keys(parsed).join(',') : 'n/a'),
+      '| response head:',
+      responseText?.slice(0, 800)
+    );
+    const shape =
+      parsed && typeof parsed === 'object'
+        ? `The model replied with an object with keys: ${Object.keys(parsed).join(', ') || '(none)'}.`
+        : `The model replied with ${typeof parsed} instead of a list of questions.`;
+    throw new Error(
+      `${shape} This is a response-format problem, not a legibility one — re-running usually helps. ` +
+        'If it persists the prompt and the parser need to be brought back in line.'
+    );
   }
+
+  if (parsed.length === 0) {
+    console.warn('[pdfParser] model returned an empty question list. Response head:', responseText?.slice(0, 800));
+    throw new Error(
+      'The model read the file but found no multiple-choice questions in it. ' +
+        'Check that this is the question paper itself — exam notifications, syllabus documents and ' +
+        'answer keys (which often hold only a letter column) will all come back empty. ' +
+        'For a scanned paper, `npm run pyq:import` handles it better than this in-app path.'
+    );
+  }
+
+  const rawList = parsed as ExtractedQuestionRaw[];
 
   // Map to full MCQQuestion objects
   const timestamp = Date.now();
