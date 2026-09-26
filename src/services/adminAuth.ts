@@ -6,10 +6,10 @@
  * admin passcode to every visitor who opened devtools. This module compares a
  * SHA-256 digest instead, so the plaintext never appears in the build.
  *
- * This is still only a UX gate. Real authorization is enforced server-side in
- * `firestore.rules` through the `admin` custom claim: every privileged write
- * (question bank, published papers, mock tests) requires that claim. A client-side
- * passcode can always be bypassed, so it must never be the only line of defence.
+ * This is still only a UX gate. A client-side passcode can always be bypassed, so
+ * it must never be the only line of defence. The real boundary is Supabase RLS
+ * (see `supabase/migrations/`), which is the only place a write can actually be
+ * refused.
  *
  * Setting up the hash:
  *   node -e "console.log(require('crypto').createHash('sha256').update('YOUR_PASSCODE').digest('hex'))"
@@ -39,7 +39,7 @@ async function sha256Hex(value: string): Promise<string | null> {
 }
 
 export function isAdminPasscodeConfigured(): boolean {
-  return true;
+  return Boolean(envValue(PASSCODE_HASH_VAR) || envValue(PASSCODE_PLAIN_VAR));
 }
 
 /**
@@ -50,13 +50,13 @@ export function isAdminPasscodeConfigured(): boolean {
  */
 export async function verifyAdminPasscode(entered: string): Promise<AdminGateResult> {
   const expectedHash = envValue(PASSCODE_HASH_VAR).toLowerCase();
-  const plain = envValue(PASSCODE_PLAIN_VAR) || 'admin2026';
+  const plain = envValue(PASSCODE_PLAIN_VAR);
 
   if (!expectedHash && !plain) {
     return {
       ok: false,
       error:
-        'Admin portal is not configured. Set VITE_ADMIN_PASSCODE in your .env file (see .env.example) and rebuild.'
+        'Admin portal is not configured. Set VITE_ADMIN_PASSCODE_SHA256 in your .env file (see .env.example) and rebuild.'
     };
   }
 

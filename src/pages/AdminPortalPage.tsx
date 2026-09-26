@@ -81,8 +81,7 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
     setPasscodeError(null);
     try {
       // Compared against a SHA-256 digest so the passcode itself is never inlined
-      // into the bundle. This is a UX gate only — firestore.rules enforces the
-      // `admin` custom claim for every privileged write.
+      // into the bundle. This is a UX gate only — the real boundary is Supabase RLS.
       const result = await verifyAdminPasscode(adminPasscode);
       if (result.ok) {
         setIsAdminUnlocked(true);
@@ -158,9 +157,11 @@ export const AdminPortalPage: React.FC<AdminPortalPageProps> = ({
               </Button>
 
               <p className="text-[10px] leading-relaxed text-muted-faint">
-                This passcode is a local UX gate, not access control. In cloud mode the
-                question bank, published papers and mock tests are write-protected in
-                <code> firestore.rules</code> behind an <code>admin</code> custom claim.
+                This passcode is a local UX gate, not access control. The only real
+                boundary is Supabase row-level security on the
+                <code> questions</code>, <code>published_papers</code> and
+                <code> custom_mock_tests</code> tables — see
+                <code> supabase/migrations/</code>.
               </p>
             </form>
 

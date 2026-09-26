@@ -209,7 +209,7 @@ export const AdminApp: React.FC = () => {
                   </button>
                 </div>
                 <p className="text-[11px] text-muted-faint mt-1.5">
-                  Default local environment fallback: <code className="font-mono text-muted">admin2026</code>
+                  No default passcode. Set <code className="font-mono text-muted">VITE_ADMIN_PASSCODE_SHA256</code> to unlock.
                 </p>
               </div>
 

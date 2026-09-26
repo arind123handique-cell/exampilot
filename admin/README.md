@@ -41,5 +41,15 @@ npm run preview:admin
 - **Custom Domain**: `admin.exampilot.ai` (or your chosen admin subdomain)
 - **Environment Variables**:
   - `VITE_STUDENT_URL`: `https://exampilot.ai`
-  - `VITE_ADMIN_PASSCODE`: `ExamPilot@Admin2026!`
+  - `VITE_ADMIN_PASSCODE_SHA256`: SHA-256 digest of the admin passcode (see below)
   - Plus `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from `.env`
+
+Generate the digest locally — never commit the passcode itself:
+
+```bash
+node -e "console.log(require('crypto').createHash('sha256').update('YOUR_PASSCODE').digest('hex'))"
+```
+
+If `VITE_ADMIN_PASSCODE_SHA256` is unset the admin portal is locked and says so.
+There is no default passcode. `VITE_ADMIN_PASSCODE` (plaintext) still works as a
+deprecated fallback, but it is inlined into the shipped bundle — prefer the hash.

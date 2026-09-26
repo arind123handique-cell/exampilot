@@ -352,7 +352,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
               Environment Passcode Configuration
             </div>
             <p className="text-[11px]">
-              The admin passcode is evaluated against <code className="px-1 py-0.5 bg-card rounded border border-line">VITE_ADMIN_PASSCODE_SHA256</code> or <code className="px-1 py-0.5 bg-card rounded border border-line">VITE_ADMIN_PASSCODE</code>. If unconfigured in local development, it defaults to <code className="px-1 py-0.5 bg-card rounded border border-line">admin2026</code>.
+              The admin passcode is evaluated against <code className="px-1 py-0.5 bg-card rounded border border-line">VITE_ADMIN_PASSCODE_SHA256</code> or <code className="px-1 py-0.5 bg-card rounded border border-line">VITE_ADMIN_PASSCODE</code>. If neither is set the admin portal stays locked — there is no default passcode.
             </p>
           </div>
         </Card>
